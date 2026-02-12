@@ -5,6 +5,77 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+/** Parse CSV handling quoted fields with newlines/semicolons */
+function parseCSV(text: string): string[][] {
+  const rows: string[][] = [];
+  let current: string[] = [];
+  let field = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') {
+          field += '"';
+          i++;
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        field += ch;
+      }
+    } else {
+      if (ch === '"') {
+        inQuotes = true;
+      } else if (ch === ';') {
+        current.push(field.trim());
+        field = "";
+      } else if (ch === '\n' || ch === '\r') {
+        if (ch === '\r' && text[i + 1] === '\n') i++;
+        current.push(field.trim());
+        field = "";
+        if (current.some(c => c !== "")) rows.push(current);
+        current = [];
+      } else {
+        field += ch;
+      }
+    }
+  }
+  // last field/row
+  current.push(field.trim());
+  if (current.some(c => c !== "")) rows.push(current);
+  return rows;
+}
+
+function parseCoords(coordStr: string): { lat: number | null; lng: number | null } {
+  if (!coordStr) return { lat: null, lng: null };
+  const cleaned = coordStr.replace(/°/g, "").replace(/\s/g, "");
+  // Try splitting by comma - but coords are "lat,lng" or "lat, lng"  
+  const parts = cleaned.split(",");
+  if (parts.length >= 2) {
+    const lat = parseFloat(parts[0]);
+    const lng = parseFloat(parts[1]);
+    if (!isNaN(lat) && !isNaN(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) {
+      return { lat, lng };
+    }
+  }
+  return { lat: null, lng: null };
+}
+
+const VALID_UG_PREFIXES = ["SPRF/", "SEDE NACIONAL", "UNIPRF"];
+
+function isValidUnidadeGestora(ug: string): boolean {
+  return VALID_UG_PREFIXES.some(p => ug.startsWith(p));
+}
+
+const ufMap: Record<string, string> = {
+  AC: "AC", AL: "AL", AM: "AM", AP: "AP", BA: "BA", CE: "CE", DF: "DF",
+  ES: "ES", GO: "GO", MA: "MA", MG: "MG", MS: "MS", MT: "MT", PA: "PA",
+  PB: "PB", PE: "PE", PI: "PI", PR: "PR", RJ: "RJ", RN: "RN", RO: "RO",
+  RR: "RR", RS: "RS", SC: "SC", SE: "SE", SP: "SP", TO: "TO",
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -14,8 +85,7 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "Não autorizado" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -24,224 +94,133 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Verify user is gestor_nacional
     const token = authHeader.replace("Bearer ", "");
     const { data: { user }, error: userError } = await supabase.auth.getUser(token);
     if (userError || !user) {
       return new Response(JSON.stringify({ error: "Não autorizado" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const { data: csvText } = await req.json();
     if (!csvText) {
       return new Response(JSON.stringify({ error: "CSV vazio" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Parse CSV (semicolon-separated)
-    const lines = csvText.split("\n").filter((l: string) => l.trim() && !l.startsWith("\uFEFF") || l.includes(";"));
-    // Remove BOM and header
-    const dataLines = lines.slice(1).filter((l: string) => {
-      const parts = l.split(";");
-      return parts[0] && parts[0].trim() !== "";
-    });
+    // Remove BOM
+    const cleanText = csvText.replace(/^\uFEFF/, "");
+    const allRows = parseCSV(cleanText);
+    
+    // Skip header row
+    const dataRows = allRows.slice(1).filter(row => row.length >= 4 && row[0].trim() !== "");
 
-    // Extract unique regionais
+    // ---- Extract regionais ----
     const regionalMap = new Map<string, { nome: string; sigla: string; uf: string }>();
-    const ufMap: Record<string, string> = {
-      AC: "AC", AL: "AL", AM: "AM", AP: "AP", BA: "BA", CE: "CE", DF: "DF",
-      ES: "ES", GO: "GO", MA: "MA", MG: "MG", MS: "MS", MT: "MT", PA: "PA",
-      PB: "PB", PE: "PE", PI: "PI", PR: "PR", RJ: "RJ", RN: "RN", RO: "RO",
-      RR: "RR", RS: "RS", SC: "SC", SE: "SE", SP: "SP", TO: "TO",
-    };
 
-    for (const line of dataLines) {
-      const parts = line.split(";");
-      const unidadeGestora = parts[1]?.trim();
-      const tipo = parts[2]?.trim();
-      const nome = parts[3]?.trim();
+    for (const row of dataRows) {
+      const ug = row[1]?.trim();
+      const tipo = row[2]?.trim();
+      const nome = row[3]?.trim();
+      if (!ug || !isValidUnidadeGestora(ug)) continue;
 
-      if (!unidadeGestora) continue;
-
-      if (unidadeGestora.startsWith("SPRF/")) {
-        const uf = unidadeGestora.replace("SPRF/", "");
-        if (!regionalMap.has(unidadeGestora)) {
-          regionalMap.set(unidadeGestora, {
-            nome: `Superintendência - ${uf}`,
-            sigla: `SPRF/${uf}`,
-            uf: ufMap[uf] || uf,
+      if (ug.startsWith("SPRF/")) {
+        const ufCode = ug.replace("SPRF/", "");
+        if (!regionalMap.has(ug)) {
+          regionalMap.set(ug, {
+            nome: `Superintendência - ${ufCode}`,
+            sigla: ug,
+            uf: ufMap[ufCode] || ufCode,
           });
         }
         if (tipo === "SEDE REGIONAL" && nome) {
-          const entry = regionalMap.get(unidadeGestora)!;
-          entry.nome = nome;
+          regionalMap.get(ug)!.nome = nome;
         }
-      } else if (!regionalMap.has(unidadeGestora)) {
-        // SEDE NACIONAL, UNIPRF, etc.
-        regionalMap.set(unidadeGestora, {
-          nome: unidadeGestora,
-          sigla: unidadeGestora,
-          uf: "DF",
-        });
+      } else if (!regionalMap.has(ug)) {
+        regionalMap.set(ug, { nome: ug, sigla: ug, uf: "DF" });
       }
     }
 
-    // Insert regionais
-    const regionaisToInsert = Array.from(regionalMap.values());
-    const { data: insertedRegionais, error: regError } = await supabase
-      .from("regionais")
-      .upsert(regionaisToInsert, { onConflict: "sigla" })
-      .select();
-
-    if (regError) {
-      // If upsert fails (no unique constraint on sigla), try insert
-      // First clear existing
-      await supabase.from("regionais").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-      const { data: freshRegionais, error: freshError } = await supabase
-        .from("regionais")
-        .insert(regionaisToInsert)
-        .select();
-      if (freshError) throw freshError;
-      var regionaisData = freshRegionais;
-    } else {
-      var regionaisData = insertedRegionais;
-    }
-
-    // Build sigla->id map
-    const siglaToRegionalId = new Map<string, string>();
-    for (const r of regionaisData!) {
-      siglaToRegionalId.set(r.sigla, r.id);
-    }
-
-    // Parse delegacias and UOPs
-    type DelRecord = { nome: string; regional_id: string; municipio: string | null };
-    type UopRecord = { nome: string; delegacia_id: string; endereco: string | null; latitude: number | null; longitude: number | null };
-
-    const delegacias: DelRecord[] = [];
-    const uopsByDel: Map<number, UopRecord[]> = new Map();
-    let currentDelIndex = -1;
-    let currentRegionalId = "";
-
-    // Also track "other" types as UOPs under a default delegacia per regional
-    const otherUnitsByRegional = new Map<string, { nome: string; endereco: string | null; latitude: number | null; longitude: number | null }[]>();
-
-    for (const line of dataLines) {
-      const parts = line.split(";");
-      const unidadeGestora = parts[1]?.trim();
-      const tipo = parts[2]?.trim();
-      const nome = parts[3]?.trim();
-      const endereco = parts[4]?.trim() || null;
-      const coordStr = parts[5]?.trim() || "";
-
-      if (!unidadeGestora || !tipo || !nome) continue;
-
-      let lat: number | null = null;
-      let lng: number | null = null;
-      if (coordStr) {
-        const cleaned = coordStr.replace(/°/g, "").replace(/\s/g, "");
-        const coordParts = cleaned.split(",");
-        if (coordParts.length >= 2) {
-          const parsedLat = parseFloat(coordParts[0]);
-          const parsedLng = parseFloat(coordParts[1]);
-          if (!isNaN(parsedLat) && !isNaN(parsedLng)) {
-            lat = parsedLat;
-            lng = parsedLng;
-          }
-        }
-      }
-
-      const regionalSigla = unidadeGestora.startsWith("SPRF/") ? unidadeGestora : unidadeGestora;
-      const regId = siglaToRegionalId.get(regionalSigla);
-      if (!regId) continue;
-
-      if (tipo === "DEL") {
-        currentDelIndex = delegacias.length;
-        currentRegionalId = regId;
-        delegacias.push({
-          nome: nome.trim(),
-          regional_id: regId,
-          municipio: nome.trim(),
-        });
-        uopsByDel.set(currentDelIndex, []);
-      } else if (tipo === "UOP") {
-        if (currentDelIndex >= 0 && delegacias[currentDelIndex]?.regional_id === regId) {
-          uopsByDel.get(currentDelIndex)!.push({
-            nome: nome.trim(),
-            delegacia_id: "", // will be filled after insert
-            endereco,
-            latitude: lat,
-            longitude: lng,
-          });
-        }
-      } else if (tipo === "SEDE REGIONAL") {
-        // Create a default delegacia "Sede" for this regional
-        currentDelIndex = delegacias.length;
-        currentRegionalId = regId;
-        delegacias.push({
-          nome: "Sede - " + nome.trim(),
-          regional_id: regId,
-          municipio: null,
-        });
-        uopsByDel.set(currentDelIndex, []);
-      }
-    }
-
-    // Clear existing delegacias and uops
+    // ---- Clear & insert regionais ----
     await supabase.from("equipamentos").delete().neq("id", "00000000-0000-0000-0000-000000000000");
     await supabase.from("uops").delete().neq("id", "00000000-0000-0000-0000-000000000000");
     await supabase.from("delegacias").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    await supabase.from("regionais").delete().neq("id", "00000000-0000-0000-0000-000000000000");
 
-    // Insert delegacias in batches
-    let totalDels = 0;
-    let totalUops = 0;
+    const regionaisToInsert = Array.from(regionalMap.values());
+    const { data: regionaisData, error: regError } = await supabase
+      .from("regionais").insert(regionaisToInsert).select();
+    if (regError) throw regError;
+
+    const siglaToId = new Map<string, string>();
+    for (const r of regionaisData!) siglaToId.set(r.sigla, r.id);
+
+    // ---- Parse delegacias & UOPs ----
+    type DelRec = { nome: string; regional_id: string; municipio: string | null };
+    type UopRec = { nome: string; delegacia_id: string; endereco: string | null; latitude: number | null; longitude: number | null };
+
+    const delegacias: DelRec[] = [];
+    const uopsByDel = new Map<number, UopRec[]>();
+    let currentDelIdx = -1;
+    let currentRegId = "";
+
+    for (const row of dataRows) {
+      const ug = row[1]?.trim();
+      const tipo = row[2]?.trim();
+      const nome = row[3]?.trim();
+      const endereco = row[4]?.trim() || null;
+      const coordStr = row[5]?.trim() || "";
+
+      if (!ug || !tipo || !nome || !isValidUnidadeGestora(ug)) continue;
+
+      const regId = siglaToId.get(ug);
+      if (!regId) continue;
+
+      const { lat, lng } = parseCoords(coordStr);
+
+      if (tipo === "DEL") {
+        currentDelIdx = delegacias.length;
+        currentRegId = regId;
+        delegacias.push({ nome: nome, regional_id: regId, municipio: nome });
+        uopsByDel.set(currentDelIdx, []);
+      } else if (tipo === "UOP") {
+        if (currentDelIdx >= 0 && delegacias[currentDelIdx]?.regional_id === regId) {
+          uopsByDel.get(currentDelIdx)!.push({
+            nome, delegacia_id: "", endereco, latitude: lat, longitude: lng,
+          });
+        }
+      } else if (tipo === "SEDE REGIONAL") {
+        currentDelIdx = delegacias.length;
+        currentRegId = regId;
+        delegacias.push({ nome: "Sede - " + nome, regional_id: regId, municipio: null });
+        uopsByDel.set(currentDelIdx, []);
+      }
+      // Other types (HANGAR, CANIL, OUTRO, etc.) are ignored for hierarchy
+    }
+
+    // ---- Insert delegacias & UOPs in batches ----
+    let totalDels = 0, totalUops = 0;
     const BATCH = 50;
 
     for (let i = 0; i < delegacias.length; i += BATCH) {
       const batch = delegacias.slice(i, i + BATCH);
-      const { data: insertedDels, error: delError } = await supabase
-        .from("delegacias")
-        .insert(batch)
-        .select();
-      if (delError) {
-        console.error("Del insert error:", delError);
-        continue;
-      }
-      totalDels += insertedDels!.length;
+      const { data: ins, error: dErr } = await supabase.from("delegacias").insert(batch).select();
+      if (dErr) { console.error("Del error:", dErr); continue; }
+      totalDels += ins!.length;
 
-      // Insert UOPs for each delegacia in this batch
-      for (let j = 0; j < insertedDels!.length; j++) {
-        const delIdx = i + j;
-        const uops = uopsByDel.get(delIdx) || [];
-        if (uops.length === 0) continue;
-
-        const uopsWithDelId = uops.map((u) => ({
-          ...u,
-          delegacia_id: insertedDels![j].id,
-        }));
-
-        const { data: insertedUops, error: uopError } = await supabase
-          .from("uops")
-          .insert(uopsWithDelId)
-          .select();
-        if (uopError) {
-          console.error("UOP insert error:", uopError);
-          continue;
-        }
-        totalUops += insertedUops!.length;
+      for (let j = 0; j < ins!.length; j++) {
+        const uops = uopsByDel.get(i + j) || [];
+        if (!uops.length) continue;
+        const withId = uops.map(u => ({ ...u, delegacia_id: ins![j].id }));
+        const { data: uIns, error: uErr } = await supabase.from("uops").insert(withId).select();
+        if (uErr) { console.error("UOP error:", uErr); continue; }
+        totalUops += uIns!.length;
       }
     }
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        regionais: regionaisData!.length,
-        delegacias: totalDels,
-        uops: totalUops,
-      }),
+      JSON.stringify({ success: true, regionais: regionaisData!.length, delegacias: totalDels, uops: totalUops }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
