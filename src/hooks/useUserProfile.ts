@@ -15,7 +15,18 @@ export function useUserProfile() {
         .eq("user_id", user.id)
         .maybeSingle();
       if (error) throw error;
-      return data;
+
+      // Fetch all regionais for this user
+      const { data: userRegionais } = await supabase
+        .from("user_regionais" as any)
+        .select("regional_id, regionais:regional_id(id, nome, sigla)")
+        .eq("user_id", user.id);
+
+      const regionais = (userRegionais || [])
+        .map((ur: any) => ur.regionais)
+        .filter(Boolean);
+
+      return { ...data, regionais };
     },
     enabled: !!user,
   });
