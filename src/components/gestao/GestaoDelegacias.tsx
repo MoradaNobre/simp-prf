@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -35,14 +36,13 @@ export default function GestaoDelegacias() {
   const [isNew, setIsNew] = useState(false);
   const [form, setForm] = useState({ nome: "", municipio: "", regional_id: "" });
   const [deleteConfirm, setDeleteConfirm] = useState<Delegacia | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
 
   const { data: delegacias, isLoading } = useQuery({
     queryKey: ["admin-delegacias"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("delegacias")
-        .select("*, regional:regionais(sigla)")
-        .order("nome");
+      const { data, error } = await supabase.from("delegacias").select("*, regional:regionais(sigla)").order("nome");
       if (error) throw error;
       return data as Delegacia[];
     },
@@ -68,38 +68,27 @@ export default function GestaoDelegacias() {
   });
 
   const deleteMut = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("delegacias").delete().eq("id", id);
+    mutationFn: async (ids: string[]) => {
+      const { error } = await supabase.from("delegacias").delete().in("id", ids);
       if (error) throw error;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-delegacias"] });
       qc.invalidateQueries({ queryKey: ["delegacias"] });
-      toast.success("Delegacia excluída!");
+      toast.success("Excluído com sucesso!");
       setDeleteConfirm(null);
+      setBulkDeleteConfirm(false);
+      setSelected(new Set());
     },
     onError: (err: any) => toast.error("Erro: " + err.message),
   });
 
-  const openNew = () => {
-    setIsNew(true);
-    setForm({ nome: "", municipio: "", regional_id: "" });
-    setEditItem({} as Delegacia);
-  };
-
-  const openEdit = (d: Delegacia) => {
-    setIsNew(false);
-    setForm({ nome: d.nome, municipio: d.municipio || "", regional_id: d.regional_id });
-    setEditItem(d);
-  };
-
+  const openNew = () => { setIsNew(true); setForm({ nome: "", municipio: "", regional_id: "" }); setEditItem({} as Delegacia); };
+  const openEdit = (d: Delegacia) => { setIsNew(false); setForm({ nome: d.nome, municipio: d.municipio || "", regional_id: d.regional_id }); setEditItem(d); };
   const closeDialog = () => { setEditItem(null); setIsNew(false); };
 
   const handleSave = () => {
-    if (!form.nome || !form.regional_id) {
-      toast.error("Preencha nome e regional.");
-      return;
-    }
+    if (!form.nome || !form.regional_id) { toast.error("Preencha nome e regional."); return; }
     upsert.mutate({ id: isNew ? undefined : editItem?.id, nome: form.nome, municipio: form.municipio || null, regional_id: form.regional_id });
   };
 
@@ -108,6 +97,17 @@ export default function GestaoDelegacias() {
     const matchRegional = filterRegional === "all" || d.regional_id === filterRegional;
     return matchSearch && matchRegional;
   });
+
+  const toggleSelect = (id: string) => {
+    const next = new Set(selected);
+    next.has(id) ? next.delete(id) : next.add(id);
+    setSelected(next);
+  };
+
+  const toggleAll = () => {
+    if (selected.size === filtered.length) setSelected(new Set());
+    else setSelected(new Set(filtered.map((d) => d.id)));
+  };
 
   return (
     <div className="space-y-4">
@@ -125,21 +125,25 @@ export default function GestaoDelegacias() {
             ))}
           </SelectContent>
         </Select>
+        {selected.size > 0 && (
+          <Button variant="destructive" size="sm" onClick={() => setBulkDeleteConfirm(true)}>
+            <Trash2 className="h-4 w-4 mr-1" /> Excluir {selected.size}
+          </Button>
+        )}
         <Button onClick={openNew} size="sm">
           <Plus className="h-4 w-4 mr-1" /> Nova Delegacia
         </Button>
       </div>
 
       {isLoading ? (
-        <div className="flex items-center justify-center py-8">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </div>
+        <div className="flex items-center justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
       ) : !filtered.length ? (
         <div className="text-center py-8 text-muted-foreground text-sm">Nenhuma delegacia encontrada.</div>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-10"><Checkbox checked={filtered.length > 0 && selected.size === filtered.length} onCheckedChange={toggleAll} /></TableHead>
               <TableHead>Nome</TableHead>
               <TableHead>Município</TableHead>
               <TableHead>Regional</TableHead>
@@ -149,6 +153,7 @@ export default function GestaoDelegacias() {
           <TableBody>
             {filtered.map((d) => (
               <TableRow key={d.id}>
+                <TableCell><Checkbox checked={selected.has(d.id)} onCheckedChange={() => toggleSelect(d.id)} /></TableCell>
                 <TableCell className="font-medium">{d.nome}</TableCell>
                 <TableCell className="text-muted-foreground">{d.municipio || "—"}</TableCell>
                 <TableCell className="text-muted-foreground">{d.regional?.sigla || "—"}</TableCell>
@@ -171,14 +176,8 @@ export default function GestaoDelegacias() {
             <DialogDescription>{isNew ? "Preencha os dados" : editItem?.nome}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
-              <Label>Nome</Label>
-              <Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} placeholder="Nome da delegacia" />
-            </div>
-            <div>
-              <Label>Município</Label>
-              <Input value={form.municipio} onChange={(e) => setForm({ ...form, municipio: e.target.value })} placeholder="Município" />
-            </div>
+            <div><Label>Nome</Label><Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} placeholder="Nome da delegacia" /></div>
+            <div><Label>Município</Label><Input value={form.municipio} onChange={(e) => setForm({ ...form, municipio: e.target.value })} placeholder="Município" /></div>
             <div>
               <Label>Regional</Label>
               <Select value={form.regional_id} onValueChange={(v) => setForm({ ...form, regional_id: v })}>
@@ -194,8 +193,7 @@ export default function GestaoDelegacias() {
           <DialogFooter>
             <Button variant="outline" onClick={closeDialog}>Cancelar</Button>
             <Button onClick={handleSave} disabled={upsert.isPending}>
-              {upsert.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Salvar
+              {upsert.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Salvar
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -209,9 +207,23 @@ export default function GestaoDelegacias() {
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteConfirm(null)}>Cancelar</Button>
-            <Button variant="destructive" onClick={() => deleteConfirm && deleteMut.mutate(deleteConfirm.id)} disabled={deleteMut.isPending}>
-              {deleteMut.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Excluir
+            <Button variant="destructive" onClick={() => deleteConfirm && deleteMut.mutate([deleteConfirm.id])} disabled={deleteMut.isPending}>
+              {deleteMut.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Excluir
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={bulkDeleteConfirm} onOpenChange={setBulkDeleteConfirm}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Excluir {selected.size} delegacia(s)</DialogTitle>
+            <DialogDescription>Esta ação não pode ser desfeita.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBulkDeleteConfirm(false)}>Cancelar</Button>
+            <Button variant="destructive" onClick={() => deleteMut.mutate(Array.from(selected))} disabled={deleteMut.isPending}>
+              {deleteMut.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Excluir
             </Button>
           </DialogFooter>
         </DialogContent>

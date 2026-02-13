@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/AppLayout";
 import Dashboard from "@/pages/Dashboard";
-import Ativos from "@/pages/Ativos";
+
 import OrdensServico from "@/pages/OrdensServico";
 import Preventiva from "@/pages/Preventiva";
 import Contratos from "@/pages/Contratos";
@@ -28,7 +28,7 @@ const App = () => (
             <Route path="/" element={<AppLayout />}>
               <Route index element={<Navigate to="/dashboard" replace />} />
               <Route path="dashboard" element={<Dashboard />} />
-              <Route path="ativos" element={<Ativos />} />
+              
               <Route path="ordens" element={<OrdensServico />} />
               <Route path="preventiva" element={<Preventiva />} />
               <Route path="contratos" element={<Contratos />} />

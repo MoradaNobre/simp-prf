@@ -1,6 +1,5 @@
 import {
   LayoutDashboard,
-  Building2,
   ClipboardList,
   CalendarClock,
   FileText,
@@ -25,7 +24,6 @@ import {
 
 const menuItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Ativos", url: "/ativos", icon: Building2 },
   { title: "Ordens de Serviço", url: "/ordens", icon: ClipboardList },
   { title: "Manutenção Preventiva", url: "/preventiva", icon: CalendarClock },
   { title: "Contratos", url: "/contratos", icon: FileText },

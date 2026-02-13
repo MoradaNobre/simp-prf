@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -28,6 +29,8 @@ export default function GestaoRegionais() {
   const [isNew, setIsNew] = useState(false);
   const [form, setForm] = useState({ nome: "", sigla: "", uf: "" });
   const [deleteConfirm, setDeleteConfirm] = useState<Regional | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
 
   const { data: regionais, isLoading } = useQuery({
     queryKey: ["regionais"],
@@ -57,70 +60,72 @@ export default function GestaoRegionais() {
   });
 
   const deleteMut = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("regionais").delete().eq("id", id);
+    mutationFn: async (ids: string[]) => {
+      const { error } = await supabase.from("regionais").delete().in("id", ids);
       if (error) throw error;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["regionais"] });
-      toast.success("Regional excluída!");
+      toast.success("Excluído com sucesso!");
       setDeleteConfirm(null);
+      setBulkDeleteConfirm(false);
+      setSelected(new Set());
     },
     onError: (err: any) => toast.error("Erro: " + err.message),
   });
 
-  const openNew = () => {
-    setIsNew(true);
-    setForm({ nome: "", sigla: "", uf: "" });
-    setEditItem({} as Regional);
-  };
-
-  const openEdit = (r: Regional) => {
-    setIsNew(false);
-    setForm({ nome: r.nome, sigla: r.sigla, uf: r.uf });
-    setEditItem(r);
-  };
-
-  const closeDialog = () => {
-    setEditItem(null);
-    setIsNew(false);
-  };
+  const openNew = () => { setIsNew(true); setForm({ nome: "", sigla: "", uf: "" }); setEditItem({} as Regional); };
+  const openEdit = (r: Regional) => { setIsNew(false); setForm({ nome: r.nome, sigla: r.sigla, uf: r.uf }); setEditItem(r); };
+  const closeDialog = () => { setEditItem(null); setIsNew(false); };
 
   const handleSave = () => {
-    if (!form.nome || !form.sigla || !form.uf) {
-      toast.error("Preencha todos os campos.");
-      return;
-    }
+    if (!form.nome || !form.sigla || !form.uf) { toast.error("Preencha todos os campos."); return; }
     upsert.mutate({ id: isNew ? undefined : editItem?.id, ...form });
   };
 
   const filtered = (regionais || []).filter((r) =>
-    r.nome.toLowerCase().includes(search.toLowerCase()) ||
-    r.sigla.toLowerCase().includes(search.toLowerCase())
+    r.nome.toLowerCase().includes(search.toLowerCase()) || r.sigla.toLowerCase().includes(search.toLowerCase())
   );
+
+  const toggleSelect = (id: string) => {
+    const next = new Set(selected);
+    next.has(id) ? next.delete(id) : next.add(id);
+    setSelected(next);
+  };
+
+  const toggleAll = () => {
+    if (selected.size === filtered.length) setSelected(new Set());
+    else setSelected(new Set(filtered.map((r) => r.id)));
+  };
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Buscar regional..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
+        {selected.size > 0 && (
+          <Button variant="destructive" size="sm" onClick={() => setBulkDeleteConfirm(true)}>
+            <Trash2 className="h-4 w-4 mr-1" /> Excluir {selected.size} selecionado(s)
+          </Button>
+        )}
         <Button onClick={openNew} size="sm">
           <Plus className="h-4 w-4 mr-1" /> Nova Regional
         </Button>
       </div>
 
       {isLoading ? (
-        <div className="flex items-center justify-center py-8">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </div>
+        <div className="flex items-center justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
       ) : !filtered.length ? (
         <div className="text-center py-8 text-muted-foreground text-sm">Nenhuma regional encontrada.</div>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-10">
+                <Checkbox checked={filtered.length > 0 && selected.size === filtered.length} onCheckedChange={toggleAll} />
+              </TableHead>
               <TableHead>Sigla</TableHead>
               <TableHead>Nome</TableHead>
               <TableHead>UF</TableHead>
@@ -130,6 +135,7 @@ export default function GestaoRegionais() {
           <TableBody>
             {filtered.map((r) => (
               <TableRow key={r.id}>
+                <TableCell><Checkbox checked={selected.has(r.id)} onCheckedChange={() => toggleSelect(r.id)} /></TableCell>
                 <TableCell className="font-medium">{r.sigla}</TableCell>
                 <TableCell>{r.nome}</TableCell>
                 <TableCell>{r.uf}</TableCell>
@@ -145,7 +151,6 @@ export default function GestaoRegionais() {
         </Table>
       )}
 
-      {/* Edit/Create Dialog */}
       <Dialog open={!!editItem} onOpenChange={(o) => { if (!o) closeDialog(); }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -153,41 +158,44 @@ export default function GestaoRegionais() {
             <DialogDescription>{isNew ? "Preencha os dados da nova regional" : editItem?.sigla}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
-              <Label>Sigla</Label>
-              <Input value={form.sigla} onChange={(e) => setForm({ ...form, sigla: e.target.value })} placeholder="Ex: SPRF/PE" />
-            </div>
-            <div>
-              <Label>Nome</Label>
-              <Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} placeholder="Nome completo" />
-            </div>
-            <div>
-              <Label>UF</Label>
-              <Input value={form.uf} onChange={(e) => setForm({ ...form, uf: e.target.value.toUpperCase() })} placeholder="Ex: PE" maxLength={2} />
-            </div>
+            <div><Label>Sigla</Label><Input value={form.sigla} onChange={(e) => setForm({ ...form, sigla: e.target.value })} placeholder="Ex: SPRF/PE" /></div>
+            <div><Label>Nome</Label><Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} placeholder="Nome completo" /></div>
+            <div><Label>UF</Label><Input value={form.uf} onChange={(e) => setForm({ ...form, uf: e.target.value.toUpperCase() })} placeholder="Ex: PE" maxLength={2} /></div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={closeDialog}>Cancelar</Button>
             <Button onClick={handleSave} disabled={upsert.isPending}>
-              {upsert.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Salvar
+              {upsert.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Salvar
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirm */}
       <Dialog open={!!deleteConfirm} onOpenChange={(o) => { if (!o) setDeleteConfirm(null); }}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>Excluir Regional</DialogTitle>
-            <DialogDescription>Tem certeza que deseja excluir "{deleteConfirm?.sigla}"? Esta ação não pode ser desfeita.</DialogDescription>
+            <DialogDescription>Tem certeza que deseja excluir "{deleteConfirm?.sigla}"?</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteConfirm(null)}>Cancelar</Button>
-            <Button variant="destructive" onClick={() => deleteConfirm && deleteMut.mutate(deleteConfirm.id)} disabled={deleteMut.isPending}>
-              {deleteMut.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Excluir
+            <Button variant="destructive" onClick={() => deleteConfirm && deleteMut.mutate([deleteConfirm.id])} disabled={deleteMut.isPending}>
+              {deleteMut.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Excluir
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={bulkDeleteConfirm} onOpenChange={setBulkDeleteConfirm}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Excluir {selected.size} regional(is)</DialogTitle>
+            <DialogDescription>Esta ação não pode ser desfeita.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBulkDeleteConfirm(false)}>Cancelar</Button>
+            <Button variant="destructive" onClick={() => deleteMut.mutate(Array.from(selected))} disabled={deleteMut.isPending}>
+              {deleteMut.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Excluir
             </Button>
           </DialogFooter>
         </DialogContent>
