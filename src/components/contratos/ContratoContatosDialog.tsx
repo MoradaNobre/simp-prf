@@ -61,6 +61,7 @@ export function ContratoContatosDialog({ contratoId, empresaNome, open, onOpenCh
           funcao: funcao.trim() || null,
           contrato_id: contratoId,
           role,
+          app_url: window.location.origin,
         },
       });
 
