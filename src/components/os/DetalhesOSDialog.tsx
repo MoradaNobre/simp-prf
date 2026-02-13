@@ -104,6 +104,21 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
 
       await updateOS.mutateAsync(updates);
       toast.success(`Status alterado para ${statusLabels[nextStatus]}`);
+
+      // Notify preposto when advancing to triagem
+      if (nextStatus === "triagem" && selectedContratoId) {
+        try {
+          const appUrl = window.location.origin;
+          await supabase.functions.invoke("notify-preposto", {
+            body: { os_id: os.id, contrato_id: selectedContratoId, app_url: appUrl },
+          });
+          toast.success("Email enviado ao preposto para definir responsável");
+        } catch (emailErr) {
+          console.error("Email notification failed:", emailErr);
+          toast.warning("OS avançada, mas não foi possível notificar o preposto por email");
+        }
+      }
+
       setSelectedResponsavel("");
       onOpenChange(false);
     } catch (err: any) {
