@@ -11,6 +11,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useUpdateOS, useOSCustos, useAddCusto, type OrdemServico } from "@/hooks/useOrdensServico";
+import { useContratos } from "@/hooks/useContratos";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, Camera, DollarSign, User } from "lucide-react";
@@ -50,8 +51,9 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   const [custoTipo, setCustoTipo] = useState("peca");
   const [custoValor, setCustoValor] = useState("");
   const [selectedResponsavel, setSelectedResponsavel] = useState("");
+  const [selectedContratoId, setSelectedContratoId] = useState("");
 
-  // Fetch contrato_contatos if OS has a contrato_id
+  const { data: contratosAll = [] } = useContratos();
   const contratoId = os?.contrato_id;
   const { data: contatos = [] } = useQuery({
     queryKey: ["contrato-contatos", contratoId],
@@ -70,7 +72,8 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   // Reset selected responsavel when OS changes
   useEffect(() => {
     setSelectedResponsavel("");
-  }, [os?.id]);
+    setSelectedContratoId(os?.contrato_id ?? "");
+  }, [os?.id, os?.contrato_id]);
 
   if (!os) return null;
 
@@ -79,9 +82,15 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
 
   const handleAdvanceStatus = async () => {
     if (!nextStatus) return;
+    // Na triagem, exigir contrato vinculado
+    if (nextStatus === "triagem" && !selectedContratoId) {
+      toast.error("Vincule um contrato antes de avançar para Triagem");
+      return;
+    }
     try {
       const updates: any = { id: os.id, status: nextStatus };
       if (nextStatus === "encerrada") updates.data_encerramento = new Date().toISOString();
+      if (nextStatus === "triagem") updates.contrato_id = selectedContratoId;
       
       // Set responsible for this stage
       const field = statusResponsavelField[nextStatus];
@@ -237,11 +246,31 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
             )}
           </div>
 
-          {/* Status transition with responsável selection */}
+          {/* Status transition with contrato & responsável selection */}
           {nextStatus && (
             <>
               <Separator />
               <div className="space-y-3">
+                {/* Vincular contrato na triagem */}
+                {nextStatus === "triagem" && !os.contrato_id && (
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium">Vincular Contrato *</Label>
+                    <Select value={selectedContratoId || "none"} onValueChange={(v) => setSelectedContratoId(v === "none" ? "" : v)}>
+                      <SelectTrigger><SelectValue placeholder="Selecione o contrato" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Nenhum</SelectItem>
+                        {contratosAll.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.numero} — {c.empresa}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">O contrato deve ser vinculado na triagem para controle de saldo.</p>
+                  </div>
+                )}
+
+                {/* Responsável por etapa */}
                 {contratoId && contatos.length > 0 && (
                   <div className="space-y-1.5">
                     <Label className="text-sm">Responsável pela etapa de {statusLabels[nextStatus]}</Label>
