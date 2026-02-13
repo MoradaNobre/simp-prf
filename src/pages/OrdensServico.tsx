@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useOrdensServico, useDeleteOS, type OrdemServico } from "@/hooks/useOrdensServico";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useRegionalFilter } from "@/hooks/useRegionalFilter";
+import { RegionalFilterSelect } from "@/components/RegionalFilterSelect";
 import { NovaOSDialog } from "@/components/os/NovaOSDialog";
 import { EditarOSDialog } from "@/components/os/EditarOSDialog";
 import { DetalhesOSDialog } from "@/components/os/DetalhesOSDialog";
@@ -38,6 +40,7 @@ const prioridadeColors: Record<string, string> = {
 export default function OrdensServico() {
   const { data: role } = useUserRole();
   const canManage = role && role !== "operador";
+  const { isNacional, effectiveRegionalId, selectedRegionalId, setSelectedRegionalId } = useRegionalFilter();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [prioridadeFilter, setPrioridadeFilter] = useState("");
@@ -62,6 +65,7 @@ export default function OrdensServico() {
     status: statusFilter || undefined,
     prioridade: prioridadeFilter || undefined,
     search: search || undefined,
+    regionalId: effectiveRegionalId,
   });
 
   return (
@@ -102,6 +106,9 @@ export default function OrdensServico() {
             ))}
           </SelectContent>
         </Select>
+        {isNacional && (
+          <RegionalFilterSelect value={selectedRegionalId} onChange={setSelectedRegionalId} />
+        )}
       </div>
 
       <Card>

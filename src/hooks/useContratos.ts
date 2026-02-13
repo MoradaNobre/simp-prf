@@ -5,14 +5,20 @@ import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 export type Contrato = Tables<"contratos">;
 export type ContratoContato = Tables<"contrato_contatos">;
 
-export function useContratos() {
+export function useContratos(regionalId?: string | null) {
   return useQuery({
-    queryKey: ["contratos"],
+    queryKey: ["contratos", regionalId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let q = supabase
         .from("contratos")
         .select("*, regionais(nome, sigla)")
         .order("created_at", { ascending: false });
+
+      if (regionalId) {
+        q = q.eq("regional_id", regionalId);
+      }
+
+      const { data, error } = await q;
       if (error) throw error;
       return data;
     },

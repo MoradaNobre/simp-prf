@@ -6,6 +6,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { FileText, Plus, Users, Phone, Pencil, Trash2 } from "lucide-react";
 import { useContratos, useContratosSaldo, useDeleteContrato, type Contrato } from "@/hooks/useContratos";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useRegionalFilter } from "@/hooks/useRegionalFilter";
+import { RegionalFilterSelect } from "@/components/RegionalFilterSelect";
 import { NovoContratoDialog } from "@/components/contratos/NovoContratoDialog";
 import { EditarContratoDialog } from "@/components/contratos/EditarContratoDialog";
 import { ContratoContatosDialog } from "@/components/contratos/ContratoContatosDialog";
@@ -21,7 +23,8 @@ const TIPO_LABELS: Record<string, string> = {
 export default function Contratos() {
   const { data: role } = useUserRole();
   const canManage = role && role !== "operador";
-  const { data: contratos = [], isLoading } = useContratos();
+  const { isNacional, effectiveRegionalId, selectedRegionalId, setSelectedRegionalId } = useRegionalFilter();
+  const { data: contratos = [], isLoading } = useContratos(effectiveRegionalId);
   const { data: saldos = [] } = useContratosSaldo();
   const deleteContrato = useDeleteContrato();
   const { toast } = useToast();
@@ -54,6 +57,12 @@ export default function Contratos() {
           </Button>
         )}
       </div>
+
+      {isNacional && (
+        <div className="flex items-center gap-2">
+          <RegionalFilterSelect value={selectedRegionalId} onChange={setSelectedRegionalId} />
+        </div>
+      )}
 
       <Card>
         <CardHeader>

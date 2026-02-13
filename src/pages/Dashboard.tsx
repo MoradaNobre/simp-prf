@@ -3,32 +3,46 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ClipboardList, AlertTriangle, CheckCircle, Clock, TrendingUp, Building2 } from "lucide-react";
 import { differenceInHours, startOfMonth } from "date-fns";
+import { useRegionalFilter } from "@/hooks/useRegionalFilter";
+import { RegionalFilterSelect } from "@/components/RegionalFilterSelect";
 
-function useDashboardData() {
+function useDashboardData(regionalId?: string | null) {
   return useQuery({
-    queryKey: ["dashboard-stats"],
+    queryKey: ["dashboard-stats", regionalId],
     queryFn: async () => {
-      const [osRes, uopsRes, equipRes] = await Promise.all([
+      // Fetch all base data
+      const [osRes, uopsRes, equipRes, delegaciasRes] = await Promise.all([
         supabase.from("ordens_servico").select("id, status, tipo, prioridade, data_abertura, data_encerramento, uop_id"),
-        supabase.from("uops").select("id, area_m2"),
-        supabase.from("equipamentos").select("id"),
+        supabase.from("uops").select("id, area_m2, delegacia_id"),
+        supabase.from("equipamentos").select("id, uop_id"),
+        regionalId
+          ? supabase.from("delegacias").select("id").eq("regional_id", regionalId)
+          : Promise.resolve({ data: null, error: null }),
       ]);
 
       if (osRes.error) throw osRes.error;
       if (uopsRes.error) throw uopsRes.error;
 
-      const os = osRes.data ?? [];
-      const uops = uopsRes.data ?? [];
-      const mesAtual = startOfMonth(new Date());
+      let uops = uopsRes.data ?? [];
+      let os = osRes.data ?? [];
+      let equips = equipRes.data ?? [];
 
-      // KPIs básicos
+      // Filter by regional if needed
+      if (regionalId && delegaciasRes.data) {
+        const delegaciaIds = new Set(delegaciasRes.data.map(d => d.id));
+        uops = uops.filter(u => delegaciaIds.has(u.delegacia_id));
+        const uopIds = new Set(uops.map(u => u.id));
+        os = os.filter(o => o.uop_id && uopIds.has(o.uop_id));
+        equips = equips.filter(e => uopIds.has((e as any).uop_id));
+      }
+
+      const mesAtual = startOfMonth(new Date());
       const abertas = os.filter((o) => o.status !== "encerrada");
       const urgentes = abertas.filter((o) => o.prioridade === "urgente");
       const concluidasMes = os.filter(
         (o) => o.status === "encerrada" && o.data_encerramento && new Date(o.data_encerramento) >= mesAtual
       );
 
-      // MTTR — média de horas entre abertura e encerramento das OS encerradas
       const encerradas = os.filter((o) => o.status === "encerrada" && o.data_encerramento);
       let mttr = 0;
       if (encerradas.length > 0) {
@@ -38,22 +52,16 @@ function useDashboardData() {
         mttr = totalHoras / encerradas.length;
       }
 
-      // Corretiva vs Preventiva (todas as OS)
       const totalOS = os.length || 1;
       const corretivas = os.filter((o) => o.tipo === "corretiva").length;
       const preventivas = os.filter((o) => o.tipo === "preventiva").length;
       const pctCorretiva = Math.round((corretivas / totalOS) * 100);
       const pctPreventiva = Math.round((preventivas / totalOS) * 100);
 
-      // Disponibilidade: UOPs sem OS aberta / total UOPs
       const uopsComOsAberta = new Set(abertas.map((o) => o.uop_id).filter(Boolean));
       const totalUops = uops.length || 1;
       const disponibilidade = Math.round(((totalUops - uopsComOsAberta.size) / totalUops) * 100 * 10) / 10;
 
-      // Backlog
-      const backlog = abertas.length;
-
-      // Custo por m² — precisaria de os_custos, simplificado por agora
       const areaTotal = uops.reduce((s, u) => s + (u.area_m2 ?? 0), 0);
 
       return {
@@ -64,18 +72,19 @@ function useDashboardData() {
         pctCorretiva,
         pctPreventiva,
         disponibilidade,
-        backlog,
+        backlog: abertas.length,
         totalUops: uops.length,
-        totalEquipamentos: equipRes.data?.length ?? 0,
+        totalEquipamentos: equips.length,
         areaTotal,
       };
     },
-    refetchInterval: 30_000, // atualiza a cada 30s
+    refetchInterval: 30_000,
   });
 }
 
 export default function Dashboard() {
-  const { data, isLoading } = useDashboardData();
+  const { isNacional, effectiveRegionalId, selectedRegionalId, setSelectedRegionalId } = useRegionalFilter();
+  const { data, isLoading } = useDashboardData(effectiveRegionalId);
 
   const stats = [
     { label: "OS Abertas (Backlog)", value: isLoading ? "…" : String(data?.abertas ?? 0), icon: ClipboardList, color: "text-blue-500" },
@@ -100,9 +109,14 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-        <p className="text-muted-foreground">Visão geral da manutenção predial — dados em tempo real</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground">Visão geral da manutenção predial — dados em tempo real</p>
+        </div>
+        {isNacional && (
+          <RegionalFilterSelect value={selectedRegionalId} onChange={setSelectedRegionalId} />
+        )}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

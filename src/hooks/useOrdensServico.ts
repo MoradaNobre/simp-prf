@@ -3,20 +3,21 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
 export type OrdemServico = Tables<"ordens_servico"> & {
-  uops?: { nome: string } | null;
+  uops?: { nome: string; delegacia_id?: string } | null;
 };
 
 export function useOrdensServico(filters?: {
   status?: string;
   prioridade?: string;
   search?: string;
+  regionalId?: string | null;
 }) {
   return useQuery({
     queryKey: ["ordens_servico", filters],
     queryFn: async () => {
       let q = supabase
         .from("ordens_servico")
-        .select("*, uops(nome)")
+        .select("*, uops(nome, delegacia_id)")
         .order("data_abertura", { ascending: false });
 
       if (filters?.status) q = q.eq("status", filters.status as any);
@@ -25,7 +26,25 @@ export function useOrdensServico(filters?: {
 
       const { data, error } = await q;
       if (error) throw error;
-      return data as OrdemServico[];
+
+      let result = data as OrdemServico[];
+
+      // Filter by regional: need to check uop -> delegacia -> regional
+      if (filters?.regionalId) {
+        // Get delegacias for this regional
+        const { data: delegacias } = await supabase
+          .from("delegacias")
+          .select("id")
+          .eq("regional_id", filters.regionalId);
+        
+        const delegaciaIds = new Set((delegacias ?? []).map(d => d.id));
+        result = result.filter(os => {
+          const delegaciaId = (os.uops as any)?.delegacia_id;
+          return delegaciaId && delegaciaIds.has(delegaciaId);
+        });
+      }
+
+      return result;
     },
   });
 }
