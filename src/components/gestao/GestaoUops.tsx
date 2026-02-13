@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -42,14 +43,13 @@ export default function GestaoUops() {
   const formDelegacias = useDelegacias(formRegional || undefined);
   const [form, setForm] = useState({ nome: "", endereco: "", delegacia_id: "" });
   const [deleteConfirm, setDeleteConfirm] = useState<Uop | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
 
   const { data: uops, isLoading } = useQuery({
     queryKey: ["admin-uops"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("uops")
-        .select("*, delegacia:delegacias(nome, regional:regionais(sigla))")
-        .order("nome");
+      const { data, error } = await supabase.from("uops").select("*, delegacia:delegacias(nome, regional:regionais(sigla))").order("nome");
       if (error) throw error;
       return data as Uop[];
     },
@@ -75,40 +75,27 @@ export default function GestaoUops() {
   });
 
   const deleteMut = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("uops").delete().eq("id", id);
+    mutationFn: async (ids: string[]) => {
+      const { error } = await supabase.from("uops").delete().in("id", ids);
       if (error) throw error;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-uops"] });
       qc.invalidateQueries({ queryKey: ["uops"] });
-      toast.success("UOP excluída!");
+      toast.success("Excluído com sucesso!");
       setDeleteConfirm(null);
+      setBulkDeleteConfirm(false);
+      setSelected(new Set());
     },
     onError: (err: any) => toast.error("Erro: " + err.message),
   });
 
-  const openNew = () => {
-    setIsNew(true);
-    setForm({ nome: "", endereco: "", delegacia_id: "" });
-    setFormRegional("");
-    setEditItem({} as Uop);
-  };
-
-  const openEdit = (u: Uop) => {
-    setIsNew(false);
-    setForm({ nome: u.nome, endereco: u.endereco || "", delegacia_id: u.delegacia_id });
-    setFormRegional("");
-    setEditItem(u);
-  };
-
+  const openNew = () => { setIsNew(true); setForm({ nome: "", endereco: "", delegacia_id: "" }); setFormRegional(""); setEditItem({} as Uop); };
+  const openEdit = (u: Uop) => { setIsNew(false); setForm({ nome: u.nome, endereco: u.endereco || "", delegacia_id: u.delegacia_id }); setFormRegional(""); setEditItem(u); };
   const closeDialog = () => { setEditItem(null); setIsNew(false); };
 
   const handleSave = () => {
-    if (!form.nome || !form.delegacia_id) {
-      toast.error("Preencha nome e delegacia.");
-      return;
-    }
+    if (!form.nome || !form.delegacia_id) { toast.error("Preencha nome e delegacia."); return; }
     upsert.mutate({ id: isNew ? undefined : editItem?.id, nome: form.nome, endereco: form.endereco || null, delegacia_id: form.delegacia_id });
   };
 
@@ -117,6 +104,17 @@ export default function GestaoUops() {
     const matchDel = filterDelegacia === "all" || u.delegacia_id === filterDelegacia;
     return matchSearch && matchDel;
   });
+
+  const toggleSelect = (id: string) => {
+    const next = new Set(selected);
+    next.has(id) ? next.delete(id) : next.add(id);
+    setSelected(next);
+  };
+
+  const toggleAll = () => {
+    if (selected.size === filtered.length) setSelected(new Set());
+    else setSelected(new Set(filtered.map((u) => u.id)));
+  };
 
   return (
     <div className="space-y-4">
@@ -143,21 +141,25 @@ export default function GestaoUops() {
             ))}
           </SelectContent>
         </Select>
+        {selected.size > 0 && (
+          <Button variant="destructive" size="sm" onClick={() => setBulkDeleteConfirm(true)}>
+            <Trash2 className="h-4 w-4 mr-1" /> Excluir {selected.size}
+          </Button>
+        )}
         <Button onClick={openNew} size="sm">
           <Plus className="h-4 w-4 mr-1" /> Nova UOP
         </Button>
       </div>
 
       {isLoading ? (
-        <div className="flex items-center justify-center py-8">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </div>
+        <div className="flex items-center justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
       ) : !filtered.length ? (
         <div className="text-center py-8 text-muted-foreground text-sm">Nenhuma UOP encontrada.</div>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-10"><Checkbox checked={filtered.length > 0 && selected.size === filtered.length} onCheckedChange={toggleAll} /></TableHead>
               <TableHead>Nome</TableHead>
               <TableHead>Endereço</TableHead>
               <TableHead>Delegacia</TableHead>
@@ -168,6 +170,7 @@ export default function GestaoUops() {
           <TableBody>
             {filtered.map((u) => (
               <TableRow key={u.id}>
+                <TableCell><Checkbox checked={selected.has(u.id)} onCheckedChange={() => toggleSelect(u.id)} /></TableCell>
                 <TableCell className="font-medium">{u.nome}</TableCell>
                 <TableCell className="text-muted-foreground max-w-48 truncate">{u.endereco || "—"}</TableCell>
                 <TableCell className="text-muted-foreground">{u.delegacia?.nome || "—"}</TableCell>
@@ -191,14 +194,8 @@ export default function GestaoUops() {
             <DialogDescription>{isNew ? "Preencha os dados" : editItem?.nome}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
-              <Label>Nome</Label>
-              <Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} placeholder="Nome da UOP" />
-            </div>
-            <div>
-              <Label>Endereço</Label>
-              <Input value={form.endereco} onChange={(e) => setForm({ ...form, endereco: e.target.value })} placeholder="Endereço" />
-            </div>
+            <div><Label>Nome</Label><Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} placeholder="Nome da UOP" /></div>
+            <div><Label>Endereço</Label><Input value={form.endereco} onChange={(e) => setForm({ ...form, endereco: e.target.value })} placeholder="Endereço" /></div>
             <div>
               <Label>Regional (filtro)</Label>
               <Select value={formRegional} onValueChange={(v) => { setFormRegional(v); setForm({ ...form, delegacia_id: "" }); }}>
@@ -225,8 +222,7 @@ export default function GestaoUops() {
           <DialogFooter>
             <Button variant="outline" onClick={closeDialog}>Cancelar</Button>
             <Button onClick={handleSave} disabled={upsert.isPending}>
-              {upsert.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Salvar
+              {upsert.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Salvar
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -240,9 +236,23 @@ export default function GestaoUops() {
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteConfirm(null)}>Cancelar</Button>
-            <Button variant="destructive" onClick={() => deleteConfirm && deleteMut.mutate(deleteConfirm.id)} disabled={deleteMut.isPending}>
-              {deleteMut.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Excluir
+            <Button variant="destructive" onClick={() => deleteConfirm && deleteMut.mutate([deleteConfirm.id])} disabled={deleteMut.isPending}>
+              {deleteMut.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Excluir
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={bulkDeleteConfirm} onOpenChange={setBulkDeleteConfirm}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Excluir {selected.size} UOP(s)</DialogTitle>
+            <DialogDescription>Esta ação não pode ser desfeita.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBulkDeleteConfirm(false)}>Cancelar</Button>
+            <Button variant="destructive" onClick={() => deleteMut.mutate(Array.from(selected))} disabled={deleteMut.isPending}>
+              {deleteMut.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Excluir
             </Button>
           </DialogFooter>
         </DialogContent>
