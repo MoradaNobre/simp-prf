@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FileText, Plus, Users, Phone } from "lucide-react";
-import { useContratos } from "@/hooks/useContratos";
+import { useContratos, useContratosSaldo } from "@/hooks/useContratos";
 import { NovoContratoDialog } from "@/components/contratos/NovoContratoDialog";
 import { ContratoContatosDialog } from "@/components/contratos/ContratoContatosDialog";
 import { format } from "date-fns";
@@ -16,6 +16,7 @@ const TIPO_LABELS: Record<string, string> = {
 
 export default function Contratos() {
   const { data: contratos = [], isLoading } = useContratos();
+  const { data: saldos = [] } = useContratosSaldo();
   const [novoOpen, setNovoOpen] = useState(false);
   const [contatosContrato, setContatosContrato] = useState<{ id: string; empresa: string } | null>(null);
 
@@ -51,6 +52,7 @@ export default function Contratos() {
                   <TableHead>Empresa</TableHead>
                   <TableHead>Tipo</TableHead>
                   <TableHead>Valor Global</TableHead>
+                  <TableHead>Saldo</TableHead>
                   <TableHead>Vigência</TableHead>
                   <TableHead>Preposto</TableHead>
                   <TableHead>Status</TableHead>
@@ -68,6 +70,22 @@ export default function Contratos() {
                     </TableCell>
                     <TableCell>
                       {c.valor_total.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                    </TableCell>
+                    <TableCell>
+                      {(() => {
+                        const s = saldos.find((x: any) => x.id === c.id);
+                        if (!s) return "—";
+                        const saldo = Number(s.saldo);
+                        const pct = c.valor_total > 0 ? Math.round((Number(s.total_custos) / c.valor_total) * 100) : 0;
+                        return (
+                          <div className="flex flex-col">
+                            <span className={saldo < 0 ? "text-destructive font-medium" : ""}>
+                              {saldo.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                            </span>
+                            <span className="text-xs text-muted-foreground">{pct}% utilizado</span>
+                          </div>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell className="text-sm">
                       {format(new Date(c.data_inicio), "dd/MM/yyyy")} — {format(new Date(c.data_fim), "dd/MM/yyyy")}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
@@ -13,8 +13,8 @@ import {
 import { useUpdateOS, useOSCustos, useAddCusto, type OrdemServico } from "@/hooks/useOrdensServico";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Camera, DollarSign } from "lucide-react";
-import { Constants } from "@/integrations/supabase/types";
+import { Loader2, Camera, DollarSign, User } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 
 const statusLabels: Record<string, string> = {
   aberta: "Aberta", triagem: "Triagem", execucao: "Em Execução", encerrada: "Encerrada",
@@ -25,6 +25,13 @@ const prioridadeLabels: Record<string, string> = {
 };
 const prioridadeColors: Record<string, string> = {
   baixa: "outline", media: "secondary", alta: "default", urgente: "destructive",
+};
+
+// Map each status to which responsible field is set when advancing TO that status
+const statusResponsavelField: Record<string, string> = {
+  triagem: "responsavel_triagem_id",
+  execucao: "responsavel_execucao_id",
+  encerrada: "responsavel_encerramento_id",
 };
 
 interface Props {
@@ -42,6 +49,28 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   const [custoDesc, setCustoDesc] = useState("");
   const [custoTipo, setCustoTipo] = useState("peca");
   const [custoValor, setCustoValor] = useState("");
+  const [selectedResponsavel, setSelectedResponsavel] = useState("");
+
+  // Fetch contrato_contatos if OS has a contrato_id
+  const contratoId = os?.contrato_id;
+  const { data: contatos = [] } = useQuery({
+    queryKey: ["contrato-contatos", contratoId],
+    queryFn: async () => {
+      if (!contratoId) return [];
+      const { data, error } = await supabase
+        .from("contrato_contatos")
+        .select("id, nome, funcao")
+        .eq("contrato_id", contratoId);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!contratoId,
+  });
+
+  // Reset selected responsavel when OS changes
+  useEffect(() => {
+    setSelectedResponsavel("");
+  }, [os?.id]);
 
   if (!os) return null;
 
@@ -53,8 +82,16 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
     try {
       const updates: any = { id: os.id, status: nextStatus };
       if (nextStatus === "encerrada") updates.data_encerramento = new Date().toISOString();
+      
+      // Set responsible for this stage
+      const field = statusResponsavelField[nextStatus];
+      if (field && selectedResponsavel) {
+        updates[field] = selectedResponsavel;
+      }
+
       await updateOS.mutateAsync(updates);
       toast.success(`Status alterado para ${statusLabels[nextStatus]}`);
+      setSelectedResponsavel("");
     } catch (err: any) {
       toast.error("Erro: " + err.message);
     }
@@ -94,6 +131,20 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   };
 
   const totalCustos = (custos.data || []).reduce((sum, c) => sum + Number(c.valor), 0);
+
+  // Helper to get contato name by id
+  const getContatoNome = (id: string | null | undefined) => {
+    if (!id) return null;
+    const c = contatos.find((ct) => ct.id === id);
+    return c ? `${c.nome}${c.funcao ? ` (${c.funcao})` : ""}` : null;
+  };
+
+  // Show assigned responsáveis for completed stages
+  const responsaveis = [
+    { label: "Triagem", value: getContatoNome((os as any).responsavel_triagem_id) },
+    { label: "Execução", value: getContatoNome((os as any).responsavel_execucao_id) },
+    { label: "Encerramento", value: getContatoNome((os as any).responsavel_encerramento_id) },
+  ].filter((r) => r.value);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -139,6 +190,23 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
             )}
           </div>
 
+          {/* Responsáveis atribuídos */}
+          {responsaveis.length > 0 && (
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                <User className="h-3 w-3" /> Responsáveis por Etapa
+              </Label>
+              <div className="grid grid-cols-1 gap-1">
+                {responsaveis.map((r) => (
+                  <div key={r.label} className="flex items-center gap-2 text-sm">
+                    <span className="text-muted-foreground">{r.label}:</span>
+                    <span className="font-medium">{r.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Photos */}
           <div className="grid grid-cols-2 gap-3">
             {os.foto_antes && (
@@ -169,14 +237,31 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
             )}
           </div>
 
-          {/* Status transition */}
+          {/* Status transition with responsável selection */}
           {nextStatus && (
             <>
               <Separator />
-              <Button onClick={handleAdvanceStatus} disabled={updateOS.isPending} className="w-full">
-                {updateOS.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Avançar para: {statusLabels[nextStatus]}
-              </Button>
+              <div className="space-y-3">
+                {contratoId && contatos.length > 0 && (
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">Responsável pela etapa de {statusLabels[nextStatus]}</Label>
+                    <Select value={selectedResponsavel} onValueChange={setSelectedResponsavel}>
+                      <SelectTrigger><SelectValue placeholder="Selecione o responsável" /></SelectTrigger>
+                      <SelectContent>
+                        {contatos.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.nome}{c.funcao ? ` (${c.funcao})` : ""}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                <Button onClick={handleAdvanceStatus} disabled={updateOS.isPending} className="w-full">
+                  {updateOS.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Avançar para: {statusLabels[nextStatus]}
+                </Button>
+              </div>
             </>
           )}
 
