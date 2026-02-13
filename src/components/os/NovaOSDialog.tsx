@@ -188,21 +188,6 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
           )}
 
           <div>
-            <Label>Contrato Vinculado</Label>
-            <Select value={contratoId || "none"} onValueChange={(v) => setContratoId(v === "none" ? "" : v)}>
-              <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Nenhum</SelectItem>
-                {contratos.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.numero} — {c.empresa}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
             <Label>Foto (antes)</Label>
             <Input type="file" accept="image/*" onChange={(e) => setFotoAntes(e.target.files?.[0] || null)} />
           </div>

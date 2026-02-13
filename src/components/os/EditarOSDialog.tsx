@@ -10,7 +10,6 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useUpdateOS, type OrdemServico } from "@/hooks/useOrdensServico";
-import { useContratos } from "@/hooks/useContratos";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { Constants } from "@/integrations/supabase/types";
@@ -23,15 +22,12 @@ interface Props {
 
 export function EditarOSDialog({ os, open, onOpenChange }: Props) {
   const updateOS = useUpdateOS();
-  const { data: contratos = [] } = useContratos();
 
   const [form, setForm] = useState({
     titulo: "",
     descricao: "",
     tipo: "corretiva",
     prioridade: "media",
-    contrato_id: "",
-    responsavel_id: "",
   });
 
   useEffect(() => {
@@ -41,8 +37,6 @@ export function EditarOSDialog({ os, open, onOpenChange }: Props) {
         descricao: os.descricao ?? "",
         tipo: os.tipo,
         prioridade: os.prioridade,
-        contrato_id: os.contrato_id ?? "",
-        responsavel_id: os.responsavel_id ?? "",
       });
     }
   }, [os]);
@@ -61,7 +55,6 @@ export function EditarOSDialog({ os, open, onOpenChange }: Props) {
         descricao: form.descricao.trim() || null,
         tipo: form.tipo as any,
         prioridade: form.prioridade as any,
-        contrato_id: form.contrato_id || null,
       });
       toast.success("OS atualizada com sucesso");
       onOpenChange(false);
@@ -114,21 +107,6 @@ export function EditarOSDialog({ os, open, onOpenChange }: Props) {
                 </SelectContent>
               </Select>
             </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>Contrato Vinculado</Label>
-            <Select value={form.contrato_id || "none"} onValueChange={(v) => set("contrato_id", v === "none" ? "" : v)}>
-              <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Nenhum</SelectItem>
-                {contratos.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.numero} — {c.empresa}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
         </div>
 
