@@ -148,7 +148,15 @@ export default function Contratos() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={c.status === "vigente" ? "default" : "secondary"}>{c.status}</Badge>
+                      {(() => {
+                        const hoje = new Date();
+                        const inicio = new Date(c.data_inicio);
+                        const fim = new Date(c.data_fim);
+                        const computedStatus = hoje >= inicio && hoje <= fim ? "vigente" : "encerrado";
+                        return (
+                          <Badge variant={computedStatus === "vigente" ? "default" : "secondary"}>{computedStatus}</Badge>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-1">

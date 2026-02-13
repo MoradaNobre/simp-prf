@@ -264,7 +264,12 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                       <SelectTrigger><SelectValue placeholder="Selecione o contrato" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">Nenhum</SelectItem>
-                        {contratosAll.map((c) => (
+                        {contratosAll
+                          .filter((c) => {
+                            const hoje = new Date();
+                            return hoje >= new Date(c.data_inicio) && hoje <= new Date(c.data_fim);
+                          })
+                          .map((c) => (
                           <SelectItem key={c.id} value={c.id}>
                             {c.numero} — {c.empresa}
                           </SelectItem>
