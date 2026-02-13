@@ -9,6 +9,7 @@ import { useCreateContrato } from "@/hooks/useContratos";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useUsersByRole } from "@/hooks/useUsersByRole";
 
 interface Props {
   open: boolean;
@@ -26,6 +27,7 @@ export function NovoContratoDialog({ open, onOpenChange }: Props) {
       return data;
     },
   });
+  const { data: prepostos = [] } = useUsersByRole(["preposto"]);
 
   const [form, setForm] = useState({
     numero: "",
@@ -36,12 +38,12 @@ export function NovoContratoDialog({ open, onOpenChange }: Props) {
     valor_total: "",
     data_inicio: "",
     data_fim: "",
-    preposto_nome: "",
-    preposto_email: "",
-    preposto_telefone: "",
+    preposto_user_id: "",
   });
 
   const set = (field: string, value: string) => setForm((f) => ({ ...f, [field]: value }));
+
+  const selectedPreposto = prepostos.find((p) => p.user_id === form.preposto_user_id);
 
   const handleSubmit = async () => {
     if (!form.numero || !form.empresa || !form.data_inicio || !form.data_fim || !form.regional_id) {
@@ -58,16 +60,15 @@ export function NovoContratoDialog({ open, onOpenChange }: Props) {
         valor_total: parseFloat(form.valor_total) || 0,
         data_inicio: form.data_inicio,
         data_fim: form.data_fim,
-        preposto_nome: form.preposto_nome.trim() || null,
-        preposto_email: form.preposto_email.trim() || null,
-        preposto_telefone: form.preposto_telefone.trim() || null,
+        preposto_user_id: form.preposto_user_id || null,
+        preposto_nome: selectedPreposto?.full_name || null,
+        preposto_telefone: selectedPreposto?.phone || null,
       });
       toast({ title: "Contrato cadastrado com sucesso" });
       onOpenChange(false);
       setForm({
         numero: "", empresa: "", regional_id: "", tipo_servico: "manutencao_predial", objeto: "",
-        valor_total: "", data_inicio: "", data_fim: "",
-        preposto_nome: "", preposto_email: "", preposto_telefone: "",
+        valor_total: "", data_inicio: "", data_fim: "", preposto_user_id: "",
       });
     } catch {
       toast({ title: "Erro ao cadastrar contrato", variant: "destructive" });
@@ -133,20 +134,25 @@ export function NovoContratoDialog({ open, onOpenChange }: Props) {
         </div>
 
         <div className="border-t pt-4 mt-2">
-          <h3 className="text-sm font-semibold mb-3">Dados do Preposto da Empresa</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-1.5">
-              <Label>Nome</Label>
-              <Input value={form.preposto_nome} onChange={(e) => set("preposto_nome", e.target.value)} placeholder="Nome do preposto" />
-            </div>
-            <div className="space-y-1.5">
-              <Label>E-mail</Label>
-              <Input type="email" value={form.preposto_email} onChange={(e) => set("preposto_email", e.target.value)} placeholder="email@empresa.com" />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Telefone / WhatsApp</Label>
-              <Input value={form.preposto_telefone} onChange={(e) => set("preposto_telefone", e.target.value)} placeholder="(00) 00000-0000" />
-            </div>
+          <h3 className="text-sm font-semibold mb-3">Preposto da Empresa</h3>
+          <div className="space-y-1.5">
+            <Label>Selecionar Preposto</Label>
+            <Select value={form.preposto_user_id} onValueChange={(v) => set("preposto_user_id", v)}>
+              <SelectTrigger><SelectValue placeholder="Selecione um usuário com perfil de Preposto..." /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Nenhum</SelectItem>
+                {prepostos.map((p) => (
+                  <SelectItem key={p.user_id} value={p.user_id}>
+                    {p.full_name}{p.phone ? ` — ${p.phone}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {prepostos.length === 0 && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Nenhum usuário com perfil "Preposto" cadastrado. Cadastre o usuário primeiro em Gestão do Sistema.
+              </p>
+            )}
           </div>
         </div>
 

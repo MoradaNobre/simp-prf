@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useContratoContatos, useCreateContratoContato, useDeleteContratoContato } from "@/hooks/useContratos";
+import { useUsersByRole } from "@/hooks/useUsersByRole";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2 } from "lucide-react";
 
@@ -20,38 +22,46 @@ export function ContratoContatosDialog({ contratoId, empresaNome, open, onOpenCh
   const { data: contatos = [], isLoading } = useContratoContatos(contratoId);
   const createContato = useCreateContratoContato();
   const deleteContato = useDeleteContratoContato();
+  const { data: terceirizados = [] } = useUsersByRole(["terceirizado", "preposto"]);
 
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ nome: "", email: "", telefone: "", funcao: "" });
-  const set = (f: string, v: string) => setForm((p) => ({ ...p, [f]: v }));
+  const [selectedUserId, setSelectedUserId] = useState("");
+  const [funcao, setFuncao] = useState("");
+
+  // Filter out users already added as contacts
+  const existingUserIds = new Set(contatos.map((c) => c.user_id).filter(Boolean));
+  const availableUsers = terceirizados.filter((u) => !existingUserIds.has(u.user_id));
+
+  const selectedUser = terceirizados.find((u) => u.user_id === selectedUserId);
 
   const handleAdd = async () => {
-    if (!form.nome.trim()) {
-      toast({ title: "Informe o nome do contato", variant: "destructive" });
+    if (!selectedUserId || !selectedUser) {
+      toast({ title: "Selecione um usuário", variant: "destructive" });
       return;
     }
     try {
       await createContato.mutateAsync({
         contrato_id: contratoId,
-        nome: form.nome.trim(),
-        email: form.email.trim() || null,
-        telefone: form.telefone.trim() || null,
-        funcao: form.funcao.trim() || null,
+        nome: selectedUser.full_name,
+        telefone: selectedUser.phone || null,
+        funcao: funcao.trim() || null,
+        user_id: selectedUserId,
       });
-      setForm({ nome: "", email: "", telefone: "", funcao: "" });
+      setSelectedUserId("");
+      setFuncao("");
       setShowForm(false);
-      toast({ title: "Contato adicionado" });
+      toast({ title: "Responsável adicionado" });
     } catch {
-      toast({ title: "Erro ao adicionar contato", variant: "destructive" });
+      toast({ title: "Erro ao adicionar responsável", variant: "destructive" });
     }
   };
 
   const handleDelete = async (id: string) => {
     try {
       await deleteContato.mutateAsync({ id, contratoId });
-      toast({ title: "Contato removido" });
+      toast({ title: "Responsável removido" });
     } catch {
-      toast({ title: "Erro ao remover contato", variant: "destructive" });
+      toast({ title: "Erro ao remover responsável", variant: "destructive" });
     }
   };
 
@@ -61,7 +71,9 @@ export function ContratoContatosDialog({ contratoId, empresaNome, open, onOpenCh
         <DialogHeader>
           <DialogTitle>Responsáveis — {empresaNome}</DialogTitle>
         </DialogHeader>
-        <p className="text-sm text-muted-foreground">Pessoas da empresa que atendem os chamados/despachos.</p>
+        <p className="text-sm text-muted-foreground">
+          Selecione usuários cadastrados no sistema com perfil de Preposto ou Terceirizado.
+        </p>
 
         {isLoading ? (
           <p className="text-sm text-muted-foreground">Carregando...</p>
@@ -74,7 +86,6 @@ export function ContratoContatosDialog({ contratoId, empresaNome, open, onOpenCh
                 <TableRow>
                   <TableHead>Nome</TableHead>
                   <TableHead>Função</TableHead>
-                  <TableHead>E-mail</TableHead>
                   <TableHead>Telefone</TableHead>
                   <TableHead className="w-10"></TableHead>
                 </TableRow>
@@ -84,7 +95,6 @@ export function ContratoContatosDialog({ contratoId, empresaNome, open, onOpenCh
                   <TableRow key={c.id}>
                     <TableCell className="font-medium">{c.nome}</TableCell>
                     <TableCell>{c.funcao || "—"}</TableCell>
-                    <TableCell>{c.email || "—"}</TableCell>
                     <TableCell>{c.telefone || "—"}</TableCell>
                     <TableCell>
                       <Button size="icon" variant="ghost" onClick={() => handleDelete(c.id)}>
@@ -102,25 +112,31 @@ export function ContratoContatosDialog({ contratoId, empresaNome, open, onOpenCh
           <div className="border rounded-md p-4 space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label>Nome *</Label>
-                <Input value={form.nome} onChange={(e) => set("nome", e.target.value)} />
+                <Label>Usuário *</Label>
+                <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+                  <SelectTrigger><SelectValue placeholder="Selecione um usuário..." /></SelectTrigger>
+                  <SelectContent>
+                    {availableUsers.map((u) => (
+                      <SelectItem key={u.user_id} value={u.user_id}>
+                        {u.full_name}{u.phone ? ` — ${u.phone}` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {availableUsers.length === 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    Nenhum usuário disponível. Cadastre usuários com perfil "Terceirizado" ou "Preposto" em Gestão do Sistema.
+                  </p>
+                )}
               </div>
               <div className="space-y-1.5">
                 <Label>Função</Label>
-                <Input value={form.funcao} onChange={(e) => set("funcao", e.target.value)} placeholder="Ex: Técnico" />
-              </div>
-              <div className="space-y-1.5">
-                <Label>E-mail</Label>
-                <Input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Telefone / WhatsApp</Label>
-                <Input value={form.telefone} onChange={(e) => set("telefone", e.target.value)} placeholder="(00) 00000-0000" />
+                <Input value={funcao} onChange={(e) => setFuncao(e.target.value)} placeholder="Ex: Técnico, Encarregado" />
               </div>
             </div>
             <div className="flex gap-2 justify-end">
-              <Button variant="outline" size="sm" onClick={() => setShowForm(false)}>Cancelar</Button>
-              <Button size="sm" onClick={handleAdd} disabled={createContato.isPending}>Adicionar</Button>
+              <Button variant="outline" size="sm" onClick={() => { setShowForm(false); setSelectedUserId(""); setFuncao(""); }}>Cancelar</Button>
+              <Button size="sm" onClick={handleAdd} disabled={createContato.isPending || !selectedUserId}>Adicionar</Button>
             </div>
           </div>
         )}
