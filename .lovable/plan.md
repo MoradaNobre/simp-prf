@@ -1,75 +1,140 @@
 
 
-# SIMP-PRF — Sistema de Manutenção Predial da PRF
+# Plano de Desenvolvimento Completo — SIMP-PRF
 
-## Visão Geral
-Sistema web responsivo para gestão completa da manutenção predial das unidades da Polícia Rodoviária Federal, cobrindo desde o cadastro de ativos até indicadores de desempenho.
+## Estado Atual
+- Autenticacao (login/signup) funcionando com 4 niveis de acesso no banco
+- Hierarquia de ativos importada (46 regionais com delegacias e UOPs)
+- Paginas placeholder para OS, Preventiva, Contratos
+- Dashboard com dados mockados (estaticos)
+- Esquema de banco completo com RLS
 
----
-
-## 1. Autenticação e Controle de Acesso
-- Login por email/senha com 4 níveis de acesso: **Gestor Nacional**, **Gestor Regional**, **Fiscal de Contrato** e **Operador (Solicitante)**
-- Cada nível verá apenas os dados e ações permitidos para seu perfil
-- Gestor Nacional: visão completa de todas as regionais
-- Gestor Regional: visão da sua regional e unidades subordinadas
-- Fiscal de Contrato: gestão de contratos e acompanhamento de OS vinculadas
-- Operador: abertura e acompanhamento das próprias OS
+## Funcionalidades a Implementar
 
 ---
 
-## 2. Módulo de Ativos (Cadastro Hierárquico)
-- Estrutura em árvore: **Regional → Delegacia → UOP → Equipamento**
-- Ficha de cada ativo com localização, dados técnicos, fotos e histórico de manutenção
-- Geração de QR Code por ativo para identificação rápida em campo (escaneável pelo celular)
-- Importação de dados reais via planilha para popular as unidades
+### Fase 1: Infraestrutura de Storage e Hooks Compartilhados
+
+**Banco de dados:**
+- Criar bucket `os-fotos` no Supabase Storage para fotos de antes/depois
+- Politicas de acesso: usuarios autenticados podem fazer upload; leitura publica
+
+**Hooks compartilhados:**
+- `useUserRole` — busca o papel do usuario logado na tabela `user_roles`
+- `useRegionais`, `useDelegacias`, `useUops`, `useEquipamentos` — hooks reutilizaveis para selects
 
 ---
 
-## 3. Gestão de Ordens de Serviço (OS)
-- Fluxo completo com os estados: **Aberta → Triagem → Em Execução → Encerrada**
-- Upload de fotos de "antes e depois" na execução
-- Campo de assinatura digital para encerramento da OS
-- Vinculação da OS ao ativo (equipamento/unidade) e ao contrato correspondente
-- Filtros por unidade, status, prioridade e período
+### Fase 2: Modulo de Ordens de Servico (Completo)
+
+**Pagina `OrdensServico.tsx` — listagem real:**
+- Substituir dados mock por query ao banco (`ordens_servico` com joins em `uops`)
+- Filtros por status, prioridade, unidade e periodo (date range)
+- Paginacao
+- Badge de status e prioridade com cores
+
+**Dialog `NovaOSDialog` — formulario de criacao:**
+- Campos: titulo, descricao, tipo (corretiva/preventiva), prioridade, UOP (select hierarquico), equipamento (filtrado pela UOP)
+- Upload de foto "antes" via Storage
+- Codigo gerado automaticamente pelo trigger do banco
+
+**Dialog `DetalhesOSDialog` — visualizacao e atualizacao:**
+- Visualizar todos os dados da OS
+- Transicao de status: Aberta -> Triagem -> Em Execucao -> Encerrada
+- Upload de foto "depois" na execucao
+- Campo de assinatura digital (canvas de desenho) para encerramento
+- Registro de custos (pecas e mao de obra) vinculados a OS
 
 ---
 
-## 4. Planos de Manutenção Preventiva (PMOC)
-- Cadastro de planos com cronograma recorrente (mensal, trimestral, semestral, anual)
-- Tipos pré-configurados: ar-condicionado, geradores, telhados, sistemas elétricos
-- Geração automática de OS preventivas conforme o cronograma
-- Painel de aderência ao plano (executado vs. planejado)
+### Fase 3: Dashboard com Dados Reais e Graficos
+
+**KPIs calculados em tempo real:**
+- OS Abertas: count de `ordens_servico` com status != encerrada
+- Urgentes: count com prioridade = urgente
+- Concluidas no mes: count com status = encerrada e data_encerramento no mes atual
+- MTTR: media de (data_encerramento - data_abertura) das OS encerradas
+
+**Graficos com Recharts:**
+- Grafico de pizza/donut: Corretiva vs. Preventiva com meta 30/70
+- Grafico de barras: OS por regional (top 10)
+- Grafico de linha: evolucao mensal de OS abertas vs encerradas
+- Card de disponibilidade operacional
+
+**Filtros:**
+- Por regional e periodo
 
 ---
 
-## 5. Gestão de Contratos e Custos
-- Cadastro de contratos com terceirizadas (vigência, escopo, valores)
-- Registro de custos por OS: peças e mão de obra
-- Vinculação de OS ao contrato correspondente
-- Acompanhamento de saldo e vigência dos contratos
+### Fase 4: Manutencao Preventiva (PMOC)
+
+**Pagina `Preventiva.tsx` — listagem:**
+- Tabela com planos ativos: nome, categoria, frequencia, proxima execucao, UOP
+- Indicador de aderencia (OS geradas vs planejadas)
+
+**Dialog `NovoPlanoDialog`:**
+- Campos: nome, categoria (ar_condicionado, gerador, etc), frequencia, UOP, descricao de atividades, data da proxima execucao
+
+**Geracao automatica de OS:**
+- Edge function `generate-preventive-os` que roda sob demanda (botao "Gerar OS do periodo")
+- Verifica planos com `proxima_execucao <= hoje`, cria OS preventiva e atualiza proxima data
 
 ---
 
-## 6. Dashboard de Indicadores (KPIs)
-Painel visual com gráficos em tempo real:
-- **MTTR** — Tempo Médio de Reparo
-- **Backlog** — Quantidade de chamados abertos/pendentes
-- **Corretiva vs. Preventiva** — Proporção com meta visual de 30/70
-- **Disponibilidade Operacional** — % de aptidão das unidades
-- **Custo por m²** — Por unidade e por regional
-- Filtros por regional, período e tipo de manutenção
+### Fase 5: Gestao de Contratos e Custos
+
+**Pagina `Contratos.tsx` — listagem:**
+- Tabela com contratos: numero, empresa, vigencia, valor, status, saldo consumido
+- Indicador visual de vigencia (ativo/vencido/proximo do vencimento)
+
+**Dialog `NovoContratoDialog`:**
+- Campos: numero, empresa, objeto, data inicio/fim, valor total
+
+**Detalhes do contrato:**
+- Lista de OS vinculadas ao contrato
+- Soma de custos (pecas + mao de obra) vs valor total do contrato
+- Barra de progresso do saldo
 
 ---
 
-## 7. Layout e Navegação
-- Menu lateral (sidebar) com acesso a todos os módulos
-- Design responsivo para uso em desktop e celular
-- Paleta institucional (tons de azul/cinza, remetendo à identidade da PRF)
-- Tabelas com busca, filtros e paginação em todos os módulos
+### Fase 6: Ativos — Equipamentos e QR Code
+
+**Cadastro de equipamentos:**
+- Dialog para adicionar equipamento vinculado a uma UOP
+- Campos: nome, categoria, marca, modelo, numero de serie, data instalacao
+
+**QR Code:**
+- Geracao automatica de QR Code (usando biblioteca JS) com link para a ficha do equipamento
+- Botao para imprimir/baixar QR Code
+
+**Ficha do ativo:**
+- Pagina de detalhes da UOP/equipamento com historico de OS vinculadas
 
 ---
 
-## Backend
-- Banco de dados com Supabase (Lovable Cloud) para todas as tabelas, autenticação e controle de acesso por RLS
-- Armazenamento de fotos (OS antes/depois) via Supabase Storage
+### Fase 7: Gestao de Usuarios e Perfis
+
+**Pagina `Usuarios.tsx` (visivel apenas para gestor_nacional):**
+- Lista de usuarios com nome, email, papel atual
+- Alterar papel de um usuario (select com os 4 niveis)
+- Rota `/usuarios` adicionada ao sidebar (condicional ao papel)
+
+---
+
+## Resumo Tecnico
+
+| Item | Tipo | Arquivos |
+|------|------|----------|
+| Storage bucket | Migracao SQL | Nova migracao |
+| useUserRole hook | Novo arquivo | `src/hooks/useUserRole.ts` |
+| OS completo | Refatoracao + novos | `OrdensServico.tsx`, `NovaOSDialog.tsx`, `DetalhesOSDialog.tsx` |
+| Dashboard real | Refatoracao | `Dashboard.tsx` |
+| Preventiva completo | Refatoracao + novos | `Preventiva.tsx`, `NovoPlanoDialog.tsx` |
+| Edge function preventiva | Novo | `supabase/functions/generate-preventive-os/index.ts` |
+| Contratos completo | Refatoracao + novos | `Contratos.tsx`, `NovoContratoDialog.tsx` |
+| Equipamentos + QR | Novos componentes | `EquipamentoDialog.tsx`, `QRCodeView.tsx` |
+| Gestao usuarios | Nova pagina | `Usuarios.tsx` |
+| Assinatura digital | Novo componente | `SignaturePad.tsx` |
+
+A implementacao seguira a ordem das fases para garantir que dependencias sejam resolvidas primeiro (ex: storage antes de upload de fotos, hooks antes das paginas).
 
