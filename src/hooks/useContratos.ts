@@ -5,9 +5,9 @@ import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 export type Contrato = Tables<"contratos">;
 export type ContratoContato = Tables<"contrato_contatos">;
 
-export function useContratos(regionalId?: string | null) {
+export function useContratos(regionalId?: string | null, prepostoUserId?: string | null) {
   return useQuery({
-    queryKey: ["contratos", regionalId],
+    queryKey: ["contratos", regionalId, prepostoUserId],
     queryFn: async () => {
       let q = supabase
         .from("contratos")
@@ -16,6 +16,9 @@ export function useContratos(regionalId?: string | null) {
 
       if (regionalId) {
         q = q.eq("regional_id", regionalId);
+      }
+      if (prepostoUserId) {
+        q = q.eq("preposto_user_id", prepostoUserId);
       }
 
       const { data, error } = await q;
