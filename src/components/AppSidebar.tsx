@@ -5,6 +5,7 @@ import {
   FileText,
   LogOut,
   Shield,
+  ScrollText,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -84,23 +85,42 @@ export function AppSidebar() {
                 </SidebarMenuItem>
               ))}
               {isAdmin && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={location.pathname === "/gestao"}
-                    tooltip="Gestão do Sistema"
-                  >
-                    <NavLink
-                      to="/gestao"
-                      end
-                      className="hover:bg-sidebar-accent/50"
-                      activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                <>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={location.pathname === "/gestao"}
+                      tooltip="Gestão do Sistema"
                     >
-                      <Shield className="h-4 w-4" />
-                      <span>Gestão do Sistema</span>
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+                      <NavLink
+                        to="/gestao"
+                        end
+                        className="hover:bg-sidebar-accent/50"
+                        activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                      >
+                        <Shield className="h-4 w-4" />
+                        <span>Gestão do Sistema</span>
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={location.pathname === "/logs"}
+                      tooltip="Logs de Auditoria"
+                    >
+                      <NavLink
+                        to="/logs"
+                        end
+                        className="hover:bg-sidebar-accent/50"
+                        activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                      >
+                        <ScrollText className="h-4 w-4" />
+                        <span>Logs de Auditoria</span>
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </>
               )}
             </SidebarMenu>
           </SidebarGroupContent>
