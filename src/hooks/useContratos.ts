@@ -11,10 +11,10 @@ export function useContratos() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("contratos")
-        .select("*")
+        .select("*, regionais(nome, sigla)")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as Contrato[];
+      return data;
     },
   });
 }

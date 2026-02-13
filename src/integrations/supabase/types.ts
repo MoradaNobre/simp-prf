@@ -64,6 +64,7 @@ export type Database = {
           preposto_email: string | null
           preposto_nome: string | null
           preposto_telefone: string | null
+          regional_id: string | null
           status: string
           tipo_servico: string
           updated_at: string
@@ -80,6 +81,7 @@ export type Database = {
           preposto_email?: string | null
           preposto_nome?: string | null
           preposto_telefone?: string | null
+          regional_id?: string | null
           status?: string
           tipo_servico?: string
           updated_at?: string
@@ -96,12 +98,21 @@ export type Database = {
           preposto_email?: string | null
           preposto_nome?: string | null
           preposto_telefone?: string | null
+          regional_id?: string | null
           status?: string
           tipo_servico?: string
           updated_at?: string
           valor_total?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "contratos_regional_id_fkey"
+            columns: ["regional_id"]
+            isOneToOne: false
+            referencedRelation: "regionais"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       delegacias: {
         Row: {

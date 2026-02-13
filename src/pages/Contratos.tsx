@@ -47,6 +47,7 @@ export default function Contratos() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Número</TableHead>
+                  <TableHead>Regional</TableHead>
                   <TableHead>Empresa</TableHead>
                   <TableHead>Tipo</TableHead>
                   <TableHead>Valor Global</TableHead>
@@ -60,6 +61,7 @@ export default function Contratos() {
                 {contratos.map((c) => (
                   <TableRow key={c.id}>
                     <TableCell className="font-medium">{c.numero}</TableCell>
+                    <TableCell className="text-sm">{(c as any).regionais?.sigla ?? "—"}</TableCell>
                     <TableCell>{c.empresa}</TableCell>
                     <TableCell className="text-sm">
                       {TIPO_LABELS[(c as any).tipo_servico] ?? (c as any).tipo_servico ?? "—"}
