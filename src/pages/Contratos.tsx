@@ -3,10 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { FileText, Plus, Users, Phone } from "lucide-react";
-import { useContratos, useContratosSaldo } from "@/hooks/useContratos";
+import { FileText, Plus, Users, Phone, Pencil, Trash2 } from "lucide-react";
+import { useContratos, useContratosSaldo, useDeleteContrato, type Contrato } from "@/hooks/useContratos";
 import { NovoContratoDialog } from "@/components/contratos/NovoContratoDialog";
+import { EditarContratoDialog } from "@/components/contratos/EditarContratoDialog";
 import { ContratoContatosDialog } from "@/components/contratos/ContratoContatosDialog";
+import { useToast } from "@/hooks/use-toast";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
 
 const TIPO_LABELS: Record<string, string> = {
@@ -17,8 +20,23 @@ const TIPO_LABELS: Record<string, string> = {
 export default function Contratos() {
   const { data: contratos = [], isLoading } = useContratos();
   const { data: saldos = [] } = useContratosSaldo();
+  const deleteContrato = useDeleteContrato();
+  const { toast } = useToast();
   const [novoOpen, setNovoOpen] = useState(false);
+  const [editContrato, setEditContrato] = useState<Contrato | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const [contatosContrato, setContatosContrato] = useState<{ id: string; empresa: string } | null>(null);
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    try {
+      await deleteContrato.mutateAsync(deleteId);
+      toast({ title: "Contrato excluído com sucesso" });
+    } catch {
+      toast({ title: "Erro ao excluir contrato", variant: "destructive" });
+    }
+    setDeleteId(null);
+  };
 
   return (
     <div className="space-y-6">
@@ -113,14 +131,32 @@ export default function Contratos() {
                       <Badge variant={c.status === "vigente" ? "default" : "secondary"}>{c.status}</Badge>
                     </TableCell>
                     <TableCell>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        title="Responsáveis da empresa"
-                        onClick={() => setContatosContrato({ id: c.id, empresa: c.empresa })}
-                      >
-                        <Users className="h-4 w-4" />
-                      </Button>
+                      <div className="flex gap-1">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          title="Editar contrato"
+                          onClick={() => setEditContrato(c as Contrato)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          title="Responsáveis da empresa"
+                          onClick={() => setContatosContrato({ id: c.id, empresa: c.empresa })}
+                        >
+                          <Users className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          title="Excluir contrato"
+                          onClick={() => setDeleteId(c.id)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -132,6 +168,12 @@ export default function Contratos() {
 
       <NovoContratoDialog open={novoOpen} onOpenChange={setNovoOpen} />
 
+      <EditarContratoDialog
+        contrato={editContrato}
+        open={!!editContrato}
+        onOpenChange={(open) => !open && setEditContrato(null)}
+      />
+
       {contatosContrato && (
         <ContratoContatosDialog
           contratoId={contatosContrato.id}
@@ -140,6 +182,21 @@ export default function Contratos() {
           onOpenChange={(open) => !open && setContatosContrato(null)}
         />
       )}
+
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir contrato?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. O contrato e seus dados associados serão removidos permanentemente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>Excluir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
