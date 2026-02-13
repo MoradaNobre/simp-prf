@@ -50,6 +50,13 @@ export type Database = {
             referencedRelation: "contratos"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "contrato_contatos_contrato_id_fkey"
+            columns: ["contrato_id"]
+            isOneToOne: false
+            referencedRelation: "contratos_saldo"
+            referencedColumns: ["id"]
+          },
         ]
       }
       contratos: {
@@ -213,7 +220,10 @@ export type Database = {
           foto_depois: string | null
           id: string
           prioridade: Database["public"]["Enums"]["os_prioridade"]
+          responsavel_encerramento_id: string | null
+          responsavel_execucao_id: string | null
           responsavel_id: string | null
+          responsavel_triagem_id: string | null
           solicitante_id: string
           status: Database["public"]["Enums"]["os_status"]
           tipo: Database["public"]["Enums"]["os_tipo"]
@@ -234,7 +244,10 @@ export type Database = {
           foto_depois?: string | null
           id?: string
           prioridade?: Database["public"]["Enums"]["os_prioridade"]
+          responsavel_encerramento_id?: string | null
+          responsavel_execucao_id?: string | null
           responsavel_id?: string | null
+          responsavel_triagem_id?: string | null
           solicitante_id: string
           status?: Database["public"]["Enums"]["os_status"]
           tipo?: Database["public"]["Enums"]["os_tipo"]
@@ -255,7 +268,10 @@ export type Database = {
           foto_depois?: string | null
           id?: string
           prioridade?: Database["public"]["Enums"]["os_prioridade"]
+          responsavel_encerramento_id?: string | null
+          responsavel_execucao_id?: string | null
           responsavel_id?: string | null
+          responsavel_triagem_id?: string | null
           solicitante_id?: string
           status?: Database["public"]["Enums"]["os_status"]
           tipo?: Database["public"]["Enums"]["os_tipo"]
@@ -269,6 +285,13 @@ export type Database = {
             columns: ["contrato_id"]
             isOneToOne: false
             referencedRelation: "contratos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ordens_servico_contrato_id_fkey"
+            columns: ["contrato_id"]
+            isOneToOne: false
+            referencedRelation: "contratos_saldo"
             referencedColumns: ["id"]
           },
           {
@@ -492,7 +515,17 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      contratos_saldo: {
+        Row: {
+          empresa: string | null
+          id: string | null
+          numero: string | null
+          saldo: number | null
+          total_custos: number | null
+          valor_total: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
