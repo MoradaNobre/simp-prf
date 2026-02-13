@@ -57,7 +57,22 @@ function useAuditLogs(actionFilter: string, tableFilter: string) {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data || [];
+
+      // Fetch profile names for user_ids
+      const userIds = [...new Set((data || []).map((l) => l.user_id).filter(Boolean))];
+      let profileMap = new Map<string, string>();
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("user_id, full_name")
+          .in("user_id", userIds);
+        (profiles || []).forEach((p) => profileMap.set(p.user_id, p.full_name));
+      }
+
+      return (data || []).map((log) => ({
+        ...log,
+        user_name: log.user_id ? profileMap.get(log.user_id) || "Desconhecido" : "Sistema",
+      })) as Array<typeof data[number] & { user_name: string }>;
     },
   });
 }
@@ -151,9 +166,10 @@ export default function AuditLogs() {
       ) : (
         <Table>
           <TableHeader>
-            <TableRow>
+             <TableRow>
               <TableHead>Data/Hora</TableHead>
               <TableHead>Ação</TableHead>
+              <TableHead>Responsável</TableHead>
               <TableHead>Tabela</TableHead>
               <TableHead>Descrição</TableHead>
             </TableRow>
@@ -168,6 +184,9 @@ export default function AuditLogs() {
                   <Badge variant={actionColors[log.action] as any}>
                     {actionLabels[log.action] || log.action}
                   </Badge>
+                </TableCell>
+                <TableCell className="text-sm font-medium">
+                  {log.user_name}
                 </TableCell>
                 <TableCell className="text-sm">
                   {tableLabels[log.table_name] || log.table_name}
