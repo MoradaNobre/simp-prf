@@ -26,7 +26,7 @@ import {
 const menuItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Ordens de Serviço", url: "/ordens", icon: ClipboardList },
-  { title: "Manutenção Preventiva", url: "/preventiva", icon: CalendarClock },
+  // { title: "Manutenção Preventiva", url: "/preventiva", icon: CalendarClock }, // TODO: implementar futuramente
   { title: "Contratos", url: "/contratos", icon: FileText },
 ];
 
