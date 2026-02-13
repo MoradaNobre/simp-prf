@@ -19,6 +19,19 @@ export function useContratos() {
   });
 }
 
+export function useContratosSaldo() {
+  return useQuery({
+    queryKey: ["contratos-saldo"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("contratos_saldo" as any)
+        .select("*");
+      if (error) throw error;
+      return (data as any[]) ?? [];
+    },
+  });
+}
+
 export function useContratoContatos(contratoId: string | undefined) {
   return useQuery({
     queryKey: ["contrato-contatos", contratoId],
