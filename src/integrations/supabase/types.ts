@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      contrato_contatos: {
+        Row: {
+          contrato_id: string
+          created_at: string
+          email: string | null
+          funcao: string | null
+          id: string
+          nome: string
+          telefone: string | null
+        }
+        Insert: {
+          contrato_id: string
+          created_at?: string
+          email?: string | null
+          funcao?: string | null
+          id?: string
+          nome: string
+          telefone?: string | null
+        }
+        Update: {
+          contrato_id?: string
+          created_at?: string
+          email?: string | null
+          funcao?: string | null
+          id?: string
+          nome?: string
+          telefone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contrato_contatos_contrato_id_fkey"
+            columns: ["contrato_id"]
+            isOneToOne: false
+            referencedRelation: "contratos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contratos: {
         Row: {
           created_at: string
@@ -23,7 +61,11 @@ export type Database = {
           id: string
           numero: string
           objeto: string | null
+          preposto_email: string | null
+          preposto_nome: string | null
+          preposto_telefone: string | null
           status: string
+          tipo_servico: string
           updated_at: string
           valor_total: number
         }
@@ -35,7 +77,11 @@ export type Database = {
           id?: string
           numero: string
           objeto?: string | null
+          preposto_email?: string | null
+          preposto_nome?: string | null
+          preposto_telefone?: string | null
           status?: string
+          tipo_servico?: string
           updated_at?: string
           valor_total?: number
         }
@@ -47,7 +93,11 @@ export type Database = {
           id?: string
           numero?: string
           objeto?: string | null
+          preposto_email?: string | null
+          preposto_nome?: string | null
+          preposto_telefone?: string | null
           status?: string
+          tipo_servico?: string
           updated_at?: string
           valor_total?: number
         }
