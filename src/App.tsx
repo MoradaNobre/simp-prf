@@ -12,6 +12,7 @@ import Preventiva from "@/pages/Preventiva";
 import Contratos from "@/pages/Contratos";
 import Login from "@/pages/Login";
 import Gestao from "@/pages/Gestao";
+import AuditLogs from "@/pages/AuditLogs";
 import NotFound from "@/pages/NotFound";
 import DefinirResponsavel from "@/pages/DefinirResponsavel";
 
@@ -34,6 +35,7 @@ const App = () => (
               <Route path="preventiva" element={<Preventiva />} />
               <Route path="contratos" element={<Contratos />} />
               <Route path="gestao" element={<Gestao />} />
+              <Route path="logs" element={<AuditLogs />} />
             </Route>
             <Route path="/definir-responsavel/:osId" element={<DefinirResponsavel />} />
             <Route path="*" element={<NotFound />} />
