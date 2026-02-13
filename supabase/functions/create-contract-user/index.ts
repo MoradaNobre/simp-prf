@@ -12,7 +12,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Validate caller is authenticated
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "Não autorizado" }), {
@@ -24,8 +23,9 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
-    // Verify caller using getClaims (compatible with signing-keys)
+    // Verify caller using getClaims
     const callerClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { nome, email, telefone, funcao, contrato_id, role } = await req.json();
+    const { nome, email, telefone, funcao, contrato_id, role, app_url } = await req.json();
 
     if (!nome?.trim() || !email?.trim() || !contrato_id) {
       return new Response(
@@ -76,17 +76,18 @@ Deno.serve(async (req) => {
     );
 
     let userId: string;
+    let userCreated = false;
+    let tempPassword: string | null = null;
 
     if (existingUser) {
       userId = existingUser.id;
-      // Update profile name/phone if needed
       await adminClient
         .from("profiles")
         .update({ full_name: trimmedName, phone: telefone || null })
         .eq("user_id", userId);
     } else {
-      // Create new user with invite (auto-generates password reset link)
-      const tempPassword = crypto.randomUUID();
+      // Create new user with a temporary password
+      tempPassword = generateTempPassword();
       const { data: newUser, error: createErr } =
         await adminClient.auth.admin.createUser({
           email: trimmedEmail,
@@ -103,14 +104,16 @@ Deno.serve(async (req) => {
       }
 
       userId = newUser.user.id;
+      userCreated = true;
 
-      // Update profile with phone
-      if (telefone) {
-        await adminClient
-          .from("profiles")
-          .update({ phone: telefone })
-          .eq("user_id", userId);
-      }
+      // Update profile with phone and must_change_password flag
+      await adminClient
+        .from("profiles")
+        .update({ 
+          phone: telefone || null,
+          must_change_password: true,
+        })
+        .eq("user_id", userId);
     }
 
     // Ensure user has the correct role
@@ -125,7 +128,6 @@ Deno.serve(async (req) => {
         .from("user_roles")
         .insert({ user_id: userId, role: userRole });
     } else if (existingRole.role === "operador" && userRole !== "operador") {
-      // Upgrade from default operador to the requested role
       await adminClient
         .from("user_roles")
         .update({ role: userRole })
@@ -153,12 +155,61 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Send welcome email with credentials if user was just created
+    let emailSent = false;
+    if (userCreated && tempPassword && RESEND_API_KEY) {
+      const loginUrl = app_url ? `${app_url}/login` : "https://simp-prf.lovable.app/login";
+      try {
+        const emailRes = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${RESEND_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            from: "SIMP-PRF <onboarding@resend.dev>",
+            to: [trimmedEmail],
+            subject: "[SIMP-PRF] Sua conta foi criada — Acesse o sistema",
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #1e3a5f;">SIMP-PRF — Bem-vindo(a) ao Sistema</h2>
+                <p>Olá, <strong>${trimmedName}</strong>!</p>
+                <p>Uma conta foi criada para você no <strong>SIMP-PRF</strong> (Sistema de Manutenção Predial da PRF).</p>
+                <p>Utilize as credenciais abaixo para acessar o sistema:</p>
+                <div style="background-color: #f4f4f5; border-radius: 8px; padding: 20px; margin: 20px 0;">
+                  <p style="margin: 4px 0;"><strong>E-mail:</strong> ${trimmedEmail}</p>
+                  <p style="margin: 4px 0;"><strong>Senha temporária:</strong> ${tempPassword}</p>
+                </div>
+                <p style="color: #dc2626; font-weight: bold;">⚠️ Por segurança, você deverá trocar sua senha no primeiro acesso.</p>
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="${loginUrl}" 
+                     style="background-color: #1e3a5f; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                    Acessar o Sistema
+                  </a>
+                </div>
+                <p style="color: #666; font-size: 13px;">Se você não reconhece esta solicitação, ignore este e-mail.</p>
+              </div>
+            `,
+          }),
+        });
+
+        const emailData = await emailRes.json();
+        emailSent = emailRes.ok;
+        if (!emailRes.ok) {
+          console.error("Resend error:", emailData);
+        }
+      } catch (emailErr) {
+        console.error("Email send error:", emailErr);
+      }
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
         contato,
-        user_created: !existingUser,
+        user_created: userCreated,
         user_id: userId,
+        email_sent: emailSent,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
@@ -169,3 +220,14 @@ Deno.serve(async (req) => {
     );
   }
 });
+
+function generateTempPassword(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+  const specials = "!@#$%";
+  let pw = "";
+  for (let i = 0; i < 10; i++) {
+    pw += chars[Math.floor(Math.random() * chars.length)];
+  }
+  pw += specials[Math.floor(Math.random() * specials.length)];
+  return pw;
+}

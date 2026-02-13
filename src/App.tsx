@@ -11,6 +11,7 @@ import OrdensServico from "@/pages/OrdensServico";
 import Preventiva from "@/pages/Preventiva";
 import Contratos from "@/pages/Contratos";
 import Login from "@/pages/Login";
+import AlterarSenha from "@/pages/AlterarSenha";
 import Gestao from "@/pages/Gestao";
 import AuditLogs from "@/pages/AuditLogs";
 import NotFound from "@/pages/NotFound";
@@ -27,6 +28,7 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/alterar-senha" element={<AlterarSenha />} />
             <Route path="/" element={<AppLayout />}>
               <Route index element={<Navigate to="/dashboard" replace />} />
               <Route path="dashboard" element={<Dashboard />} />
