@@ -15,6 +15,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useOrdensServico, useDeleteOS, type OrdemServico } from "@/hooks/useOrdensServico";
+import { useUserRole } from "@/hooks/useUserRole";
 import { NovaOSDialog } from "@/components/os/NovaOSDialog";
 import { EditarOSDialog } from "@/components/os/EditarOSDialog";
 import { DetalhesOSDialog } from "@/components/os/DetalhesOSDialog";
@@ -35,6 +36,8 @@ const prioridadeColors: Record<string, string> = {
 };
 
 export default function OrdensServico() {
+  const { data: role } = useUserRole();
+  const canManage = role && role !== "operador";
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [prioridadeFilter, setPrioridadeFilter] = useState("");
@@ -121,7 +124,7 @@ export default function OrdensServico() {
                   <TableHead>Status</TableHead>
                   <TableHead>Prioridade</TableHead>
                   <TableHead>Data</TableHead>
-                  <TableHead className="w-20">Ações</TableHead>
+                  {canManage && <TableHead className="w-20">Ações</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -143,16 +146,18 @@ export default function OrdensServico() {
                     <TableCell className="text-muted-foreground">
                       {new Date(os.data_abertura).toLocaleDateString("pt-BR")}
                     </TableCell>
-                    <TableCell>
-                      <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
-                        <Button size="icon" variant="ghost" title="Editar OS" onClick={() => setEditOS(os)}>
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button size="icon" variant="ghost" title="Excluir OS" onClick={() => setDeleteId(os.id)}>
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </TableCell>
+                    {canManage && (
+                      <TableCell>
+                        <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                          <Button size="icon" variant="ghost" title="Editar OS" onClick={() => setEditOS(os)}>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button size="icon" variant="ghost" title="Excluir OS" onClick={() => setDeleteId(os.id)}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>

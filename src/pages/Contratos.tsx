@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FileText, Plus, Users, Phone, Pencil, Trash2 } from "lucide-react";
 import { useContratos, useContratosSaldo, useDeleteContrato, type Contrato } from "@/hooks/useContratos";
+import { useUserRole } from "@/hooks/useUserRole";
 import { NovoContratoDialog } from "@/components/contratos/NovoContratoDialog";
 import { EditarContratoDialog } from "@/components/contratos/EditarContratoDialog";
 import { ContratoContatosDialog } from "@/components/contratos/ContratoContatosDialog";
@@ -18,6 +19,8 @@ const TIPO_LABELS: Record<string, string> = {
 };
 
 export default function Contratos() {
+  const { data: role } = useUserRole();
+  const canManage = role && role !== "operador";
   const { data: contratos = [], isLoading } = useContratos();
   const { data: saldos = [] } = useContratosSaldo();
   const deleteContrato = useDeleteContrato();
@@ -45,9 +48,11 @@ export default function Contratos() {
           <h1 className="text-2xl font-bold text-foreground">Contratos</h1>
           <p className="text-muted-foreground">Gestão de contratos e custos com terceirizadas</p>
         </div>
-        <Button onClick={() => setNovoOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" /> Novo Contrato
-        </Button>
+        {canManage && (
+          <Button onClick={() => setNovoOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" /> Novo Contrato
+          </Button>
+        )}
       </div>
 
       <Card>
@@ -132,14 +137,16 @@ export default function Contratos() {
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-1">
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          title="Editar contrato"
-                          onClick={() => setEditContrato(c as Contrato)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
+                        {canManage && (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            title="Editar contrato"
+                            onClick={() => setEditContrato(c as Contrato)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button
                           size="icon"
                           variant="ghost"
@@ -148,14 +155,16 @@ export default function Contratos() {
                         >
                           <Users className="h-4 w-4" />
                         </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          title="Excluir contrato"
-                          onClick={() => setDeleteId(c.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
+                        {canManage && (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            title="Excluir contrato"
+                            onClick={() => setDeleteId(c.id)}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
