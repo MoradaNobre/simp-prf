@@ -47,7 +47,10 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   const custos = useOSCustos(os?.id);
   const addCusto = useAddCusto();
   const { data: role } = useUserRole();
-  const canManage = role && role !== "operador";
+  const canManage = role && !["operador", "preposto", "terceirizado"].includes(role);
+  const canManageCustos = canManage || role === "preposto" || role === "terceirizado";
+  const canUploadPhotos = canManage || role === "preposto" || role === "terceirizado";
+  const canAdvanceStatus = canManage || role === "preposto" || role === "terceirizado";
 
   const [uploading, setUploading] = useState(false);
   const [custoDesc, setCustoDesc] = useState("");
@@ -231,7 +234,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                 <Label className="text-xs text-muted-foreground">Foto Depois</Label>
                 <img src={os.foto_depois} alt="Depois" className="mt-1 rounded-md border max-h-40 object-cover w-full" />
               </div>
-            ) : os.status === "execucao" && (
+            ) : os.status === "execucao" && canUploadPhotos && (
               <div>
                 <Label className="text-xs text-muted-foreground flex items-center gap-1">
                   <Camera className="h-3 w-3" /> Foto Depois
@@ -249,7 +252,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
           </div>
 
           {/* Status transition with contrato & responsável selection */}
-          {canManage && nextStatus && (
+          {canAdvanceStatus && nextStatus && (
             <>
               <Separator />
               <div className="space-y-3">
@@ -315,7 +318,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                     <span className="font-medium">R$ {Number(c.valor).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
                   </div>
                 ))}
-                {canManage && os.status === "execucao" && (
+                {canManageCustos && os.status === "execucao" && (
                   <div className="flex gap-2 mt-2">
                     <Input placeholder="Descrição" value={custoDesc} onChange={(e) => setCustoDesc(e.target.value)} className="flex-1" />
                     <Select value={custoTipo} onValueChange={setCustoTipo}>

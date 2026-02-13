@@ -22,7 +22,7 @@ const TIPO_LABELS: Record<string, string> = {
 
 export default function Contratos() {
   const { data: role } = useUserRole();
-  const canManage = role && role !== "operador";
+  const canManage = role && !["operador", "preposto", "terceirizado"].includes(role);
   const { isNacional, effectiveRegionalId, selectedRegionalId, setSelectedRegionalId } = useRegionalFilter();
   const { data: contratos = [], isLoading } = useContratos(effectiveRegionalId);
   const { data: saldos = [] } = useContratosSaldo();
