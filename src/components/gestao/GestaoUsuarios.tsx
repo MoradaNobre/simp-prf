@@ -106,6 +106,8 @@ const roleLabels: Record<string, string> = {
   gestor_regional: "Gestor Regional",
   fiscal_contrato: "Fiscal de Contrato",
   operador: "Operador",
+  preposto: "Preposto",
+  terceirizado: "Terceirizado",
 };
 
 const roleColors: Record<string, string> = {
@@ -113,6 +115,8 @@ const roleColors: Record<string, string> = {
   gestor_regional: "default",
   fiscal_contrato: "secondary",
   operador: "outline",
+  preposto: "default",
+  terceirizado: "outline",
 };
 
 export default function GestaoUsuarios() {

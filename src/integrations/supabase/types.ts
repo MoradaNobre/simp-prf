@@ -23,6 +23,7 @@ export type Database = {
           id: string
           nome: string
           telefone: string | null
+          user_id: string | null
         }
         Insert: {
           contrato_id: string
@@ -32,6 +33,7 @@ export type Database = {
           id?: string
           nome: string
           telefone?: string | null
+          user_id?: string | null
         }
         Update: {
           contrato_id?: string
@@ -41,6 +43,7 @@ export type Database = {
           id?: string
           nome?: string
           telefone?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -71,6 +74,7 @@ export type Database = {
           preposto_email: string | null
           preposto_nome: string | null
           preposto_telefone: string | null
+          preposto_user_id: string | null
           regional_id: string | null
           status: string
           tipo_servico: string
@@ -88,6 +92,7 @@ export type Database = {
           preposto_email?: string | null
           preposto_nome?: string | null
           preposto_telefone?: string | null
+          preposto_user_id?: string | null
           regional_id?: string | null
           status?: string
           tipo_servico?: string
@@ -105,6 +110,7 @@ export type Database = {
           preposto_email?: string | null
           preposto_nome?: string | null
           preposto_telefone?: string | null
+          preposto_user_id?: string | null
           regional_id?: string | null
           status?: string
           tipo_servico?: string

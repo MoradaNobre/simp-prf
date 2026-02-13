@@ -23,11 +23,11 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 
-const menuItems = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Ordens de Serviço", url: "/ordens", icon: ClipboardList },
+const allMenuItems = [
+  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, roles: ["gestor_nacional", "gestor_regional", "fiscal_contrato", "operador"] },
+  { title: "Ordens de Serviço", url: "/ordens", icon: ClipboardList, roles: null }, // all roles
   // { title: "Manutenção Preventiva", url: "/preventiva", icon: CalendarClock }, // TODO: implementar futuramente
-  { title: "Contratos", url: "/contratos", icon: FileText },
+  { title: "Contratos", url: "/contratos", icon: FileText, roles: ["gestor_nacional", "gestor_regional", "fiscal_contrato", "operador"] },
 ];
 
 export function AppSidebar() {
@@ -62,7 +62,9 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => (
+              {allMenuItems
+                .filter((item) => !item.roles || (role && item.roles.includes(role)))
+                .map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild

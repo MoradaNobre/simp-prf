@@ -39,7 +39,9 @@ const prioridadeColors: Record<string, string> = {
 
 export default function OrdensServico() {
   const { data: role } = useUserRole();
-  const canManage = role && role !== "operador";
+  const canManage = role && !["operador", "preposto", "terceirizado"].includes(role);
+  const isExternalUser = role === "preposto" || role === "terceirizado";
+  const canCreateOS = role && !isExternalUser;
   const { isNacional, effectiveRegionalId, selectedRegionalId, setSelectedRegionalId } = useRegionalFilter();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -78,9 +80,11 @@ export default function OrdensServico() {
             {ordens && <span className="ml-1">({ordens.length} registros)</span>}
           </p>
         </div>
-        <Button onClick={() => setNovaOSOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" /> Nova OS
-        </Button>
+        {canCreateOS && (
+          <Button onClick={() => setNovaOSOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" /> Nova OS
+          </Button>
+        )}
       </div>
 
       <div className="flex items-center gap-2 flex-wrap">
