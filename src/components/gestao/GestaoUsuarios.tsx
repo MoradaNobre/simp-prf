@@ -164,6 +164,7 @@ export default function GestaoUsuarios() {
   const [editUser, setEditUser] = useState<UserWithRole | null>(null);
   const [editRole, setEditRole] = useState("");
   const [editRegionalIds, setEditRegionalIds] = useState<string[]>([]);
+  const [editName, setEditName] = useState("");
 
   const filtered = (users || []).filter((u) =>
     u.full_name.toLowerCase().includes(search.toLowerCase())
@@ -171,6 +172,7 @@ export default function GestaoUsuarios() {
 
   const openEdit = (user: UserWithRole) => {
     setEditUser(user);
+    setEditName(user.full_name);
     setEditRole(user.role || "operador");
     setEditRegionalIds(user.regionais.map((r) => r.id));
   };
@@ -186,6 +188,14 @@ export default function GestaoUsuarios() {
   const handleSave = async () => {
     if (!editUser) return;
     try {
+      // Update name
+      if (editName.trim() && editName.trim() !== editUser.full_name) {
+        const { error } = await supabase
+          .from("profiles")
+          .update({ full_name: editName.trim() })
+          .eq("user_id", editUser.user_id);
+        if (error) throw error;
+      }
       await updateRole.mutateAsync({ userId: editUser.user_id, role: editRole });
       await updateRegionais.mutateAsync({
         userId: editUser.user_id,
@@ -253,6 +263,10 @@ export default function GestaoUsuarios() {
             <DialogDescription>{editUser?.full_name}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
+            <div>
+              <Label>Nome</Label>
+              <Input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Nome completo" />
+            </div>
             <div>
               <Label>Papel</Label>
               <Select value={editRole} onValueChange={setEditRole}>
