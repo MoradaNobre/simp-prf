@@ -5,10 +5,11 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useContratoContatos, useCreateContratoContato, useDeleteContratoContato } from "@/hooks/useContratos";
-import { useUsersByRole } from "@/hooks/useUsersByRole";
+import { useContratoContatos, useDeleteContratoContato } from "@/hooks/useContratos";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface Props {
   contratoId: string;
@@ -19,40 +20,64 @@ interface Props {
 
 export function ContratoContatosDialog({ contratoId, empresaNome, open, onOpenChange }: Props) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { data: contatos = [], isLoading } = useContratoContatos(contratoId);
-  const createContato = useCreateContratoContato();
   const deleteContato = useDeleteContratoContato();
-  const { data: terceirizados = [] } = useUsersByRole(["terceirizado", "preposto"]);
 
   const [showForm, setShowForm] = useState(false);
-  const [selectedUserId, setSelectedUserId] = useState("");
+  const [nome, setNome] = useState("");
+  const [email, setEmail] = useState("");
+  const [telefone, setTelefone] = useState("");
   const [funcao, setFuncao] = useState("");
+  const [role, setRole] = useState<string>("terceirizado");
+  const [submitting, setSubmitting] = useState(false);
 
-  // Filter out users already added as contacts
-  const existingUserIds = new Set(contatos.map((c) => c.user_id).filter(Boolean));
-  const availableUsers = terceirizados.filter((u) => !existingUserIds.has(u.user_id));
-
-  const selectedUser = terceirizados.find((u) => u.user_id === selectedUserId);
+  const resetForm = () => {
+    setNome("");
+    setEmail("");
+    setTelefone("");
+    setFuncao("");
+    setRole("terceirizado");
+    setShowForm(false);
+  };
 
   const handleAdd = async () => {
-    if (!selectedUserId || !selectedUser) {
-      toast({ title: "Selecione um usuário", variant: "destructive" });
+    if (!nome.trim()) {
+      toast({ title: "Nome é obrigatório", variant: "destructive" });
       return;
     }
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      toast({ title: "E-mail válido é obrigatório", variant: "destructive" });
+      return;
+    }
+
+    setSubmitting(true);
     try {
-      await createContato.mutateAsync({
-        contrato_id: contratoId,
-        nome: selectedUser.full_name,
-        telefone: selectedUser.phone || null,
-        funcao: funcao.trim() || null,
-        user_id: selectedUserId,
+      const { data, error } = await supabase.functions.invoke("create-contract-user", {
+        body: {
+          nome: nome.trim(),
+          email: email.trim(),
+          telefone: telefone.trim() || null,
+          funcao: funcao.trim() || null,
+          contrato_id: contratoId,
+          role,
+        },
       });
-      setSelectedUserId("");
-      setFuncao("");
-      setShowForm(false);
-      toast({ title: "Responsável adicionado" });
-    } catch {
-      toast({ title: "Erro ao adicionar responsável", variant: "destructive" });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      queryClient.invalidateQueries({ queryKey: ["contrato-contatos", contratoId] });
+      resetForm();
+      toast({
+        title: data?.user_created
+          ? "Usuário criado e vinculado ao contrato"
+          : "Usuário vinculado ao contrato",
+      });
+    } catch (err: any) {
+      toast({ title: err.message || "Erro ao adicionar responsável", variant: "destructive" });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -72,7 +97,7 @@ export function ContratoContatosDialog({ contratoId, empresaNome, open, onOpenCh
           <DialogTitle>Responsáveis — {empresaNome}</DialogTitle>
         </DialogHeader>
         <p className="text-sm text-muted-foreground">
-          Selecione usuários cadastrados no sistema com perfil de Preposto ou Terceirizado.
+          Pessoas da empresa que atendem os chamados/despachos. Ao adicionar, uma conta será criada automaticamente no sistema.
         </p>
 
         {isLoading ? (
@@ -86,6 +111,7 @@ export function ContratoContatosDialog({ contratoId, empresaNome, open, onOpenCh
                 <TableRow>
                   <TableHead>Nome</TableHead>
                   <TableHead>Função</TableHead>
+                  <TableHead>E-mail</TableHead>
                   <TableHead>Telefone</TableHead>
                   <TableHead className="w-10"></TableHead>
                 </TableRow>
@@ -95,6 +121,7 @@ export function ContratoContatosDialog({ contratoId, empresaNome, open, onOpenCh
                   <TableRow key={c.id}>
                     <TableCell className="font-medium">{c.nome}</TableCell>
                     <TableCell>{c.funcao || "—"}</TableCell>
+                    <TableCell>{c.email || "—"}</TableCell>
                     <TableCell>{c.telefone || "—"}</TableCell>
                     <TableCell>
                       <Button size="icon" variant="ghost" onClick={() => handleDelete(c.id)}>
@@ -112,31 +139,38 @@ export function ContratoContatosDialog({ contratoId, empresaNome, open, onOpenCh
           <div className="border rounded-md p-4 space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label>Usuário *</Label>
-                <Select value={selectedUserId} onValueChange={setSelectedUserId}>
-                  <SelectTrigger><SelectValue placeholder="Selecione um usuário..." /></SelectTrigger>
-                  <SelectContent>
-                    {availableUsers.map((u) => (
-                      <SelectItem key={u.user_id} value={u.user_id}>
-                        {u.full_name}{u.phone ? ` — ${u.phone}` : ""}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {availableUsers.length === 0 && (
-                  <p className="text-xs text-muted-foreground">
-                    Nenhum usuário disponível. Cadastre usuários com perfil "Terceirizado" ou "Preposto" em Gestão do Sistema.
-                  </p>
-                )}
+                <Label>Nome *</Label>
+                <Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Nome completo" />
               </div>
               <div className="space-y-1.5">
                 <Label>Função</Label>
                 <Input value={funcao} onChange={(e) => setFuncao(e.target.value)} placeholder="Ex: Técnico, Encarregado" />
               </div>
+              <div className="space-y-1.5">
+                <Label>E-mail *</Label>
+                <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@exemplo.com" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Telefone / WhatsApp</Label>
+                <Input value={telefone} onChange={(e) => setTelefone(e.target.value)} placeholder="(00) 00000-0000" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Perfil no sistema</Label>
+                <Select value={role} onValueChange={setRole}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="terceirizado">Terceirizado</SelectItem>
+                    <SelectItem value="preposto">Preposto</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div className="flex gap-2 justify-end">
-              <Button variant="outline" size="sm" onClick={() => { setShowForm(false); setSelectedUserId(""); setFuncao(""); }}>Cancelar</Button>
-              <Button size="sm" onClick={handleAdd} disabled={createContato.isPending || !selectedUserId}>Adicionar</Button>
+              <Button variant="outline" size="sm" onClick={resetForm} disabled={submitting}>Cancelar</Button>
+              <Button size="sm" onClick={handleAdd} disabled={submitting || !nome.trim() || !email.trim()}>
+                {submitting && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
+                Adicionar
+              </Button>
             </div>
           </div>
         )}
