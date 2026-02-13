@@ -43,6 +43,10 @@ export default function Login() {
         });
         if (error) throw error;
         toast.success("Conta criada! Verifique seu e-mail para confirmar o cadastro.");
+        setEmail("");
+        setPassword("");
+        setFullName("");
+        setMode("login");
       } else if (mode === "forgot") {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: `${window.location.origin}/login`,
