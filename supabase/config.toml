@@ -2,3 +2,6 @@ project_id = "qhqimpymsevtforpgghn"
 
 [functions.notify-preposto]
 verify_jwt = false
+
+[functions.create-contract-user]
+verify_jwt = false
