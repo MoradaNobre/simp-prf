@@ -30,7 +30,7 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
   const createOS = useCreateOS();
   const { data: contratos = [] } = useContratos();
 
-  const [titulo, setTitulo] = useState("");
+  const [categoria, setCategoria] = useState("");
   const [descricao, setDescricao] = useState("");
   const [tipo, setTipo] = useState<string>("corretiva");
   const [prioridade, setPrioridade] = useState<string>("media");
@@ -51,13 +51,13 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
   const equipamentos = useEquipamentos(uopId || undefined);
 
   const reset = () => {
-    setTitulo(""); setDescricao(""); setTipo("corretiva"); setPrioridade("media");
+    setCategoria(""); setDescricao(""); setTipo("corretiva"); setPrioridade("media");
     setDelegaciaId(""); setUopId(""); setEquipamentoId("");
     setFotoAntes(null); setContratoId("");
   };
 
   const handleSubmit = async () => {
-    if (!titulo.trim() || !user) return;
+    if (!categoria || !descricao.trim() || !user) return;
     setSubmitting(true);
     try {
       let fotoUrl: string | null = null;
@@ -70,9 +70,16 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
         fotoUrl = urlData.publicUrl;
       }
 
+      const categoriaLabels: Record<string, string> = {
+        eletrica: "Elétrica",
+        hidraulica: "Hidráulica",
+        ar_condicionado: "Ar Condicionado",
+        outro: "Outros",
+      };
+
       await createOS.mutateAsync({
-        titulo,
-        descricao: descricao || null,
+        titulo: categoriaLabels[categoria] || categoria,
+        descricao,
         tipo: tipo as any,
         prioridade: prioridade as any,
         uop_id: uopId || null,
@@ -103,13 +110,21 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
 
         <div className="space-y-4">
           <div>
-            <Label>Título *</Label>
-            <Input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Ex: Ar-condicionado com defeito" />
+            <Label>Categoria de Manutenção *</Label>
+            <Select value={categoria} onValueChange={setCategoria}>
+              <SelectTrigger><SelectValue placeholder="Selecione a categoria..." /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="eletrica">Elétrica</SelectItem>
+                <SelectItem value="hidraulica">Hidráulica</SelectItem>
+                <SelectItem value="ar_condicionado">Ar Condicionado</SelectItem>
+                <SelectItem value="outro">Outros</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
-            <Label>Descrição</Label>
-            <Textarea value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Detalhes do problema..." rows={3} />
+            <Label>Descrição *</Label>
+            <Textarea value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Descreva o problema detalhadamente..." rows={3} />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -195,7 +210,7 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={handleSubmit} disabled={submitting || !titulo.trim()}>
+          <Button onClick={handleSubmit} disabled={submitting || !categoria || !descricao.trim()}>
             {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Criar OS
           </Button>
