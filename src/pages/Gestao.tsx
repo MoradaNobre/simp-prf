@@ -1,8 +1,14 @@
+import { useState, useRef } from "react";
 import { Navigate } from "react-router-dom";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useQueryClient } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Shield, Users, Loader2, Map, Building2, MapPin } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Shield, Users, Loader2, Map, Building2, MapPin, Upload } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import * as XLSX from "xlsx";
 import GestaoUsuarios from "@/components/gestao/GestaoUsuarios";
 import GestaoRegionais from "@/components/gestao/GestaoRegionais";
 import GestaoDelegacias from "@/components/gestao/GestaoDelegacias";
@@ -10,6 +16,39 @@ import GestaoUops from "@/components/gestao/GestaoUops";
 
 export default function Gestao() {
   const { data: role, isLoading } = useUserRole();
+  const [importing, setImporting] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImporting(true);
+    try {
+      let csvText: string;
+      if (file.name.endsWith(".xlsx") || file.name.endsWith(".xls")) {
+        const buf = await file.arrayBuffer();
+        const wb = XLSX.read(buf, { type: "array" });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        csvText = XLSX.utils.sheet_to_csv(ws, { FS: ";" });
+      } else {
+        csvText = await file.text();
+      }
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { toast.error("Faça login para importar"); return; }
+      const { data, error } = await supabase.functions.invoke("import-csv", { body: { data: csvText } });
+      if (error) throw error;
+      toast.success(`Importados: ${data.regionais} regionais, ${data.delegacias} delegacias, ${data.uops} UOPs`);
+      queryClient.invalidateQueries({ queryKey: ["regionais"] });
+      queryClient.invalidateQueries({ queryKey: ["delegacias"] });
+      queryClient.invalidateQueries({ queryKey: ["uops"] });
+    } catch (err: any) {
+      toast.error("Erro ao importar: " + (err.message || err));
+    } finally {
+      setImporting(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
 
   if (isLoading) {
     return (
@@ -25,12 +64,21 @@ export default function Gestao() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-          <Shield className="h-6 w-6" />
-          Gestão do Sistema
-        </h1>
-        <p className="text-muted-foreground">Painel administrativo do SIMP-PRF</p>
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+            <Shield className="h-6 w-6" />
+            Gestão do Sistema
+          </h1>
+          <p className="text-muted-foreground">Painel administrativo do SIMP-PRF</p>
+        </div>
+        <div>
+          <input ref={fileRef} type="file" accept=".csv,.xlsx,.xls" className="hidden" onChange={handleImport} />
+          <Button variant="outline" onClick={() => fileRef.current?.click()} disabled={importing}>
+            {importing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+            Importar Planilha
+          </Button>
+        </div>
       </div>
 
       <Tabs defaultValue="usuarios" className="w-full">
