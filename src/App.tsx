@@ -13,6 +13,7 @@ import Contratos from "@/pages/Contratos";
 import Login from "@/pages/Login";
 import Gestao from "@/pages/Gestao";
 import NotFound from "@/pages/NotFound";
+import DefinirResponsavel from "@/pages/DefinirResponsavel";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ const App = () => (
               <Route path="contratos" element={<Contratos />} />
               <Route path="gestao" element={<Gestao />} />
             </Route>
+            <Route path="/definir-responsavel/:osId" element={<DefinirResponsavel />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
