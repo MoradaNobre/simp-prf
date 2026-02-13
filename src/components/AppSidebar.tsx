@@ -7,8 +7,9 @@ import {
   Shield,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useUserRole } from "@/hooks/useUserRole";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Sidebar,
   SidebarContent,
@@ -31,8 +32,14 @@ const menuItems = [
 
 export function AppSidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { data: role } = useUserRole();
   const isAdmin = role === "gestor_nacional";
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/login");
+  };
 
   return (
     <Sidebar>
@@ -102,7 +109,7 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <button className="w-full flex items-center gap-2 text-sidebar-foreground/70 hover:text-sidebar-foreground">
+              <button onClick={handleLogout} className="w-full flex items-center gap-2 text-sidebar-foreground/70 hover:text-sidebar-foreground">
                 <LogOut className="h-4 w-4" />
                 <span>Sair</span>
               </button>
