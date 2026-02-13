@@ -7,6 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCreateContrato } from "@/hooks/useContratos";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
   open: boolean;
@@ -16,10 +18,19 @@ interface Props {
 export function NovoContratoDialog({ open, onOpenChange }: Props) {
   const { toast } = useToast();
   const createContrato = useCreateContrato();
+  const { data: regionais = [] } = useQuery({
+    queryKey: ["regionais"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("regionais").select("id, nome, sigla").order("sigla");
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const [form, setForm] = useState({
     numero: "",
     empresa: "",
+    regional_id: "",
     tipo_servico: "manutencao_predial",
     objeto: "",
     valor_total: "",
@@ -33,7 +44,7 @@ export function NovoContratoDialog({ open, onOpenChange }: Props) {
   const set = (field: string, value: string) => setForm((f) => ({ ...f, [field]: value }));
 
   const handleSubmit = async () => {
-    if (!form.numero || !form.empresa || !form.data_inicio || !form.data_fim) {
+    if (!form.numero || !form.empresa || !form.data_inicio || !form.data_fim || !form.regional_id) {
       toast({ title: "Preencha os campos obrigatórios", variant: "destructive" });
       return;
     }
@@ -41,6 +52,7 @@ export function NovoContratoDialog({ open, onOpenChange }: Props) {
       await createContrato.mutateAsync({
         numero: form.numero.trim(),
         empresa: form.empresa.trim(),
+        regional_id: form.regional_id,
         tipo_servico: form.tipo_servico,
         objeto: form.objeto.trim() || null,
         valor_total: parseFloat(form.valor_total) || 0,
@@ -53,7 +65,7 @@ export function NovoContratoDialog({ open, onOpenChange }: Props) {
       toast({ title: "Contrato cadastrado com sucesso" });
       onOpenChange(false);
       setForm({
-        numero: "", empresa: "", tipo_servico: "manutencao_predial", objeto: "",
+        numero: "", empresa: "", regional_id: "", tipo_servico: "manutencao_predial", objeto: "",
         valor_total: "", data_inicio: "", data_fim: "",
         preposto_nome: "", preposto_email: "", preposto_telefone: "",
       });
@@ -77,6 +89,17 @@ export function NovoContratoDialog({ open, onOpenChange }: Props) {
           <div className="space-y-1.5">
             <Label>Empresa *</Label>
             <Input value={form.empresa} onChange={(e) => set("empresa", e.target.value)} placeholder="Razão social" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Regional *</Label>
+            <Select value={form.regional_id} onValueChange={(v) => set("regional_id", v)}>
+              <SelectTrigger><SelectValue placeholder="Selecione a regional" /></SelectTrigger>
+              <SelectContent>
+                {regionais.map((r) => (
+                  <SelectItem key={r.id} value={r.id}>{r.sigla} — {r.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-1.5">
