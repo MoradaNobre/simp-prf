@@ -542,6 +542,8 @@ export type Database = {
         | "gestor_regional"
         | "fiscal_contrato"
         | "operador"
+        | "preposto"
+        | "terceirizado"
       equipment_category:
         | "ar_condicionado"
         | "gerador"
@@ -686,6 +688,8 @@ export const Constants = {
         "gestor_regional",
         "fiscal_contrato",
         "operador",
+        "preposto",
+        "terceirizado",
       ],
       equipment_category: [
         "ar_condicionado",
