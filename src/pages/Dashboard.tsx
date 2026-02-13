@@ -1,28 +1,115 @@
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ClipboardList, AlertTriangle, CheckCircle, Clock } from "lucide-react";
+import { ClipboardList, AlertTriangle, CheckCircle, Clock, TrendingUp, Building2 } from "lucide-react";
+import { differenceInHours, startOfMonth } from "date-fns";
 
-const stats = [
-  { label: "OS Abertas", value: "24", icon: ClipboardList, color: "text-info" },
-  { label: "Urgentes", value: "5", icon: AlertTriangle, color: "text-destructive" },
-  { label: "Concluídas (mês)", value: "47", icon: CheckCircle, color: "text-success" },
-  { label: "MTTR Médio", value: "3.2h", icon: Clock, color: "text-warning" },
-];
+function useDashboardData() {
+  return useQuery({
+    queryKey: ["dashboard-stats"],
+    queryFn: async () => {
+      const [osRes, uopsRes, equipRes] = await Promise.all([
+        supabase.from("ordens_servico").select("id, status, tipo, prioridade, data_abertura, data_encerramento, uop_id"),
+        supabase.from("uops").select("id, area_m2"),
+        supabase.from("equipamentos").select("id"),
+      ]);
+
+      if (osRes.error) throw osRes.error;
+      if (uopsRes.error) throw uopsRes.error;
+
+      const os = osRes.data ?? [];
+      const uops = uopsRes.data ?? [];
+      const mesAtual = startOfMonth(new Date());
+
+      // KPIs básicos
+      const abertas = os.filter((o) => o.status !== "encerrada");
+      const urgentes = abertas.filter((o) => o.prioridade === "urgente");
+      const concluidasMes = os.filter(
+        (o) => o.status === "encerrada" && o.data_encerramento && new Date(o.data_encerramento) >= mesAtual
+      );
+
+      // MTTR — média de horas entre abertura e encerramento das OS encerradas
+      const encerradas = os.filter((o) => o.status === "encerrada" && o.data_encerramento);
+      let mttr = 0;
+      if (encerradas.length > 0) {
+        const totalHoras = encerradas.reduce((sum, o) => {
+          return sum + differenceInHours(new Date(o.data_encerramento!), new Date(o.data_abertura));
+        }, 0);
+        mttr = totalHoras / encerradas.length;
+      }
+
+      // Corretiva vs Preventiva (todas as OS)
+      const totalOS = os.length || 1;
+      const corretivas = os.filter((o) => o.tipo === "corretiva").length;
+      const preventivas = os.filter((o) => o.tipo === "preventiva").length;
+      const pctCorretiva = Math.round((corretivas / totalOS) * 100);
+      const pctPreventiva = Math.round((preventivas / totalOS) * 100);
+
+      // Disponibilidade: UOPs sem OS aberta / total UOPs
+      const uopsComOsAberta = new Set(abertas.map((o) => o.uop_id).filter(Boolean));
+      const totalUops = uops.length || 1;
+      const disponibilidade = Math.round(((totalUops - uopsComOsAberta.size) / totalUops) * 100 * 10) / 10;
+
+      // Backlog
+      const backlog = abertas.length;
+
+      // Custo por m² — precisaria de os_custos, simplificado por agora
+      const areaTotal = uops.reduce((s, u) => s + (u.area_m2 ?? 0), 0);
+
+      return {
+        abertas: abertas.length,
+        urgentes: urgentes.length,
+        concluidasMes: concluidasMes.length,
+        mttr,
+        pctCorretiva,
+        pctPreventiva,
+        disponibilidade,
+        backlog,
+        totalUops: uops.length,
+        totalEquipamentos: equipRes.data?.length ?? 0,
+        areaTotal,
+      };
+    },
+    refetchInterval: 30_000, // atualiza a cada 30s
+  });
+}
 
 export default function Dashboard() {
+  const { data, isLoading } = useDashboardData();
+
+  const stats = [
+    { label: "OS Abertas (Backlog)", value: isLoading ? "…" : String(data?.abertas ?? 0), icon: ClipboardList, color: "text-blue-500" },
+    { label: "Urgentes", value: isLoading ? "…" : String(data?.urgentes ?? 0), icon: AlertTriangle, color: "text-destructive" },
+    { label: "Concluídas (mês)", value: isLoading ? "…" : String(data?.concluidasMes ?? 0), icon: CheckCircle, color: "text-green-500" },
+    {
+      label: "MTTR Médio",
+      value: isLoading ? "…" : data?.mttr ? `${data.mttr.toFixed(1)}h` : "—",
+      icon: Clock,
+      color: "text-amber-500",
+    },
+  ];
+
+  const summaryStats = [
+    { label: "Total de UOPs", value: isLoading ? "…" : String(data?.totalUops ?? 0), icon: Building2 },
+    { label: "Equipamentos", value: isLoading ? "…" : String(data?.totalEquipamentos ?? 0), icon: TrendingUp },
+  ];
+
+  const pctCorretiva = data?.pctCorretiva ?? 0;
+  const pctPreventiva = data?.pctPreventiva ?? 0;
+  const disponibilidade = data?.disponibilidade ?? 0;
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-        <p className="text-muted-foreground">Visão geral da manutenção predial</p>
+        <p className="text-muted-foreground">Visão geral da manutenção predial — dados em tempo real</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
           <Card key={stat.label}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {stat.label}
-              </CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">{stat.label}</CardTitle>
               <stat.icon className={`h-5 w-5 ${stat.color}`} />
             </CardHeader>
             <CardContent>
@@ -42,19 +129,19 @@ export default function Dashboard() {
               <div className="flex-1 space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>Corretiva</span>
-                  <span className="font-medium">42%</span>
+                  <span className="font-medium">{pctCorretiva}%</span>
                 </div>
                 <div className="h-3 rounded-full bg-muted overflow-hidden">
-                  <div className="h-full rounded-full bg-destructive" style={{ width: "42%" }} />
+                  <div className="h-full rounded-full bg-destructive transition-all" style={{ width: `${pctCorretiva}%` }} />
                 </div>
               </div>
               <div className="flex-1 space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>Preventiva</span>
-                  <span className="font-medium">58%</span>
+                  <span className="font-medium">{pctPreventiva}%</span>
                 </div>
                 <div className="h-3 rounded-full bg-muted overflow-hidden">
-                  <div className="h-full rounded-full bg-primary" style={{ width: "58%" }} />
+                  <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${pctPreventiva}%` }} />
                 </div>
               </div>
             </div>
@@ -68,13 +155,27 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-center">
-              <div className="text-5xl font-bold text-primary">91.3%</div>
+              <div className="text-5xl font-bold text-primary">{isLoading ? "…" : `${disponibilidade}%`}</div>
               <p className="mt-2 text-sm text-muted-foreground">
-                Unidades 100% aptas ao serviço
+                UOPs sem ordens de serviço abertas
               </p>
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        {summaryStats.map((s) => (
+          <Card key={s.label}>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">{s.label}</CardTitle>
+              <s.icon className="h-5 w-5 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{s.value}</div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     </div>
   );
