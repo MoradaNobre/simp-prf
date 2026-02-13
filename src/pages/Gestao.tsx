@@ -2,8 +2,11 @@ import { Navigate } from "react-router-dom";
 import { useUserRole } from "@/hooks/useUserRole";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Shield, Users, Loader2 } from "lucide-react";
+import { Shield, Users, Loader2, Map, Building2, MapPin } from "lucide-react";
 import GestaoUsuarios from "@/components/gestao/GestaoUsuarios";
+import GestaoRegionais from "@/components/gestao/GestaoRegionais";
+import GestaoDelegacias from "@/components/gestao/GestaoDelegacias";
+import GestaoUops from "@/components/gestao/GestaoUops";
 
 export default function Gestao() {
   const { data: role, isLoading } = useUserRole();
@@ -36,12 +39,48 @@ export default function Gestao() {
             <Users className="h-4 w-4" />
             Usuários
           </TabsTrigger>
+          <TabsTrigger value="regionais" className="flex items-center gap-2">
+            <Map className="h-4 w-4" />
+            Regionais
+          </TabsTrigger>
+          <TabsTrigger value="delegacias" className="flex items-center gap-2">
+            <Building2 className="h-4 w-4" />
+            Delegacias
+          </TabsTrigger>
+          <TabsTrigger value="uops" className="flex items-center gap-2">
+            <MapPin className="h-4 w-4" />
+            UOPs
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="usuarios">
           <Card>
             <CardContent className="pt-6">
               <GestaoUsuarios />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="regionais">
+          <Card>
+            <CardContent className="pt-6">
+              <GestaoRegionais />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="delegacias">
+          <Card>
+            <CardContent className="pt-6">
+              <GestaoDelegacias />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="uops">
+          <Card>
+            <CardContent className="pt-6">
+              <GestaoUops />
             </CardContent>
           </Card>
         </TabsContent>
