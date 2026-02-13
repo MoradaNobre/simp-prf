@@ -94,3 +94,14 @@ export function useAddCusto() {
     onSuccess: (_, vars) => qc.invalidateQueries({ queryKey: ["os_custos", vars.os_id] }),
   });
 }
+
+export function useDeleteOS() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("ordens_servico").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["ordens_servico"] }),
+  });
+}

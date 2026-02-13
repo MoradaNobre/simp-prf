@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreateOS } from "@/hooks/useOrdensServico";
+import { useContratos } from "@/hooks/useContratos";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useDelegacias, useUops, useEquipamentos } from "@/hooks/useHierarchy";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,6 +28,7 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
   const { user } = useAuth();
   const profile = useUserProfile();
   const createOS = useCreateOS();
+  const { data: contratos = [] } = useContratos();
 
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
@@ -36,6 +38,7 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
   const [uopId, setUopId] = useState("");
   const [equipamentoId, setEquipamentoId] = useState("");
   const [fotoAntes, setFotoAntes] = useState<File | null>(null);
+  const [contratoId, setContratoId] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const regionalId = (profile.data as any)?.regional_id || undefined;
@@ -50,7 +53,7 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
   const reset = () => {
     setTitulo(""); setDescricao(""); setTipo("corretiva"); setPrioridade("media");
     setDelegaciaId(""); setUopId(""); setEquipamentoId("");
-    setFotoAntes(null);
+    setFotoAntes(null); setContratoId("");
   };
 
   const handleSubmit = async () => {
@@ -74,6 +77,7 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
         prioridade: prioridade as any,
         uop_id: uopId || null,
         equipamento_id: equipamentoId || null,
+        contrato_id: contratoId || null,
         solicitante_id: user.id,
         foto_antes: fotoUrl,
         codigo: "",
@@ -182,6 +186,21 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
               </Select>
             </div>
           )}
+
+          <div>
+            <Label>Contrato Vinculado</Label>
+            <Select value={contratoId || "none"} onValueChange={(v) => setContratoId(v === "none" ? "" : v)}>
+              <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Nenhum</SelectItem>
+                {contratos.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.numero} — {c.empresa}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           <div>
             <Label>Foto (antes)</Label>
