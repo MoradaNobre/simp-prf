@@ -82,7 +82,6 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
 
   const handleAdvanceStatus = async () => {
     if (!nextStatus) return;
-    // Na triagem, exigir contrato vinculado
     if (nextStatus === "triagem" && !selectedContratoId) {
       toast.error("Vincule um contrato antes de avançar para Triagem");
       return;
@@ -92,7 +91,6 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
       if (nextStatus === "encerrada") updates.data_encerramento = new Date().toISOString();
       if (nextStatus === "triagem") updates.contrato_id = selectedContratoId;
       
-      // Set responsible for this stage
       const field = statusResponsavelField[nextStatus];
       if (field && selectedResponsavel) {
         updates[field] = selectedResponsavel;
@@ -101,6 +99,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
       await updateOS.mutateAsync(updates);
       toast.success(`Status alterado para ${statusLabels[nextStatus]}`);
       setSelectedResponsavel("");
+      onOpenChange(false);
     } catch (err: any) {
       toast.error("Erro: " + err.message);
     }
