@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { useUpdateOS, useOSCustos, useAddCusto, type OrdemServico } from "@/hooks/useOrdensServico";
 import { useContratos } from "@/hooks/useContratos";
+import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, Camera, DollarSign, User } from "lucide-react";
@@ -45,6 +46,8 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   const updateOS = useUpdateOS();
   const custos = useOSCustos(os?.id);
   const addCusto = useAddCusto();
+  const { data: role } = useUserRole();
+  const canManage = role && role !== "operador";
 
   const [uploading, setUploading] = useState(false);
   const [custoDesc, setCustoDesc] = useState("");
@@ -246,7 +249,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
           </div>
 
           {/* Status transition with contrato & responsável selection */}
-          {nextStatus && (
+          {canManage && nextStatus && (
             <>
               <Separator />
               <div className="space-y-3">
@@ -310,18 +313,20 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                 <span className="font-medium">R$ {Number(c.valor).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
               </div>
             ))}
-            <div className="flex gap-2 mt-2">
-              <Input placeholder="Descrição" value={custoDesc} onChange={(e) => setCustoDesc(e.target.value)} className="flex-1" />
-              <Select value={custoTipo} onValueChange={setCustoTipo}>
-                <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="peca">Peça</SelectItem>
-                  <SelectItem value="mao_de_obra">Mão de Obra</SelectItem>
-                </SelectContent>
-              </Select>
-              <Input placeholder="Valor" type="number" step="0.01" value={custoValor} onChange={(e) => setCustoValor(e.target.value)} className="w-24" />
-              <Button size="sm" onClick={handleAddCusto} disabled={addCusto.isPending}>+</Button>
-            </div>
+            {canManage && (
+              <div className="flex gap-2 mt-2">
+                <Input placeholder="Descrição" value={custoDesc} onChange={(e) => setCustoDesc(e.target.value)} className="flex-1" />
+                <Select value={custoTipo} onValueChange={setCustoTipo}>
+                  <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="peca">Peça</SelectItem>
+                    <SelectItem value="mao_de_obra">Mão de Obra</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Input placeholder="Valor" type="number" step="0.01" value={custoValor} onChange={(e) => setCustoValor(e.target.value)} className="w-24" />
+                <Button size="sm" onClick={handleAddCusto} disabled={addCusto.isPending}>+</Button>
+              </div>
+            )}
           </div>
         </div>
       </DialogContent>
