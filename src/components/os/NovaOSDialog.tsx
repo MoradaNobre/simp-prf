@@ -11,7 +11,8 @@ import {
 } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreateOS } from "@/hooks/useOrdensServico";
-import { useRegionais, useDelegacias, useUops, useEquipamentos } from "@/hooks/useHierarchy";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { useDelegacias, useUops, useEquipamentos } from "@/hooks/useHierarchy";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
@@ -24,27 +25,31 @@ interface Props {
 
 export function NovaOSDialog({ open, onOpenChange }: Props) {
   const { user } = useAuth();
+  const profile = useUserProfile();
   const createOS = useCreateOS();
 
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
   const [tipo, setTipo] = useState<string>("corretiva");
   const [prioridade, setPrioridade] = useState<string>("media");
-  const [regionalId, setRegionalId] = useState("");
   const [delegaciaId, setDelegaciaId] = useState("");
   const [uopId, setUopId] = useState("");
   const [equipamentoId, setEquipamentoId] = useState("");
   const [fotoAntes, setFotoAntes] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const regionais = useRegionais();
-  const delegacias = useDelegacias(regionalId || undefined);
+  const regionalId = (profile.data as any)?.regional_id || undefined;
+  const regionalNome = (profile.data as any)?.regional
+    ? `${(profile.data as any).regional.sigla} — ${(profile.data as any).regional.nome}`
+    : "Nenhuma regional vinculada";
+
+  const delegacias = useDelegacias(regionalId);
   const uops = useUops(delegaciaId || undefined);
   const equipamentos = useEquipamentos(uopId || undefined);
 
   const reset = () => {
     setTitulo(""); setDescricao(""); setTipo("corretiva"); setPrioridade("media");
-    setRegionalId(""); setDelegaciaId(""); setUopId(""); setEquipamentoId("");
+    setDelegaciaId(""); setUopId(""); setEquipamentoId("");
     setFotoAntes(null);
   };
 
@@ -71,7 +76,7 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
         equipamento_id: equipamentoId || null,
         solicitante_id: user.id,
         foto_antes: fotoUrl,
-        codigo: "", // trigger will generate
+        codigo: "",
       });
 
       toast.success("OS criada com sucesso!");
@@ -130,14 +135,10 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
 
           <div>
             <Label>Regional</Label>
-            <Select value={regionalId} onValueChange={(v) => { setRegionalId(v); setDelegaciaId(""); setUopId(""); setEquipamentoId(""); }}>
-              <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-              <SelectContent>
-                {(regionais.data || []).map((r) => (
-                  <SelectItem key={r.id} value={r.id}>{r.sigla} — {r.nome}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Input value={regionalNome} disabled className="bg-muted" />
+            {!regionalId && (
+              <p className="text-xs text-destructive mt-1">Seu perfil não está vinculado a uma regional. Peça ao administrador.</p>
+            )}
           </div>
 
           {regionalId && (
