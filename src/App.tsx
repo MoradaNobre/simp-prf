@@ -11,6 +11,7 @@ import OrdensServico from "@/pages/OrdensServico";
 import Preventiva from "@/pages/Preventiva";
 import Contratos from "@/pages/Contratos";
 import Login from "@/pages/Login";
+import Usuarios from "@/pages/Usuarios";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ const App = () => (
               <Route path="ordens" element={<OrdensServico />} />
               <Route path="preventiva" element={<Preventiva />} />
               <Route path="contratos" element={<Contratos />} />
+              <Route path="usuarios" element={<Usuarios />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

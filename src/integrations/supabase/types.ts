@@ -314,6 +314,7 @@ export type Database = {
           full_name: string
           id: string
           phone: string | null
+          regional_id: string | null
           updated_at: string
           user_id: string
         }
@@ -322,6 +323,7 @@ export type Database = {
           full_name?: string
           id?: string
           phone?: string | null
+          regional_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -330,10 +332,19 @@ export type Database = {
           full_name?: string
           id?: string
           phone?: string | null
+          regional_id?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_regional_id_fkey"
+            columns: ["regional_id"]
+            isOneToOne: false
+            referencedRelation: "regionais"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       regionais: {
         Row: {

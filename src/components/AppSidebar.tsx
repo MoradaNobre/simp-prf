@@ -6,9 +6,11 @@ import {
   FileText,
   LogOut,
   Shield,
+  Users,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
+import { useUserRole } from "@/hooks/useUserRole";
 import {
   Sidebar,
   SidebarContent,
@@ -32,6 +34,8 @@ const menuItems = [
 
 export function AppSidebar() {
   const location = useLocation();
+  const { data: role } = useUserRole();
+  const isAdmin = role === "gestor_nacional";
 
   return (
     <Sidebar>
@@ -73,6 +77,25 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              {isAdmin && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={location.pathname === "/usuarios"}
+                    tooltip="Usuários"
+                  >
+                    <NavLink
+                      to="/usuarios"
+                      end
+                      className="hover:bg-sidebar-accent/50"
+                      activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                    >
+                      <Users className="h-4 w-4" />
+                      <span>Usuários</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
