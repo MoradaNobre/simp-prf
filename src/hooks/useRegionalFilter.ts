@@ -5,8 +5,7 @@ import { useUserProfile } from "@/hooks/useUserProfile";
 /**
  * Provides regional filtering based on user role:
  * - gestor_nacional: can filter by any regional (optional)
- * - gestor_regional: locked to their own regional
- * - others: locked to their own regional
+ * - others: locked to their own regionais (first one used as default)
  */
 export function useRegionalFilter() {
   const { data: role } = useUserRole();
@@ -14,19 +13,24 @@ export function useRegionalFilter() {
   const [selectedRegionalId, setSelectedRegionalId] = useState<string>("");
 
   const isNacional = role === "gestor_nacional";
-  const userRegionalId = profile?.regional_id ?? null;
+  const userRegionalIds: string[] = (profile as any)?.regionais?.map((r: any) => r.id) ?? [];
 
   // The effective regional_id to filter by
   const effectiveRegionalId = useMemo(() => {
     if (isNacional) {
       return selectedRegionalId || null; // null = show all
     }
-    return userRegionalId; // locked to user's regional
-  }, [isNacional, selectedRegionalId, userRegionalId]);
+    // For non-national users, use selectedRegionalId if it's in their regionais, else first
+    if (selectedRegionalId && userRegionalIds.includes(selectedRegionalId)) {
+      return selectedRegionalId;
+    }
+    return userRegionalIds[0] || null;
+  }, [isNacional, selectedRegionalId, userRegionalIds]);
 
   return {
     isNacional,
     effectiveRegionalId,
+    userRegionalIds,
     selectedRegionalId,
     setSelectedRegionalId,
   };

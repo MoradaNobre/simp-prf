@@ -12,6 +12,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useRegionais } from "@/hooks/useHierarchy";
@@ -19,13 +20,16 @@ import { toast } from "sonner";
 import { Search, Loader2 } from "lucide-react";
 import { Constants } from "@/integrations/supabase/types";
 
+type UserRegional = { id: string; nome: string; sigla: string };
+
 type UserWithRole = {
   id: string;
   user_id: string;
   full_name: string;
   phone: string | null;
   regional_id: string | null;
-  regional: { id: string; nome: string; sigla: string } | null;
+  regional: UserRegional | null;
+  regionais: UserRegional[];
   role: string | null;
 };
 
@@ -44,8 +48,22 @@ function useAdminUsers() {
         .select("*");
       if (rErr) throw rErr;
 
+      // Fetch user_regionais for all users
+      const { data: userRegionais, error: urErr } = await supabase
+        .from("user_regionais" as any)
+        .select("user_id, regional_id, regionais:regional_id(id, nome, sigla)");
+      if (urErr) throw urErr;
+
       const roleMap = new Map<string, string>();
       (roles || []).forEach((r) => roleMap.set(r.user_id, r.role));
+
+      // Group regionais by user_id
+      const regionaisMap = new Map<string, UserRegional[]>();
+      (userRegionais || []).forEach((ur: any) => {
+        const list = regionaisMap.get(ur.user_id) || [];
+        if (ur.regionais) list.push(ur.regionais);
+        regionaisMap.set(ur.user_id, list);
+      });
 
       return (profiles || []).map((p) => ({
         id: p.id,
@@ -54,6 +72,7 @@ function useAdminUsers() {
         phone: p.phone,
         regional_id: (p as any).regional_id,
         regional: (p as any).regional,
+        regionais: regionaisMap.get(p.user_id) || [],
         role: roleMap.get(p.user_id) || "operador",
       })) as UserWithRole[];
     },
@@ -87,15 +106,32 @@ function useUpdateUserRole() {
   });
 }
 
-function useUpdateUserRegional() {
+function useUpdateUserRegionais() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ userId, regionalId }: { userId: string; regionalId: string | null }) => {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ regional_id: regionalId } as any)
+    mutationFn: async ({ userId, regionalIds }: { userId: string; regionalIds: string[] }) => {
+      // Delete existing
+      const { error: delErr } = await supabase
+        .from("user_regionais" as any)
+        .delete()
         .eq("user_id", userId);
-      if (error) throw error;
+      if (delErr) throw delErr;
+
+      // Insert new
+      if (regionalIds.length > 0) {
+        const rows = regionalIds.map((rid) => ({ user_id: userId, regional_id: rid }));
+        const { error: insErr } = await supabase
+          .from("user_regionais" as any)
+          .insert(rows);
+        if (insErr) throw insErr;
+      }
+
+      // Also update profiles.regional_id for backwards compat (first regional or null)
+      const { error: profErr } = await supabase
+        .from("profiles")
+        .update({ regional_id: regionalIds[0] || null } as any)
+        .eq("user_id", userId);
+      if (profErr) throw profErr;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-users"] }),
   });
@@ -123,11 +159,11 @@ export default function GestaoUsuarios() {
   const { data: users, isLoading } = useAdminUsers();
   const regionais = useRegionais();
   const updateRole = useUpdateUserRole();
-  const updateRegional = useUpdateUserRegional();
+  const updateRegionais = useUpdateUserRegionais();
   const [search, setSearch] = useState("");
   const [editUser, setEditUser] = useState<UserWithRole | null>(null);
   const [editRole, setEditRole] = useState("");
-  const [editRegionalId, setEditRegionalId] = useState("");
+  const [editRegionalIds, setEditRegionalIds] = useState<string[]>([]);
 
   const filtered = (users || []).filter((u) =>
     u.full_name.toLowerCase().includes(search.toLowerCase())
@@ -136,16 +172,24 @@ export default function GestaoUsuarios() {
   const openEdit = (user: UserWithRole) => {
     setEditUser(user);
     setEditRole(user.role || "operador");
-    setEditRegionalId(user.regional_id || "none");
+    setEditRegionalIds(user.regionais.map((r) => r.id));
+  };
+
+  const toggleRegional = (regionalId: string) => {
+    setEditRegionalIds((prev) =>
+      prev.includes(regionalId)
+        ? prev.filter((id) => id !== regionalId)
+        : [...prev, regionalId]
+    );
   };
 
   const handleSave = async () => {
     if (!editUser) return;
     try {
       await updateRole.mutateAsync({ userId: editUser.user_id, role: editRole });
-      await updateRegional.mutateAsync({
+      await updateRegionais.mutateAsync({
         userId: editUser.user_id,
-        regionalId: editRegionalId === "none" ? null : editRegionalId,
+        regionalIds: editRegionalIds,
       });
       toast.success("Usuário atualizado!");
       setEditUser(null);
@@ -175,7 +219,7 @@ export default function GestaoUsuarios() {
             <TableRow>
               <TableHead>Nome</TableHead>
               <TableHead>Papel</TableHead>
-              <TableHead>Regional</TableHead>
+              <TableHead>Regionais</TableHead>
               <TableHead className="w-24">Ações</TableHead>
             </TableRow>
           </TableHeader>
@@ -189,7 +233,9 @@ export default function GestaoUsuarios() {
                   </Badge>
                 </TableCell>
                 <TableCell className="text-muted-foreground">
-                  {u.regional ? `${u.regional.sigla} — ${u.regional.nome}` : "—"}
+                  {u.regionais.length > 0
+                    ? u.regionais.map((r) => r.sigla).join(", ")
+                    : "—"}
                 </TableCell>
                 <TableCell>
                   <Button variant="ghost" size="sm" onClick={() => openEdit(u)}>Editar</Button>
@@ -219,22 +265,33 @@ export default function GestaoUsuarios() {
               </Select>
             </div>
             <div>
-              <Label>Regional</Label>
-              <Select value={editRegionalId} onValueChange={setEditRegionalId}>
-                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Nenhuma</SelectItem>
-                  {(regionais.data || []).map((r) => (
-                    <SelectItem key={r.id} value={r.id}>{r.sigla} — {r.nome}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label>Regionais</Label>
+              <div className="mt-2 max-h-48 overflow-y-auto space-y-2 border rounded-md p-3">
+                {(regionais.data || []).map((r) => (
+                  <div key={r.id} className="flex items-center gap-2">
+                    <Checkbox
+                      id={`regional-${r.id}`}
+                      checked={editRegionalIds.includes(r.id)}
+                      onCheckedChange={() => toggleRegional(r.id)}
+                    />
+                    <label
+                      htmlFor={`regional-${r.id}`}
+                      className="text-sm cursor-pointer leading-none"
+                    >
+                      {r.sigla} — {r.nome}
+                    </label>
+                  </div>
+                ))}
+                {!(regionais.data || []).length && (
+                  <p className="text-sm text-muted-foreground">Nenhuma regional cadastrada.</p>
+                )}
+              </div>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditUser(null)}>Cancelar</Button>
-            <Button onClick={handleSave} disabled={updateRole.isPending || updateRegional.isPending}>
-              {(updateRole.isPending || updateRegional.isPending) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button onClick={handleSave} disabled={updateRole.isPending || updateRegionais.isPending}>
+              {(updateRole.isPending || updateRegionais.isPending) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Salvar
             </Button>
           </DialogFooter>
