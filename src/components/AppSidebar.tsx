@@ -6,7 +6,6 @@ import {
   FileText,
   LogOut,
   Shield,
-  Users,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -81,17 +80,17 @@ export function AppSidebar() {
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     asChild
-                    isActive={location.pathname === "/usuarios"}
-                    tooltip="Usuários"
+                    isActive={location.pathname === "/gestao"}
+                    tooltip="Gestão do Sistema"
                   >
                     <NavLink
-                      to="/usuarios"
+                      to="/gestao"
                       end
                       className="hover:bg-sidebar-accent/50"
                       activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
                     >
-                      <Users className="h-4 w-4" />
-                      <span>Usuários</span>
+                      <Shield className="h-4 w-4" />
+                      <span>Gestão do Sistema</span>
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
