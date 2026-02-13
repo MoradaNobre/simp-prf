@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -21,10 +22,15 @@ const TIPO_LABELS: Record<string, string> = {
 };
 
 export default function Contratos() {
+  const { user } = useAuth();
   const { data: role } = useUserRole();
   const canManage = role && !["operador", "preposto", "terceirizado"].includes(role);
+  const isPreposto = role === "preposto";
   const { isNacional, effectiveRegionalId, selectedRegionalId, setSelectedRegionalId } = useRegionalFilter();
-  const { data: contratos = [], isLoading } = useContratos(effectiveRegionalId);
+  const { data: contratos = [], isLoading } = useContratos(
+    effectiveRegionalId,
+    isPreposto ? user?.id : null
+  );
   const { data: saldos = [] } = useContratosSaldo();
   const deleteContrato = useDeleteContrato();
   const { toast } = useToast();

@@ -48,9 +48,9 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   const addCusto = useAddCusto();
   const { data: role } = useUserRole();
   const canManage = role && !["operador", "preposto", "terceirizado"].includes(role);
-  const canManageCustos = canManage || role === "preposto" || role === "terceirizado";
-  const canUploadPhotos = canManage || role === "preposto" || role === "terceirizado";
-  const canAdvanceStatus = canManage || role === "preposto" || role === "terceirizado";
+  const canManageCustos = canManage || role === "terceirizado";
+  const canUploadPhotos = canManage || role === "terceirizado";
+  const canAdvanceStatus = canManage || role === "terceirizado";
 
   const [uploading, setUploading] = useState(false);
   const [custoDesc, setCustoDesc] = useState("");
