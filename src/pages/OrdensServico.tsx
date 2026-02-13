@@ -3,17 +3,23 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Loader2 } from "lucide-react";
+import { Plus, Search, Loader2, Pencil, Trash2 } from "lucide-react";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { useOrdensServico, type OrdemServico } from "@/hooks/useOrdensServico";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useOrdensServico, useDeleteOS, type OrdemServico } from "@/hooks/useOrdensServico";
 import { NovaOSDialog } from "@/components/os/NovaOSDialog";
+import { EditarOSDialog } from "@/components/os/EditarOSDialog";
 import { DetalhesOSDialog } from "@/components/os/DetalhesOSDialog";
 import { Constants } from "@/integrations/supabase/types";
+import { toast } from "sonner";
 
 const statusColors: Record<string, string> = {
   aberta: "bg-info text-info-foreground",
@@ -34,6 +40,20 @@ export default function OrdensServico() {
   const [prioridadeFilter, setPrioridadeFilter] = useState("");
   const [novaOSOpen, setNovaOSOpen] = useState(false);
   const [selectedOS, setSelectedOS] = useState<OrdemServico | null>(null);
+  const [editOS, setEditOS] = useState<OrdemServico | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const deleteOS = useDeleteOS();
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    try {
+      await deleteOS.mutateAsync(deleteId);
+      toast.success("OS excluída com sucesso");
+    } catch {
+      toast.error("Erro ao excluir OS");
+    }
+    setDeleteId(null);
+  };
 
   const { data: ordens, isLoading } = useOrdensServico({
     status: statusFilter || undefined,
@@ -101,6 +121,7 @@ export default function OrdensServico() {
                   <TableHead>Status</TableHead>
                   <TableHead>Prioridade</TableHead>
                   <TableHead>Data</TableHead>
+                  <TableHead className="w-20">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -122,6 +143,16 @@ export default function OrdensServico() {
                     <TableCell className="text-muted-foreground">
                       {new Date(os.data_abertura).toLocaleDateString("pt-BR")}
                     </TableCell>
+                    <TableCell>
+                      <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                        <Button size="icon" variant="ghost" title="Editar OS" onClick={() => setEditOS(os)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button size="icon" variant="ghost" title="Excluir OS" onClick={() => setDeleteId(os.id)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -132,6 +163,22 @@ export default function OrdensServico() {
 
       <NovaOSDialog open={novaOSOpen} onOpenChange={setNovaOSOpen} />
       <DetalhesOSDialog os={selectedOS} open={!!selectedOS} onOpenChange={(o) => { if (!o) setSelectedOS(null); }} />
+      <EditarOSDialog os={editOS} open={!!editOS} onOpenChange={(o) => { if (!o) setEditOS(null); }} />
+
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Ordem de Serviço?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. A OS e seus custos associados serão removidos permanentemente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>Excluir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
