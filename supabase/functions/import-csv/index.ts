@@ -114,15 +114,15 @@ Deno.serve(async (req) => {
     const allRows = parseCSV(cleanText);
     
     // Skip header row
-    const dataRows = allRows.slice(1).filter(row => row.length >= 4 && row[0].trim() !== "");
+    const dataRows = allRows.slice(1).filter(row => row.length >= 3 && row[0].trim() !== "");
 
     // ---- Extract regionais ----
     const regionalMap = new Map<string, { nome: string; sigla: string; uf: string }>();
 
     for (const row of dataRows) {
-      const ug = row[1]?.trim();
-      const tipo = row[2]?.trim();
-      const nome = row[3]?.trim();
+      const ug = row[0]?.trim();
+      const tipo = row[1]?.trim();
+      const nome = row[2]?.trim();
       if (!ug || !isValidUnidadeGestora(ug)) continue;
 
       if (ug.startsWith("SPRF/")) {
@@ -166,11 +166,11 @@ Deno.serve(async (req) => {
     let currentRegId = "";
 
     for (const row of dataRows) {
-      const ug = row[1]?.trim();
-      const tipo = row[2]?.trim();
-      const nome = row[3]?.trim();
-      const endereco = row[4]?.trim() || null;
-      const coordStr = row[5]?.trim() || "";
+      const ug = row[0]?.trim();
+      const tipo = row[1]?.trim();
+      const nome = row[2]?.trim();
+      const endereco = row[3]?.trim() || null;
+      const coordStr = row[4]?.trim() || "";
 
       if (!ug || !tipo || !nome || !isValidUnidadeGestora(ug)) continue;
 
