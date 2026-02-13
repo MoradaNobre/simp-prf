@@ -296,38 +296,42 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
             </>
           )}
 
-          {/* Custos */}
-          <Separator />
-          <div>
-            <h4 className="text-sm font-medium flex items-center gap-1 mb-2">
-              <DollarSign className="h-4 w-4" /> Custos
-              {totalCustos > 0 && (
-                <span className="ml-auto text-muted-foreground">
-                  Total: R$ {totalCustos.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                </span>
-              )}
-            </h4>
-            {(custos.data || []).map((c) => (
-              <div key={c.id} className="flex items-center justify-between text-sm py-1 border-b last:border-0">
-                <span>{c.descricao} <span className="text-muted-foreground">({c.tipo})</span></span>
-                <span className="font-medium">R$ {Number(c.valor).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+          {/* Custos - only visible during execução or after */}
+          {(os.status === "execucao" || os.status === "encerrada") && (
+            <>
+              <Separator />
+              <div>
+                <h4 className="text-sm font-medium flex items-center gap-1 mb-2">
+                  <DollarSign className="h-4 w-4" /> Custos
+                  {totalCustos > 0 && (
+                    <span className="ml-auto text-muted-foreground">
+                      Total: R$ {totalCustos.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    </span>
+                  )}
+                </h4>
+                {(custos.data || []).map((c) => (
+                  <div key={c.id} className="flex items-center justify-between text-sm py-1 border-b last:border-0">
+                    <span>{c.descricao} <span className="text-muted-foreground">({c.tipo})</span></span>
+                    <span className="font-medium">R$ {Number(c.valor).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                  </div>
+                ))}
+                {canManage && os.status === "execucao" && (
+                  <div className="flex gap-2 mt-2">
+                    <Input placeholder="Descrição" value={custoDesc} onChange={(e) => setCustoDesc(e.target.value)} className="flex-1" />
+                    <Select value={custoTipo} onValueChange={setCustoTipo}>
+                      <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="peca">Peça</SelectItem>
+                        <SelectItem value="mao_de_obra">Mão de Obra</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Input placeholder="Valor" type="number" step="0.01" value={custoValor} onChange={(e) => setCustoValor(e.target.value)} className="w-24" />
+                    <Button size="sm" onClick={handleAddCusto} disabled={addCusto.isPending}>+</Button>
+                  </div>
+                )}
               </div>
-            ))}
-            {canManage && (
-              <div className="flex gap-2 mt-2">
-                <Input placeholder="Descrição" value={custoDesc} onChange={(e) => setCustoDesc(e.target.value)} className="flex-1" />
-                <Select value={custoTipo} onValueChange={setCustoTipo}>
-                  <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="peca">Peça</SelectItem>
-                    <SelectItem value="mao_de_obra">Mão de Obra</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Input placeholder="Valor" type="number" step="0.01" value={custoValor} onChange={(e) => setCustoValor(e.target.value)} className="w-24" />
-                <Button size="sm" onClick={handleAddCusto} disabled={addCusto.isPending}>+</Button>
-              </div>
-            )}
-          </div>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>
