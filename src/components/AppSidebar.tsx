@@ -6,10 +6,13 @@ import {
   LogOut,
   Shield,
   ScrollText,
+  User,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Sidebar,
@@ -24,6 +27,15 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 
+const roleLabels: Record<string, string> = {
+  gestor_nacional: "Gestor Nacional",
+  gestor_regional: "Gestor Regional",
+  fiscal_contrato: "Fiscal de Contrato",
+  operador: "Operador",
+  preposto: "Preposto",
+  terceirizado: "Terceirizado",
+};
+
 const allMenuItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, roles: ["gestor_nacional", "gestor_regional", "fiscal_contrato", "operador"] },
   { title: "Ordens de Serviço", url: "/ordens", icon: ClipboardList, roles: null }, // all roles
@@ -35,6 +47,7 @@ export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { data: role } = useUserRole();
+  const { data: profile } = useUserProfile();
   const isAdmin = role === "gestor_nacional";
 
   const handleLogout = async () => {
@@ -127,7 +140,24 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border p-3">
+      <SidebarFooter className="border-t border-sidebar-border p-3 space-y-3">
+        {profile && (
+          <div className="flex items-center gap-2 px-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sidebar-accent">
+              <User className="h-4 w-4 text-sidebar-primary" />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="text-sm font-medium text-sidebar-foreground truncate">
+                {profile.full_name || "Sem nome"}
+              </span>
+              {role && (
+                <Badge variant="secondary" className="text-[10px] w-fit px-1.5 py-0">
+                  {roleLabels[role] || role}
+                </Badge>
+              )}
+            </div>
+          </div>
+        )}
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
