@@ -108,7 +108,15 @@ Deno.serve(async (req) => {
     const emailData = await emailRes.json();
     if (!emailRes.ok) {
       console.error("Resend error:", emailData);
-      throw new Error(`Resend API error [${emailRes.status}]: ${JSON.stringify(emailData)}`);
+      // Return partial success so the OS flow isn't blocked
+      return new Response(JSON.stringify({ 
+        success: false, 
+        warning: "Email não enviado: " + (emailData.message ?? "erro desconhecido"),
+        details: emailData,
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     return new Response(JSON.stringify({ success: true, email_id: emailData.id }), {
