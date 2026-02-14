@@ -86,10 +86,17 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   const currentIdx = statusFlow.indexOf(os.status);
   const nextStatus = currentIdx < statusFlow.length - 1 ? statusFlow[currentIdx + 1] : null;
 
+  const isTerceirizado = role === "terceirizado";
+
   const handleAdvanceStatus = async () => {
     if (!nextStatus) return;
     if (nextStatus === "triagem" && !selectedContratoId) {
       toast.error("Vincule um contrato antes de avançar para Triagem");
+      return;
+    }
+    // Terceirizado must register at least one custo before encerrar
+    if (nextStatus === "encerrada" && isTerceirizado && (!custos.data || custos.data.length === 0)) {
+      toast.error("Registre pelo menos um custo antes de encerrar a OS.");
       return;
     }
     try {
@@ -98,7 +105,10 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
       if (nextStatus === "triagem") updates.contrato_id = selectedContratoId;
       
       const field = statusResponsavelField[nextStatus];
-      if (field && selectedResponsavel) {
+      // For terceirizado advancing to encerrada, auto-assign solicitante as responsável
+      if (nextStatus === "encerrada" && isTerceirizado) {
+        updates.responsavel_encerramento_id = os.solicitante_id;
+      } else if (field && selectedResponsavel) {
         updates[field] = selectedResponsavel;
       }
 
@@ -295,8 +305,8 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                   </div>
                 )}
 
-                {/* Responsável por etapa */}
-                {contratoId && contatos.length > 0 && (
+                {/* Responsável por etapa - hidden for terceirizado advancing to encerrada */}
+                {contratoId && contatos.length > 0 && !(isTerceirizado && nextStatus === "encerrada") && (
                   <div className="space-y-1.5">
                     <Label className="text-sm">Responsável pela etapa de {statusLabels[nextStatus]}</Label>
                     <Select value={selectedResponsavel} onValueChange={setSelectedResponsavel}>
@@ -310,6 +320,9 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                       </SelectContent>
                     </Select>
                   </div>
+                )}
+                {isTerceirizado && nextStatus === "encerrada" && (
+                  <p className="text-xs text-muted-foreground">O responsável pelo encerramento será o solicitante da OS.</p>
                 )}
                 <Button onClick={handleAdvanceStatus} disabled={updateOS.isPending} className="w-full">
                   {updateOS.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
