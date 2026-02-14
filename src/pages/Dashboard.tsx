@@ -223,26 +223,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Tempo médio por etapa */}
-      <div>
-        <h2 className="text-lg font-semibold text-foreground mb-3">Tempo Médio por Etapa</h2>
-        <div className="grid gap-3 grid-cols-2 sm:grid-cols-4 lg:grid-cols-8">
-          {flowStatuses.filter(s => s !== "encerrada").map((status) => {
-            const Icon = statusIcons[status];
-            const horas = data?.tempoMedioEtapa?.[status] ?? 0;
-            const display = isLoading ? "…" : horas < 1 ? `${Math.round(horas * 60)}min` : horas < 24 ? `${horas.toFixed(1)}h` : `${(horas / 24).toFixed(1)}d`;
-            return (
-              <Card key={status} className="text-center">
-                <CardContent className="pt-4 pb-3 px-2">
-                  <Icon className={`h-4 w-4 mx-auto mb-1 ${statusCardColors[status]}`} />
-                  <div className="text-xl font-bold">{display}</div>
-                  <p className="text-[10px] text-muted-foreground leading-tight mt-1">{statusLabels[status]}</p>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      </div>
 
       {/* OS por posição no fluxo */}
       <div>
@@ -329,6 +309,27 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Tempo médio por etapa */}
+      <div>
+        <h2 className="text-lg font-semibold text-foreground mb-3">Tempo Médio por Etapa</h2>
+        <div className="grid gap-3 grid-cols-2 sm:grid-cols-4 lg:grid-cols-7">
+          {flowStatuses.filter(s => s !== "encerrada").map((status) => {
+            const Icon = statusIcons[status];
+            const horas = data?.tempoMedioEtapa?.[status] ?? 0;
+            const display = isLoading ? "…" : horas < 1 ? `${Math.round(horas * 60)}min` : horas < 24 ? `${horas.toFixed(1)}h` : `${(horas / 24).toFixed(1)}d`;
+            return (
+              <Card key={status} className="text-center">
+                <CardContent className="pt-4 pb-3 px-2">
+                  <Icon className={`h-4 w-4 mx-auto mb-1 ${statusCardColors[status]}`} />
+                  <div className="text-xl font-bold">{display}</div>
+                  <p className="text-[10px] text-muted-foreground leading-tight mt-1">{statusLabels[status]}</p>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
