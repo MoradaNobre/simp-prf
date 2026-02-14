@@ -43,8 +43,9 @@ export default function AlterarSenha() {
           .eq("user_id", user.id);
       }
 
-      toast.success("Senha alterada com sucesso!");
-      navigate("/dashboard");
+      await supabase.auth.signOut();
+      toast.success("Senha alterada com sucesso! Faça login com sua nova senha.");
+      navigate("/login");
     } catch (err: any) {
       toast.error(err.message || "Erro ao alterar senha");
     } finally {
