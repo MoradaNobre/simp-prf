@@ -110,7 +110,8 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
         solicitante_id: user.id,
         foto_antes: fotoUrl,
         codigo: "",
-      });
+        regional_id: regionalId || null,
+      } as any);
 
       toast.success("OS criada com sucesso!");
       reset();
