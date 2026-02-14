@@ -1,23 +1,43 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { useQuery } from "@tanstack/react-query";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Download, Search, FileText } from "lucide-react";
+import { Loader2, Download, Search, Pencil, Trash2 } from "lucide-react";
 import { generateOSReport } from "@/utils/generateOSReport";
 import { toast } from "sonner";
 import { useRegionalFilter } from "@/hooks/useRegionalFilter";
 import { RegionalFilterSelect } from "@/components/RegionalFilterSelect";
+import { useUserRole } from "@/hooks/useUserRole";
 
 export default function Relatorios() {
   const [search, setSearch] = useState("");
   const [downloading, setDownloading] = useState<string | null>(null);
   const { canFilterRegional, effectiveRegionalId, selectedRegionalId, setSelectedRegionalId } = useRegionalFilter();
+  const { data: role } = useUserRole();
+  const isGestorNacional = role === "gestor_nacional";
+  const queryClient = useQueryClient();
+
+  // Delete state
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  // Edit state
+  const [editRelatorio, setEditRelatorio] = useState<any | null>(null);
+  const [editForm, setEditForm] = useState({ titulo_os: "", valor_atestado: "" });
+  const [saving, setSaving] = useState(false);
 
   const { data: relatorios, isLoading } = useQuery({
     queryKey: ["relatorios_os", effectiveRegionalId, search],
@@ -45,17 +65,13 @@ export default function Relatorios() {
     setDownloading(relatorio.id);
     try {
       const dados = relatorio.dados_json;
-
-      // Fetch OS data to regenerate PDF
       const { data: os, error } = await supabase
         .from("ordens_servico")
         .select("*, uops(nome, delegacia_id, delegacias(nome, regional_id, regionais(sigla, nome))), regionais(sigla, nome)")
         .eq("id", relatorio.os_id)
         .single();
-
       if (error) throw error;
 
-      // Fetch custos
       const { data: custos } = await supabase
         .from("os_custos")
         .select("descricao, tipo, valor")
@@ -70,12 +86,54 @@ export default function Relatorios() {
         geradoPor: dados.gerado_por_nome || "",
         historicoFluxo: dados.historicoFluxo || [],
       });
-
       toast.success("PDF gerado com sucesso!");
     } catch (err: any) {
       toast.error("Erro ao gerar PDF: " + err.message);
     } finally {
       setDownloading(null);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    setDeleting(true);
+    try {
+      const { error } = await supabase.from("relatorios_os").delete().eq("id", deleteId);
+      if (error) throw error;
+      toast.success("Relatório excluído com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ["relatorios_os"] });
+    } catch (err: any) {
+      toast.error("Erro ao excluir: " + err.message);
+    } finally {
+      setDeleting(false);
+      setDeleteId(null);
+    }
+  };
+
+  const openEdit = (r: any) => {
+    setEditRelatorio(r);
+    setEditForm({ titulo_os: r.titulo_os, valor_atestado: String(r.valor_atestado) });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editRelatorio) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("relatorios_os")
+        .update({
+          titulo_os: editForm.titulo_os,
+          valor_atestado: Number(editForm.valor_atestado),
+        })
+        .eq("id", editRelatorio.id);
+      if (error) throw error;
+      toast.success("Relatório atualizado com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ["relatorios_os"] });
+      setEditRelatorio(null);
+    } catch (err: any) {
+      toast.error("Erro ao atualizar: " + err.message);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -118,7 +176,7 @@ export default function Relatorios() {
                   <TableHead>Contrato</TableHead>
                   <TableHead>Valor Atestado</TableHead>
                   <TableHead>Gerado em</TableHead>
-                  <TableHead className="w-24">Ações</TableHead>
+                  <TableHead className="w-32">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -136,18 +194,42 @@ export default function Relatorios() {
                       {new Date(r.gerado_em).toLocaleString("pt-BR")}
                     </TableCell>
                     <TableCell>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleDownload(r)}
-                        disabled={downloading === r.id}
-                      >
-                        {downloading === r.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Download className="h-4 w-4" />
+                      <div className="flex items-center gap-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleDownload(r)}
+                          disabled={downloading === r.id}
+                          title="Baixar PDF"
+                        >
+                          {downloading === r.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Download className="h-4 w-4" />
+                          )}
+                        </Button>
+                        {isGestorNacional && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => openEdit(r)}
+                              title="Editar"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => setDeleteId(r.id)}
+                              title="Excluir"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </>
                         )}
-                      </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -156,6 +238,55 @@ export default function Relatorios() {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete confirmation */}
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir relatório</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este relatório? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} disabled={deleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {deleting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Edit dialog */}
+      <Dialog open={!!editRelatorio} onOpenChange={(open) => !open && setEditRelatorio(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar Relatório</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Código OS</Label>
+              <Input value={editRelatorio?.codigo_os || ""} disabled />
+            </div>
+            <div className="space-y-2">
+              <Label>Título da OS</Label>
+              <Input value={editForm.titulo_os} onChange={(e) => setEditForm((f) => ({ ...f, titulo_os: e.target.value }))} />
+            </div>
+            <div className="space-y-2">
+              <Label>Valor Atestado (R$)</Label>
+              <Input type="number" step="0.01" min="0" value={editForm.valor_atestado} onChange={(e) => setEditForm((f) => ({ ...f, valor_atestado: e.target.value }))} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditRelatorio(null)} disabled={saving}>Cancelar</Button>
+            <Button onClick={handleSaveEdit} disabled={saving || !editForm.titulo_os}>
+              {saving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
