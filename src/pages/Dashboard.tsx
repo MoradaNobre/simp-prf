@@ -79,6 +79,12 @@ function useDashboardData(regionalId?: string | null) {
       const pctCorretiva = Math.round((corretivas / totalOS) * 100);
       const pctPreventiva = Math.round((preventivas / totalOS) * 100);
 
+      // OS count by priority (only open)
+      const osPorPrioridade: Record<string, number> = {};
+      for (const p of ["baixa", "media", "alta", "urgente"]) {
+        osPorPrioridade[p] = abertas.filter((o) => o.prioridade === p).length;
+      }
+
       // OS count by status
       const osPorStatus: Record<string, number> = {};
       for (const s of Object.keys(statusLabels)) {
@@ -107,6 +113,7 @@ function useDashboardData(regionalId?: string | null) {
         totalUops: uops.length,
         areaTotal,
         osPorStatus,
+        osPorPrioridade,
         valorTotalOrcamentos,
         valorTotalCustos,
         valorOrcamentosMes,
@@ -247,18 +254,35 @@ export default function Dashboard() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Resumo</CardTitle>
+            <CardTitle className="text-lg">OS por Prioridade</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Total de UOPs</p>
-                <p className="text-2xl font-bold">{isLoading ? "…" : data?.totalUops ?? 0}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Área Total</p>
-                <p className="text-2xl font-bold">{isLoading ? "…" : `${(data?.areaTotal ?? 0).toLocaleString("pt-BR")} m²`}</p>
-              </div>
+            <div className="space-y-3">
+              {(["urgente", "alta", "media", "baixa"] as const).map((p) => {
+                const count = data?.osPorPrioridade?.[p] ?? 0;
+                const total = data?.abertas || 1;
+                const pct = Math.round((count / total) * 100);
+                const colors: Record<string, string> = {
+                  urgente: "bg-destructive",
+                  alta: "bg-orange-500",
+                  media: "bg-amber-500",
+                  baixa: "bg-blue-400",
+                };
+                const labels: Record<string, string> = {
+                  urgente: "Urgente", alta: "Alta", media: "Média", baixa: "Baixa",
+                };
+                return (
+                  <div key={p} className="space-y-1">
+                    <div className="flex justify-between text-sm">
+                      <span>{labels[p]}</span>
+                      <span className="font-medium">{isLoading ? "…" : count}</span>
+                    </div>
+                    <div className="h-2.5 rounded-full bg-muted overflow-hidden">
+                      <div className={`h-full rounded-full ${colors[p]} transition-all`} style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
