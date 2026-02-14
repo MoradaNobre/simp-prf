@@ -244,7 +244,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
 
   // Status stepper
   const renderStepper = () => (
-    <div className="flex items-center gap-1 overflow-x-auto pb-1">
+    <div className="flex items-center gap-1 flex-wrap pb-1">
       {statusFlow.map((s, i) => {
         const isCurrent = s === os.status;
         const isPast = i < currentIdx;
