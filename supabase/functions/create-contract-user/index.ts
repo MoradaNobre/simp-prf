@@ -135,34 +135,43 @@ Deno.serve(async (req) => {
     }
 
     // Link user to the same regional as the contract
-    if (userRole === "terceirizado" || userRole === "preposto") {
-      const { data: contrato } = await adminClient
-        .from("contratos")
-        .select("regional_id")
-        .eq("id", contrato_id)
+    const { data: contrato } = await adminClient
+      .from("contratos")
+      .select("regional_id")
+      .eq("id", contrato_id)
+      .maybeSingle();
+
+    if (contrato?.regional_id) {
+      await adminClient
+        .from("profiles")
+        .update({ regional_id: contrato.regional_id })
+        .eq("user_id", userId);
+
+      const { data: existingLink } = await adminClient
+        .from("user_regionais")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("regional_id", contrato.regional_id)
         .maybeSingle();
 
-      if (contrato?.regional_id) {
-        // Update profile regional_id
+      if (!existingLink) {
         await adminClient
-          .from("profiles")
-          .update({ regional_id: contrato.regional_id })
-          .eq("user_id", userId);
-
-        // Add to user_regionais if not already there
-        const { data: existingLink } = await adminClient
           .from("user_regionais")
-          .select("id")
-          .eq("user_id", userId)
-          .eq("regional_id", contrato.regional_id)
-          .maybeSingle();
-
-        if (!existingLink) {
-          await adminClient
-            .from("user_regionais")
-            .insert({ user_id: userId, regional_id: contrato.regional_id });
-        }
+          .insert({ user_id: userId, regional_id: contrato.regional_id });
       }
+    }
+
+    // If preposto, update the contract's preposto fields
+    if (userRole === "preposto") {
+      await adminClient
+        .from("contratos")
+        .update({
+          preposto_user_id: userId,
+          preposto_nome: trimmedName,
+          preposto_email: trimmedEmail,
+          preposto_telefone: telefone || null,
+        })
+        .eq("id", contrato_id);
     }
 
     // Create contrato_contato link
