@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Loader2, Pencil, Trash2, CalendarIcon, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
+import { Plus, Search, Loader2, Pencil, Trash2, CalendarIcon, ArrowUp, ArrowDown, ArrowUpDown, Info } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
@@ -222,6 +222,37 @@ export default function OrdensServico() {
           </Button>
         )}
       </div>
+
+      {isExternalUser && (
+        <Card className="border-primary/30 bg-primary/5">
+          <CardContent className="py-3 px-4">
+            <div className="flex items-start gap-2">
+              <Info className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+              <div className="space-y-1.5">
+                <p className="text-sm font-medium text-foreground">Status que requerem sua ação:</p>
+                <div className="flex flex-wrap gap-2">
+                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors["orcamento"]}`}>
+                    Orçamento
+                  </span>
+                  <span className="text-xs text-muted-foreground">— Enviar orçamento e valor estimado</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors["execucao"]}`}>
+                    Execução
+                  </span>
+                  <span className="text-xs text-muted-foreground">— Realizar o serviço e registrar evidências (fotos antes/depois)</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors["pagamento"]}`}>
+                    Pagamento
+                  </span>
+                  <span className="text-xs text-muted-foreground">— Enviar documentos fiscais (nota fiscal, boleto)</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardContent className="p-0">
