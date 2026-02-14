@@ -13,6 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCreateOS } from "@/hooks/useOrdensServico";
 import { useContratos } from "@/hooks/useContratos";
 import { useUserProfile } from "@/hooks/useUserProfile";
+import { useUserRole } from "@/hooks/useUserRole";
 import { useDelegacias, useUops, useEquipamentos } from "@/hooks/useHierarchy";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -27,6 +28,7 @@ interface Props {
 export function NovaOSDialog({ open, onOpenChange }: Props) {
   const { user } = useAuth();
   const profile = useUserProfile();
+  const { data: role } = useUserRole();
   const createOS = useCreateOS();
   const { data: contratos = [] } = useContratos();
 
@@ -34,6 +36,7 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
   const [descricao, setDescricao] = useState("");
   const [tipo, setTipo] = useState<string>("corretiva");
   const [prioridade, setPrioridade] = useState<string>("media");
+  const [selectedRegionalId, setSelectedRegionalId] = useState("");
   const [delegaciaId, setDelegaciaId] = useState("");
   const [uopId, setUopId] = useState("");
   const [equipamentoId, setEquipamentoId] = useState("");
@@ -41,10 +44,29 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
   const [contratoId, setContratoId] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const regionalId = (profile.data as any)?.regional_id || undefined;
-  const regionalNome = (profile.data as any)?.regional
-    ? `${(profile.data as any).regional.sigla} — ${(profile.data as any).regional.nome}`
-    : "Nenhuma regional vinculada";
+  const isGestorNacional = role === "gestor_nacional";
+  const userRegionais: any[] = (profile.data as any)?.regionais || [];
+  const hasMultipleRegionais = isGestorNacional && userRegionais.length > 1;
+
+  // For gestor_nacional with multiple regionals, use selected; otherwise use profile's single regional
+  const regionalId = hasMultipleRegionais
+    ? selectedRegionalId || undefined
+    : isGestorNacional && userRegionais.length === 1
+      ? userRegionais[0]?.id
+      : (profile.data as any)?.regional_id || undefined;
+
+  const regionalLabel = hasMultipleRegionais
+    ? (selectedRegionalId
+        ? (() => {
+            const r = userRegionais.find((r: any) => r.id === selectedRegionalId);
+            return r ? `${r.sigla} — ${r.nome}` : "";
+          })()
+        : "")
+    : isGestorNacional && userRegionais.length === 1
+      ? `${userRegionais[0]?.sigla} — ${userRegionais[0]?.nome}`
+      : (profile.data as any)?.regional
+        ? `${(profile.data as any).regional.sigla} — ${(profile.data as any).regional.nome}`
+        : "Nenhuma regional vinculada";
 
   const delegacias = useDelegacias(regionalId);
   const uops = useUops(delegaciaId || undefined);
@@ -52,7 +74,7 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
 
   const reset = () => {
     setCategoria(""); setDescricao(""); setTipo("corretiva"); setPrioridade("media");
-    setDelegaciaId(""); setUopId(""); setEquipamentoId("");
+    setSelectedRegionalId(""); setDelegaciaId(""); setUopId(""); setEquipamentoId("");
     setFotoAntes(null); setContratoId("");
   };
 
@@ -154,9 +176,22 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
 
           <div>
             <Label>Regional</Label>
-            <Input value={regionalNome} disabled className="bg-muted" />
-            {!regionalId && (
-              <p className="text-xs text-destructive mt-1">Seu perfil não está vinculado a uma regional. Peça ao administrador.</p>
+            {hasMultipleRegionais ? (
+              <Select value={selectedRegionalId} onValueChange={(v) => { setSelectedRegionalId(v); setDelegaciaId(""); setUopId(""); setEquipamentoId(""); }}>
+                <SelectTrigger><SelectValue placeholder="Selecione a regional..." /></SelectTrigger>
+                <SelectContent>
+                  {userRegionais.map((r: any) => (
+                    <SelectItem key={r.id} value={r.id}>{r.sigla} — {r.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <>
+                <Input value={regionalLabel} disabled className="bg-muted" />
+                {!regionalId && (
+                  <p className="text-xs text-destructive mt-1">Seu perfil não está vinculado a uma regional. Peça ao administrador.</p>
+                )}
+              </>
             )}
           </div>
 
