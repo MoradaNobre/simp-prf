@@ -209,6 +209,7 @@ export default function GestaoOrcamento() {
   if (!isNacional && !isRegional) return <Navigate to="/dashboard" replace />;
 
   const regionaisSemDotacao = (regionais || []).filter(r => !orcamentos?.some((o: any) => o.regional_id === r.id));
+  const allRegionais = regionais || [];
 
   return (
     <div className="space-y-6">
@@ -226,7 +227,7 @@ export default function GestaoOrcamento() {
               {yearRange.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
             </SelectContent>
           </Select>
-          {isNacional && regionaisSemDotacao.length > 0 && (
+          {isNacional && (
             <Button onClick={() => setDotacaoDialog({ open: true })}>
               <Plus className="mr-2 h-4 w-4" /> Novo Orçamento
             </Button>
@@ -364,7 +365,7 @@ export default function GestaoOrcamento() {
         </div>
       )}
 
-      <DotacaoDialog open={dotacaoDialog.open} item={dotacaoDialog.item} regionais={regionaisSemDotacao} exercicio={exercicio} onClose={() => setDotacaoDialog({ open: false })} onSave={(v: any) => saveDotacao.mutate(v)} saving={saveDotacao.isPending} />
+      <DotacaoDialog open={dotacaoDialog.open} item={dotacaoDialog.item} regionais={allRegionais} exercicio={exercicio} onClose={() => setDotacaoDialog({ open: false })} onSave={(v: any) => saveDotacao.mutate(v)} saving={saveDotacao.isPending} />
       <CreditoDialog open={creditoDialog.open} orcamentoId={creditoDialog.orcamentoId} onClose={() => setCreditoDialog({ open: false })} onSave={(v: any) => saveCredito.mutate(v)} saving={saveCredito.isPending} />
       <EmpenhoDialog open={empenhoDialog.open} orcamentoId={empenhoDialog.orcamentoId} onClose={() => setEmpenhoDialog({ open: false })} onSave={(v: any) => saveEmpenho.mutate(v)} saving={saveEmpenho.isPending} />
     </div>
@@ -377,12 +378,35 @@ function DotacaoDialog({ open, item, regionais, exercicio, onClose, onSave, savi
   const [obs, setObs] = useState("");
   const isEdit = !!item;
 
+  // Query existing orcamentos for the selected year to filter out regionais that already have one
+  const { data: orcamentosDoAno } = useQuery({
+    queryKey: ["orcamento-anual-check", ano],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("orcamento_anual" as any)
+        .select("regional_id")
+        .eq("exercicio", ano);
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: open && !isEdit,
+  });
+
+  const regionaisDisponiveis = useMemo(() => {
+    if (!regionais) return [];
+    const usedIds = (orcamentosDoAno || []).map((o: any) => o.regional_id);
+    return regionais.filter((r: any) => !usedIds.includes(r.id));
+  }, [regionais, orcamentosDoAno]);
+
   useEffect(() => {
     if (open) {
       if (item) { setRegionalId(item.regional_id); setAno(item.exercicio); setObs(item.observacoes || ""); }
       else { setRegionalId(""); setAno(exercicio); setObs(""); }
     }
   }, [open, item, exercicio]);
+
+  // Reset regional selection when year changes
+  useEffect(() => { if (!isEdit) setRegionalId(""); }, [ano, isEdit]);
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
@@ -392,17 +416,23 @@ function DotacaoDialog({ open, item, regionais, exercicio, onClose, onSave, savi
           {!isEdit && (
             <>
               <div className="space-y-2">
-                <Label>Regional</Label>
-                <Select value={regionalId} onValueChange={setRegionalId}>
-                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                  <SelectContent>{regionais?.map((r: any) => <SelectItem key={r.id} value={r.id}>{r.sigla} — {r.nome}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
                 <Label>Exercício Financeiro</Label>
                 <Select value={String(ano)} onValueChange={(v) => setAno(Number(v))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>{yearRange.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Regional</Label>
+                <Select value={regionalId} onValueChange={setRegionalId}>
+                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                  <SelectContent>
+                    {regionaisDisponiveis.length === 0 ? (
+                      <SelectItem value="__none" disabled>Todas as regionais já possuem orçamento para {ano}</SelectItem>
+                    ) : (
+                      regionaisDisponiveis.map((r: any) => <SelectItem key={r.id} value={r.id}>{r.sigla} — {r.nome}</SelectItem>)
+                    )}
+                  </SelectContent>
                 </Select>
               </div>
             </>
