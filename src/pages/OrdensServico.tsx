@@ -144,7 +144,7 @@ export default function OrdensServico() {
                 {ordens.map((os) => {
                   const uop = os.uops as any;
                   const delegacia = uop?.delegacias;
-                  const regional = delegacia?.regionais;
+                  const regional = os.regionais || delegacia?.regionais;
                   return (
                   <TableRow key={os.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedOS(os)}>
                     <TableCell className="font-mono text-sm">{os.codigo}</TableCell>

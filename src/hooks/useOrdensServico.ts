@@ -4,6 +4,7 @@ import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase
 
 export type OrdemServico = Tables<"ordens_servico"> & {
   uops?: { nome: string; delegacia_id?: string; delegacias?: { nome: string; regional_id?: string; regionais?: { sigla: string; nome: string } | null } | null } | null;
+  regionais?: { sigla: string; nome: string } | null;
 };
 
 export function useOrdensServico(filters?: {
@@ -17,7 +18,7 @@ export function useOrdensServico(filters?: {
     queryFn: async () => {
       let q = supabase
         .from("ordens_servico")
-        .select("*, uops(nome, delegacia_id, delegacias(nome, regional_id, regionais(sigla, nome)))")
+        .select("*, uops(nome, delegacia_id, delegacias(nome, regional_id, regionais(sigla, nome))), regionais(sigla, nome)")
         .order("data_abertura", { ascending: false });
 
       if (filters?.status) q = q.eq("status", filters.status as any);
@@ -29,9 +30,8 @@ export function useOrdensServico(filters?: {
 
       let result = data as OrdemServico[];
 
-      // Filter by regional: need to check uop -> delegacia -> regional
+      // Filter by regional: check direct regional_id or via uop -> delegacia -> regional
       if (filters?.regionalId) {
-        // Get delegacias for this regional
         const { data: delegacias } = await supabase
           .from("delegacias")
           .select("id")
@@ -39,6 +39,9 @@ export function useOrdensServico(filters?: {
         
         const delegaciaIds = new Set((delegacias ?? []).map(d => d.id));
         result = result.filter(os => {
+          // Direct regional_id match
+          if ((os as any).regional_id === filters!.regionalId) return true;
+          // Via UOP chain
           const delegaciaId = (os.uops as any)?.delegacia_id;
           return delegaciaId && delegaciaIds.has(delegaciaId);
         });

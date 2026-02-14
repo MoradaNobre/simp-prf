@@ -69,7 +69,8 @@ export function EditarOSDialog({ os, open, onOpenChange }: Props) {
         prioridade: form.prioridade as any,
         uop_id: uopId || null,
         equipamento_id: equipamentoId || null,
-      });
+        regional_id: selectedRegionalId || null,
+      } as any);
       toast.success("OS atualizada com sucesso");
       onOpenChange(false);
     } catch (err: any) {
