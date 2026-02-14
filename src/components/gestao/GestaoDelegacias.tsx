@@ -15,6 +15,8 @@ import {
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useRegionais } from "@/hooks/useHierarchy";
+import { useUserRole } from "@/hooks/useUserRole";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { toast } from "sonner";
 import { Search, Loader2, Plus, Pencil, Trash2 } from "lucide-react";
 
@@ -30,6 +32,10 @@ type Delegacia = {
 export default function GestaoDelegacias() {
   const qc = useQueryClient();
   const regionais = useRegionais();
+  const { data: role } = useUserRole();
+  const { data: profile } = useUserProfile();
+  const userRegionalIds: string[] = (profile as any)?.regionais?.map((r: any) => r.id) ?? [];
+  const isRegional = role === "gestor_regional";
   const [search, setSearch] = useState("");
   const [filterRegional, setFilterRegional] = useState("all");
   const [editItem, setEditItem] = useState<Delegacia | null>(null);
@@ -40,9 +46,13 @@ export default function GestaoDelegacias() {
   const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
 
   const { data: delegacias, isLoading } = useQuery({
-    queryKey: ["admin-delegacias"],
+    queryKey: ["admin-delegacias", userRegionalIds],
     queryFn: async () => {
-      const { data, error } = await supabase.from("delegacias").select("*, regional:regionais(sigla)").order("nome");
+      let q = supabase.from("delegacias").select("*, regional:regionais(sigla)").order("nome");
+      if (isRegional && userRegionalIds.length > 0) {
+        q = q.in("regional_id", userRegionalIds);
+      }
+      const { data, error } = await q;
       if (error) throw error;
       return data as Delegacia[];
     },
