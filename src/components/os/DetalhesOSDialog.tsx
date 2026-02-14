@@ -215,6 +215,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
       } as any);
       toast.success("Documentos de pagamento enviados!");
       setDocumentosPagamento(null);
+      onOpenChange(false);
     } catch (err: any) {
       toast.error("Erro: " + err.message);
     } finally {
