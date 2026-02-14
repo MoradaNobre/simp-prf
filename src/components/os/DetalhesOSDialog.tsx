@@ -499,21 +499,86 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
             </>
           )}
 
-          {/* ATESTE → PAGAMENTO: gestor/fiscal/operador approves */}
+          {/* ATESTE → PAGAMENTO: gestor/fiscal/operador approves OR preposto/terceirizado resubmits after restitution */}
           {canAdvance && nextStatus === "pagamento" && (
             <>
               <Separator />
               <div className="space-y-3">
-                <h4 className="text-sm font-medium flex items-center gap-1">
-                  <CheckCircle className="h-4 w-4" /> Ateste do Serviço
-                </h4>
-                <p className="text-sm text-muted-foreground">
-                  Aprove a execução do serviço e autorize o pagamento.
-                </p>
-                <Button onClick={handleAdvanceStatus} disabled={uploading} className="w-full">
-                  {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Aprovar e Autorizar Pagamento
-                </Button>
+                {(isPreposto || isTerceirizado) && !!(os as any).motivo_restituicao ? (
+                  <>
+                    <h4 className="text-sm font-medium flex items-center gap-1">
+                      <Upload className="h-4 w-4" /> Reenviar Documentos de Pagamento
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      Anexe os documentos corrigidos e encaminhe novamente para pagamento.
+                    </p>
+                    {(os as any).valor_orcamento > 0 && (
+                      <div className="p-3 bg-muted rounded-md">
+                        <p className="text-sm font-medium">
+                          <span className="text-muted-foreground">Valor da OS (Orçamento):</span>{" "}
+                          <span className="text-foreground font-semibold">
+                            R$ {Number((os as any).valor_orcamento).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                          </span>
+                        </p>
+                      </div>
+                    )}
+                    <Input
+                      type="file"
+                      accept=".pdf,.xlsx,.xls,.jpg,.jpeg,.png"
+                      multiple
+                      onChange={(e) => setDocumentosPagamento(e.target.files)}
+                    />
+                    <Button
+                      onClick={async () => {
+                        if (documentosPagamento && documentosPagamento.length > 0) {
+                          setUploading(true);
+                          try {
+                            const urls: string[] = [];
+                            for (const file of Array.from(documentosPagamento)) {
+                              const url = await uploadFile(file, "pagamento");
+                              urls.push(url);
+                            }
+                            const existing = (os as any).documentos_pagamento || [];
+                            await updateOS.mutateAsync({
+                              id: os.id,
+                              status: "pagamento" as any,
+                              documentos_pagamento: [...existing, ...urls],
+                              motivo_restituicao: null,
+                            } as any);
+                            toast.success("Documentos reenviados e OS encaminhada para pagamento!");
+                            setDocumentosPagamento(null);
+                            onOpenChange(false);
+                          } catch (err: any) {
+                            toast.error("Erro: " + err.message);
+                          } finally {
+                            setUploading(false);
+                          }
+                        } else {
+                          // Advance without new docs
+                          await handleAdvanceStatus();
+                        }
+                      }}
+                      disabled={uploading}
+                      className="w-full"
+                    >
+                      {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Enviar e Encaminhar para Pagamento
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <h4 className="text-sm font-medium flex items-center gap-1">
+                      <CheckCircle className="h-4 w-4" /> Ateste do Serviço
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      Aprove a execução do serviço e autorize o pagamento.
+                    </p>
+                    <Button onClick={handleAdvanceStatus} disabled={uploading} className="w-full">
+                      {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Aprovar e Autorizar Pagamento
+                    </Button>
+                  </>
+                )}
               </div>
             </>
           )}
