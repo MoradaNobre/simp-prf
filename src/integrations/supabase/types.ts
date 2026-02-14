@@ -263,6 +263,7 @@ export type Database = {
           foto_antes: string | null
           foto_depois: string | null
           id: string
+          motivo_restituicao: string | null
           prioridade: Database["public"]["Enums"]["os_prioridade"]
           regional_id: string | null
           responsavel_encerramento_id: string | null
@@ -291,6 +292,7 @@ export type Database = {
           foto_antes?: string | null
           foto_depois?: string | null
           id?: string
+          motivo_restituicao?: string | null
           prioridade?: Database["public"]["Enums"]["os_prioridade"]
           regional_id?: string | null
           responsavel_encerramento_id?: string | null
@@ -319,6 +321,7 @@ export type Database = {
           foto_antes?: string | null
           foto_depois?: string | null
           id?: string
+          motivo_restituicao?: string | null
           prioridade?: Database["public"]["Enums"]["os_prioridade"]
           regional_id?: string | null
           responsavel_encerramento_id?: string | null

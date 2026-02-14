@@ -148,7 +148,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
 
     setUploading(true);
     try {
-      const updates: any = { id: os.id, status: nextStatus };
+      const updates: any = { id: os.id, status: nextStatus, motivo_restituicao: null };
 
       if (nextStatus === "triagem") {
         updates.contrato_id = selectedContratoId;
@@ -289,6 +289,16 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
             )}
             {os.uops && <span className="text-sm text-muted-foreground">{(os.uops as any).nome}</span>}
           </div>
+
+          {/* Restitution alert */}
+          {(os as any).motivo_restituicao && (
+            <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3 space-y-1">
+              <p className="text-sm font-medium text-destructive flex items-center gap-1">
+                <Undo2 className="h-4 w-4" /> OS Restituída
+              </p>
+              <p className="text-sm text-foreground">{(os as any).motivo_restituicao}</p>
+            </div>
+          )}
 
           {os.descricao && (
             <div>
@@ -734,7 +744,8 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                             await updateOS.mutateAsync({
                               id: os.id,
                               status: prevStatus as any,
-                            });
+                              motivo_restituicao: motivoRestituicao.trim(),
+                            } as any);
                             // Log the revert in audit
                             await supabase.from("audit_logs").insert({
                               table_name: "ordens_servico",
