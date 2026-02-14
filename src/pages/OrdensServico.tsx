@@ -198,6 +198,13 @@ export default function OrdensServico() {
                   </TableRow>
                   );
                 })}
+                <TableRow className="bg-muted/50 font-semibold">
+                  <TableCell colSpan={5} className="text-right text-sm">Total:</TableCell>
+                  <TableCell className="text-sm">
+                    R$ {ordens.reduce((sum, os) => sum + (Number((os as any).valor_orcamento) || 0), 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                  </TableCell>
+                  <TableCell colSpan={canManage ? 4 : 3} />
+                </TableRow>
               </TableBody>
             </Table>
           )}
