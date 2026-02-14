@@ -131,6 +131,8 @@ export default function OrdensServico() {
                 <TableRow>
                   <TableHead>Código</TableHead>
                   <TableHead>Título</TableHead>
+                  <TableHead>Regional</TableHead>
+                  <TableHead>Delegacia</TableHead>
                   <TableHead>Unidade</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Prioridade</TableHead>
@@ -139,11 +141,17 @@ export default function OrdensServico() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {ordens.map((os) => (
+                {ordens.map((os) => {
+                  const uop = os.uops as any;
+                  const delegacia = uop?.delegacias;
+                  const regional = delegacia?.regionais;
+                  return (
                   <TableRow key={os.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedOS(os)}>
                     <TableCell className="font-mono text-sm">{os.codigo}</TableCell>
                     <TableCell>{os.titulo}</TableCell>
-                    <TableCell className="text-muted-foreground">{(os.uops as any)?.nome || "—"}</TableCell>
+                    <TableCell className="text-muted-foreground">{regional?.sigla || "—"}</TableCell>
+                    <TableCell className="text-muted-foreground">{delegacia?.nome || "—"}</TableCell>
+                    <TableCell className="text-muted-foreground">{uop?.nome || "—"}</TableCell>
                     <TableCell>
                       <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors[os.status]}`}>
                         {statusLabels[os.status]}
@@ -170,7 +178,8 @@ export default function OrdensServico() {
                       </TableCell>
                     )}
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
           )}
