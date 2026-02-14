@@ -15,7 +15,8 @@ import { useContratos } from "@/hooks/useContratos";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Camera, DollarSign, User, FileText, Upload, CheckCircle, Download } from "lucide-react";
+import { Loader2, Camera, DollarSign, User, FileText, Upload, CheckCircle, Download, Undo2 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { generateOSReport } from "@/utils/generateOSReport";
 import { useQuery } from "@tanstack/react-query";
 
@@ -67,6 +68,8 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   const [valorOrcamento, setValorOrcamento] = useState("");
   const [arquivoOrcamento, setArquivoOrcamento] = useState<File | null>(null);
   const [documentosPagamento, setDocumentosPagamento] = useState<FileList | null>(null);
+  const [motivoRestituicao, setMotivoRestituicao] = useState("");
+  const [showRestituir, setShowRestituir] = useState(false);
 
   const { data: contratosAll = [] } = useContratos();
   const contratoId = os?.contrato_id;
@@ -515,6 +518,16 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                 <p className="text-sm text-muted-foreground">
                   Carregue a nota fiscal, certidões e demais documentos necessários.
                 </p>
+                {(os as any).valor_orcamento > 0 && (
+                  <div className="p-3 bg-muted rounded-md">
+                    <p className="text-sm font-medium">
+                      <span className="text-muted-foreground">Valor da OS (Orçamento):</span>{" "}
+                      <span className="text-foreground font-semibold">
+                        R$ {Number((os as any).valor_orcamento).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                      </span>
+                    </p>
+                  </div>
+                )}
                 <Input
                   type="file"
                   accept=".pdf,.xlsx,.xls,.jpg,.jpeg,.png"
@@ -670,6 +683,82 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                   <Download className="mr-2 h-4 w-4" />
                   Encerrar OS e Gerar Relatório PDF
                 </Button>
+              </div>
+            </>
+          )}
+
+          {/* RESTITUIR: gestor/fiscal can revert to previous stage */}
+          {isGestorOrFiscal && currentIdx > 0 && os.status !== "encerrada" && (
+            <>
+              <Separator />
+              <div className="space-y-3">
+                {!showRestituir ? (
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowRestituir(true)}
+                    className="w-full text-destructive border-destructive/30 hover:bg-destructive/10"
+                  >
+                    <Undo2 className="mr-2 h-4 w-4" />
+                    Restituir para Fase Anterior
+                  </Button>
+                ) : (
+                  <>
+                    <h4 className="text-sm font-medium flex items-center gap-1 text-destructive">
+                      <Undo2 className="h-4 w-4" /> Restituir OS para: {statusLabels[statusFlow[currentIdx - 1]]}
+                    </h4>
+                    <div className="space-y-1.5">
+                      <Label>Motivo da restituição *</Label>
+                      <Textarea
+                        value={motivoRestituicao}
+                        onChange={(e) => setMotivoRestituicao(e.target.value)}
+                        placeholder="Descreva o motivo para retornar a OS à fase anterior..."
+                        rows={3}
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => { setShowRestituir(false); setMotivoRestituicao(""); }}
+                        className="flex-1"
+                      >
+                        Cancelar
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        disabled={!motivoRestituicao.trim() || uploading}
+                        className="flex-1"
+                        onClick={async () => {
+                          setUploading(true);
+                          try {
+                            const prevStatus = statusFlow[currentIdx - 1];
+                            await updateOS.mutateAsync({
+                              id: os.id,
+                              status: prevStatus as any,
+                            });
+                            // Log the revert in audit
+                            await supabase.from("audit_logs").insert({
+                              table_name: "ordens_servico",
+                              action: "restituicao",
+                              record_id: os.id,
+                              description: `OS ${os.codigo} restituída de ${statusLabels[os.status]} para ${statusLabels[prevStatus]}. Motivo: ${motivoRestituicao.trim()}`,
+                            });
+                            toast.success(`OS restituída para ${statusLabels[prevStatus]}`);
+                            setShowRestituir(false);
+                            setMotivoRestituicao("");
+                            onOpenChange(false);
+                          } catch (err: any) {
+                            toast.error("Erro: " + err.message);
+                          } finally {
+                            setUploading(false);
+                          }
+                        }}
+                      >
+                        {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Confirmar Restituição
+                      </Button>
+                    </div>
+                  </>
+                )}
               </div>
             </>
           )}
