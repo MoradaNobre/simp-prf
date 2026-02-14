@@ -80,6 +80,10 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
 
   const handleSubmit = async () => {
     if (!categoria || !descricao.trim() || !user) return;
+    if (!uopId) {
+      toast.error("Selecione a Regional, Delegacia e UOP antes de criar a OS");
+      return;
+    }
     setSubmitting(true);
     try {
       let fotoUrl: string | null = null;
@@ -245,7 +249,7 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={handleSubmit} disabled={submitting || !categoria || !descricao.trim()}>
+          <Button onClick={handleSubmit} disabled={submitting || !categoria || !descricao.trim() || !uopId}>
             {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Criar OS
           </Button>
