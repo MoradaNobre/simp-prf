@@ -134,6 +134,37 @@ Deno.serve(async (req) => {
         .eq("id", existingRole.id);
     }
 
+    // Link user to the same regional as the contract
+    if (userRole === "terceirizado" || userRole === "preposto") {
+      const { data: contrato } = await adminClient
+        .from("contratos")
+        .select("regional_id")
+        .eq("id", contrato_id)
+        .maybeSingle();
+
+      if (contrato?.regional_id) {
+        // Update profile regional_id
+        await adminClient
+          .from("profiles")
+          .update({ regional_id: contrato.regional_id })
+          .eq("user_id", userId);
+
+        // Add to user_regionais if not already there
+        const { data: existingLink } = await adminClient
+          .from("user_regionais")
+          .select("id")
+          .eq("user_id", userId)
+          .eq("regional_id", contrato.regional_id)
+          .maybeSingle();
+
+        if (!existingLink) {
+          await adminClient
+            .from("user_regionais")
+            .insert({ user_id: userId, regional_id: contrato.regional_id });
+        }
+      }
+    }
+
     // Create contrato_contato link
     const { data: contato, error: contatoErr } = await adminClient
       .from("contrato_contatos")
