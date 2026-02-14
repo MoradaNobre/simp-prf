@@ -286,6 +286,50 @@ export type Database = {
           },
         ]
       }
+      orcamento_creditos: {
+        Row: {
+          created_at: string
+          created_by: string
+          data_credito: string
+          descricao: string
+          id: string
+          numero_documento: string | null
+          orcamento_id: string
+          tipo: string
+          valor: number
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          data_credito?: string
+          descricao: string
+          id?: string
+          numero_documento?: string | null
+          orcamento_id: string
+          tipo?: string
+          valor?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          data_credito?: string
+          descricao?: string
+          id?: string
+          numero_documento?: string | null
+          orcamento_id?: string
+          tipo?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orcamento_creditos_orcamento_id_fkey"
+            columns: ["orcamento_id"]
+            isOneToOne: false
+            referencedRelation: "orcamento_anual"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orcamento_empenhos: {
         Row: {
           created_at: string
