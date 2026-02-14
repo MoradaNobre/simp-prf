@@ -115,8 +115,8 @@ export default function GestaoOrcamento() {
         const v = Number(c.valor);
         return c.tipo === "reducao" ? s - v : s + v;
       }, 0);
-      // Use créditos sum if available, otherwise fallback to valor_dotacao
-      const dotacaoTotal = creds.length > 0 ? totalCreditos : Number(orc.valor_dotacao);
+      // Dotação total = valor base + créditos (suplementações - reduções)
+      const dotacaoTotal = Number(orc.valor_dotacao) + totalCreditos;
 
       const emps = (empenhos || []).filter((e: any) => e.orcamento_id === orc.id);
       const totalEmpenhos = emps.reduce((s: number, e: any) => s + Number(e.valor), 0);
