@@ -248,6 +248,85 @@ export type Database = {
           },
         ]
       }
+      orcamento_anual: {
+        Row: {
+          created_at: string
+          exercicio: number
+          id: string
+          observacoes: string | null
+          regional_id: string
+          updated_at: string
+          valor_dotacao: number
+        }
+        Insert: {
+          created_at?: string
+          exercicio: number
+          id?: string
+          observacoes?: string | null
+          regional_id: string
+          updated_at?: string
+          valor_dotacao?: number
+        }
+        Update: {
+          created_at?: string
+          exercicio?: number
+          id?: string
+          observacoes?: string | null
+          regional_id?: string
+          updated_at?: string
+          valor_dotacao?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orcamento_anual_regional_id_fkey"
+            columns: ["regional_id"]
+            isOneToOne: false
+            referencedRelation: "regionais"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orcamento_empenhos: {
+        Row: {
+          created_at: string
+          created_by: string
+          data_empenho: string
+          descricao: string
+          id: string
+          numero_empenho: string | null
+          orcamento_id: string
+          valor: number
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          data_empenho?: string
+          descricao: string
+          id?: string
+          numero_empenho?: string | null
+          orcamento_id: string
+          valor?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          data_empenho?: string
+          descricao?: string
+          id?: string
+          numero_empenho?: string | null
+          orcamento_id?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orcamento_empenhos_orcamento_id_fkey"
+            columns: ["orcamento_id"]
+            isOneToOne: false
+            referencedRelation: "orcamento_anual"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ordens_servico: {
         Row: {
           arquivo_orcamento: string | null
