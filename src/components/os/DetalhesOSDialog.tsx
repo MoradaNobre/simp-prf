@@ -15,14 +15,15 @@ import { useContratos } from "@/hooks/useContratos";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Camera, DollarSign, User, FileText, Upload, CheckCircle } from "lucide-react";
+import { Loader2, Camera, DollarSign, User, FileText, Upload, CheckCircle, Download } from "lucide-react";
+import { generateOSReport } from "@/utils/generateOSReport";
 import { useQuery } from "@tanstack/react-query";
 
 const statusLabels: Record<string, string> = {
   aberta: "Aberta", triagem: "Triagem", orcamento: "Orçamento", autorizacao: "Autorização",
-  execucao: "Execução", ateste: "Ateste", pagamento: "Pagamento",
+  execucao: "Execução", ateste: "Ateste", pagamento: "Pagamento", encerrada: "Encerrada",
 };
-const statusFlow = ["aberta", "triagem", "orcamento", "autorizacao", "execucao", "ateste", "pagamento"];
+const statusFlow = ["aberta", "triagem", "orcamento", "autorizacao", "execucao", "ateste", "pagamento", "encerrada"];
 const prioridadeLabels: Record<string, string> = {
   baixa: "Baixa", media: "Média", alta: "Alta", urgente: "Urgente",
 };
@@ -38,6 +39,7 @@ const statusColors: Record<string, string> = {
   execucao: "bg-accent text-accent-foreground",
   ateste: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
   pagamento: "bg-success text-success-foreground",
+  encerrada: "bg-muted text-muted-foreground",
 };
 
 interface Props {
@@ -277,6 +279,11 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
               {prioridadeLabels[os.prioridade]}
             </Badge>
             <Badge variant="outline">{os.tipo === "corretiva" ? "Corretiva" : "Preventiva"}</Badge>
+            {os.status === "pagamento" && paymentDocs.length > 0 && (
+              <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 border-yellow-300">
+                Aguardando Pagamento
+              </Badge>
+            )}
             {os.uops && <span className="text-sm text-muted-foreground">{(os.uops as any).nome}</span>}
           </div>
 
@@ -517,6 +524,65 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                 <Button onClick={handleSubmitPaymentDocs} disabled={uploading} className="w-full">
                   {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Enviar Documentos de Pagamento
+                </Button>
+              </div>
+            </>
+          )}
+
+          {/* PAGAMENTO: gestor/fiscal processes payment and generates report */}
+          {os.status === "pagamento" && paymentDocs.length > 0 && isGestorOrFiscal && (
+            <>
+              <Separator />
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium flex items-center gap-1">
+                  <CheckCircle className="h-4 w-4" /> Processar Pagamento
+                </h4>
+                <p className="text-sm text-muted-foreground">
+                  Ao confirmar o pagamento, será gerado um relatório PDF com todos os detalhes do fluxo desta OS.
+                </p>
+                <Button
+                  onClick={async () => {
+                    setUploading(true);
+                    try {
+                      // Fetch contract details
+                      let contrato = null;
+                      if (os.contrato_id) {
+                        const { data } = await supabase
+                          .from("contratos")
+                          .select("numero, empresa, preposto_nome")
+                          .eq("id", os.contrato_id)
+                          .single();
+                        contrato = data;
+                      }
+
+                      // Generate PDF report
+                      generateOSReport({
+                        os,
+                        contrato,
+                        custos: custos.data?.map(c => ({ descricao: c.descricao, tipo: c.tipo, valor: Number(c.valor) })) || [],
+                      });
+
+                      // Update status to encerrada
+                      await updateOS.mutateAsync({
+                        id: os.id,
+                        status: "encerrada" as any,
+                        data_encerramento: new Date().toISOString(),
+                      });
+
+                      toast.success("Pagamento processado e relatório gerado!");
+                      onOpenChange(false);
+                    } catch (err: any) {
+                      toast.error("Erro: " + err.message);
+                    } finally {
+                      setUploading(false);
+                    }
+                  }}
+                  disabled={uploading}
+                  className="w-full"
+                >
+                  {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  <Download className="mr-2 h-4 w-4" />
+                  Confirmar Pagamento e Gerar Relatório
                 </Button>
               </div>
             </>

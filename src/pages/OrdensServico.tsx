@@ -32,10 +32,11 @@ const statusColors: Record<string, string> = {
   execucao: "bg-accent text-accent-foreground",
   ateste: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
   pagamento: "bg-success text-success-foreground",
+  encerrada: "bg-muted text-muted-foreground",
 };
 const statusLabels: Record<string, string> = {
   aberta: "Aberta", triagem: "Triagem", orcamento: "Orçamento", autorizacao: "Autorização",
-  execucao: "Execução", ateste: "Ateste", pagamento: "Pagamento",
+  execucao: "Execução", ateste: "Ateste", pagamento: "Pagamento", encerrada: "Encerrada",
 };
 const prioridadeColors: Record<string, string> = {
   baixa: "outline", media: "secondary", alta: "default", urgente: "destructive",
@@ -157,9 +158,16 @@ export default function OrdensServico() {
                     <TableCell className="text-muted-foreground">{delegacia?.nome || "—"}</TableCell>
                     <TableCell className="text-muted-foreground">{uop?.nome || "—"}</TableCell>
                     <TableCell>
-                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors[os.status] || "bg-muted text-muted-foreground"}`}>
-                        {statusLabels[os.status] || os.status}
-                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors[os.status] || "bg-muted text-muted-foreground"}`}>
+                          {statusLabels[os.status] || os.status}
+                        </span>
+                        {os.status === "pagamento" && ((os as any).documentos_pagamento as any[])?.length > 0 && (
+                          <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                            Aguardando Pagamento
+                          </span>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <Badge variant={prioridadeColors[os.prioridade] as any}>
