@@ -108,7 +108,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
       case "autorizacao": return isPreposto || isTerceirizado; // upload budget
       case "execucao": return isGestorOrFiscal; // authorize execution
       case "ateste": return isPreposto || isTerceirizado; // submit execution evidence
-      case "pagamento": return isGestorOrFiscal || isOperador; // approve (ateste)
+      case "pagamento": return isGestorOrFiscal || isOperador || ((isPreposto || isTerceirizado) && !!(os as any).motivo_restituicao); // approve (ateste) or resubmit after restitution
       default: return false;
     }
   })();
