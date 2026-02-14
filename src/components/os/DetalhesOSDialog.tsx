@@ -11,7 +11,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useUpdateOS, useOSCustos, useAddCusto, type OrdemServico } from "@/hooks/useOrdensServico";
-import { useContratos } from "@/hooks/useContratos";
+import { useContratos, useContratosSaldo } from "@/hooks/useContratos";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -72,6 +72,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   const [showRestituir, setShowRestituir] = useState(false);
 
   const { data: contratosAll = [] } = useContratos();
+  const { data: saldos = [] } = useContratosSaldo();
   const contratoId = os?.contrato_id;
   const { data: contatos = [] } = useQuery({
     queryKey: ["contrato-contatos", contratoId],
@@ -321,6 +322,33 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
             )}
           </div>
 
+          {/* Contract balance info */}
+          {os.contrato_id && (() => {
+            const contrato = contratosAll.find(c => c.id === os.contrato_id);
+            const saldoInfo = saldos.find((s: any) => s.id === os.contrato_id);
+            if (!contrato) return null;
+            const saldo = saldoInfo ? Number((saldoInfo as any).saldo) : null;
+            const pct = saldoInfo && contrato.valor_total > 0 ? Math.round((Number((saldoInfo as any).total_custos) / contrato.valor_total) * 100) : 0;
+            return (
+              <div className="rounded-md border bg-muted/50 p-3 space-y-1">
+                <p className="text-sm font-medium flex items-center gap-1">
+                  <DollarSign className="h-4 w-4 text-muted-foreground" /> Contrato: {contrato.numero} — {contrato.empresa}
+                </p>
+                <div className="flex items-center gap-4 text-sm">
+                  <span className="text-muted-foreground">
+                    Valor Global: {contrato.valor_total.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                  </span>
+                  {saldo !== null && (
+                    <span className={saldo < 0 ? "text-destructive font-medium" : "text-foreground"}>
+                      Saldo: {saldo.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                      <span className="text-muted-foreground ml-1">({pct}% utilizado)</span>
+                    </span>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+
           {/* Budget file link */}
           {(os as any).arquivo_orcamento && (
             <div className="flex items-center gap-2 text-sm">
@@ -399,6 +427,23 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                     ))}
                   </SelectContent>
                 </Select>
+                {selectedContratoId && (() => {
+                  const s = saldos.find((x: any) => x.id === selectedContratoId);
+                  const c = contratosAll.find(x => x.id === selectedContratoId);
+                  if (!s || !c) return null;
+                  const saldo = Number((s as any).saldo);
+                  const pct = c.valor_total > 0 ? Math.round((Number((s as any).total_custos) / c.valor_total) * 100) : 0;
+                  return (
+                    <div className="text-sm p-2 rounded-md bg-muted flex items-center gap-3">
+                      <DollarSign className="h-4 w-4 text-muted-foreground" />
+                      <span>Valor: {c.valor_total.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
+                      <span className={saldo < 0 ? "text-destructive font-medium" : ""}>
+                        Saldo: {saldo.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                      </span>
+                      <span className="text-muted-foreground">({pct}% utilizado)</span>
+                    </div>
+                  );
+                })()}
                 <Button onClick={handleAdvanceStatus} disabled={uploading} className="w-full">
                   {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Avançar para Triagem
@@ -457,6 +502,20 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                     </a>
                   </div>
                 )}
+                {os.contrato_id && (() => {
+                  const s = saldos.find((x: any) => x.id === os.contrato_id);
+                  const c = contratosAll.find(x => x.id === os.contrato_id);
+                  if (!s || !c) return null;
+                  const saldo = Number((s as any).saldo);
+                  const pct = c.valor_total > 0 ? Math.round((Number((s as any).total_custos) / c.valor_total) * 100) : 0;
+                  return (
+                    <div className="text-sm p-2 rounded-md border bg-muted/50 flex items-center gap-3">
+                      <DollarSign className="h-4 w-4 text-muted-foreground" />
+                      <span>Saldo do contrato: <strong className={saldo < 0 ? "text-destructive" : ""}>{saldo.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</strong></span>
+                      <span className="text-muted-foreground">({pct}% utilizado)</span>
+                    </div>
+                  );
+                })()}
                 <Button onClick={handleAdvanceStatus} disabled={uploading} className="w-full">
                   {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Autorizar Execução
