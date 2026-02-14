@@ -521,6 +521,63 @@ export type Database = {
         }
         Relationships: []
       }
+      relatorios_os: {
+        Row: {
+          codigo_os: string
+          contrato_empresa: string | null
+          contrato_numero: string | null
+          dados_json: Json
+          gerado_em: string
+          gerado_por_id: string
+          id: string
+          os_id: string
+          regional_id: string | null
+          titulo_os: string
+          valor_atestado: number
+        }
+        Insert: {
+          codigo_os: string
+          contrato_empresa?: string | null
+          contrato_numero?: string | null
+          dados_json?: Json
+          gerado_em?: string
+          gerado_por_id: string
+          id?: string
+          os_id: string
+          regional_id?: string | null
+          titulo_os: string
+          valor_atestado?: number
+        }
+        Update: {
+          codigo_os?: string
+          contrato_empresa?: string | null
+          contrato_numero?: string | null
+          dados_json?: Json
+          gerado_em?: string
+          gerado_por_id?: string
+          id?: string
+          os_id?: string
+          regional_id?: string | null
+          titulo_os?: string
+          valor_atestado?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relatorios_os_os_id_fkey"
+            columns: ["os_id"]
+            isOneToOne: false
+            referencedRelation: "ordens_servico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relatorios_os_regional_id_fkey"
+            columns: ["regional_id"]
+            isOneToOne: false
+            referencedRelation: "regionais"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       uops: {
         Row: {
           area_m2: number | null
