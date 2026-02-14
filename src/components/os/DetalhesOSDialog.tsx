@@ -21,7 +21,7 @@ import { generateOSReport } from "@/utils/generateOSReport";
 import { useQuery } from "@tanstack/react-query";
 
 const statusLabels: Record<string, string> = {
-  aberta: "Aberta", triagem: "Triagem", orcamento: "Orçamento", autorizacao: "Autorização",
+  aberta: "Aberta", triagem: "Triagem", orcamento: "Orçamento", autorizacao: "Aguardando Autorização",
   execucao: "Execução", ateste: "Ateste", pagamento: "Pagamento", encerrada: "Encerrada",
 };
 const statusFlow = ["aberta", "triagem", "orcamento", "autorizacao", "execucao", "ateste", "pagamento", "encerrada"];
