@@ -35,7 +35,7 @@ function useDashboardData(regionalId?: string | null) {
     queryKey: ["dashboard-stats", regionalId],
     queryFn: async () => {
       const [osRes, uopsRes, delegaciasRes, custosRes] = await Promise.all([
-        supabase.from("ordens_servico").select("id, status, tipo, prioridade, data_abertura, data_encerramento, uop_id, valor_orcamento"),
+        supabase.from("ordens_servico").select("id, status, tipo, prioridade, data_abertura, data_encerramento, uop_id, valor_orcamento, updated_at"),
         supabase.from("uops").select("id, area_m2, delegacia_id"),
         regionalId
           ? supabase.from("delegacias").select("id").eq("regional_id", regionalId)
@@ -102,6 +102,27 @@ function useDashboardData(regionalId?: string | null) {
       const areaTotal = uops.reduce((s, u) => s + (u.area_m2 ?? 0), 0);
       const custoM2 = areaTotal > 0 ? valorTotalCustos / areaTotal : 0;
 
+      // Average time per stage (hours) - based on how long current OS have been in their stage
+      const now = new Date();
+      const tempoPorEtapa: Record<string, { total: number; count: number }> = {};
+      for (const s of Object.keys(statusLabels)) {
+        tempoPorEtapa[s] = { total: 0, count: 0 };
+      }
+      for (const o of os) {
+        const horasNaEtapa = differenceInHours(
+          o.status === "encerrada" && o.data_encerramento ? new Date(o.data_encerramento) : now,
+          new Date(o.updated_at)
+        );
+        if (tempoPorEtapa[o.status]) {
+          tempoPorEtapa[o.status].total += Math.max(0, horasNaEtapa);
+          tempoPorEtapa[o.status].count += 1;
+        }
+      }
+      const tempoMedioEtapa: Record<string, number> = {};
+      for (const [s, v] of Object.entries(tempoPorEtapa)) {
+        tempoMedioEtapa[s] = v.count > 0 ? v.total / v.count : 0;
+      }
+
       return {
         abertas: abertas.length,
         urgentes: urgentes.length,
@@ -118,6 +139,7 @@ function useDashboardData(regionalId?: string | null) {
         valorTotalCustos,
         valorOrcamentosMes,
         custoM2,
+        tempoMedioEtapa,
       };
     },
     refetchInterval: 30_000,
@@ -198,6 +220,27 @@ export default function Dashboard() {
               </CardContent>
             </Card>
           ))}
+        </div>
+      </div>
+
+      {/* Tempo médio por etapa */}
+      <div>
+        <h2 className="text-lg font-semibold text-foreground mb-3">Tempo Médio por Etapa</h2>
+        <div className="grid gap-3 grid-cols-2 sm:grid-cols-4 lg:grid-cols-8">
+          {flowStatuses.filter(s => s !== "encerrada").map((status) => {
+            const Icon = statusIcons[status];
+            const horas = data?.tempoMedioEtapa?.[status] ?? 0;
+            const display = isLoading ? "…" : horas < 1 ? `${Math.round(horas * 60)}min` : horas < 24 ? `${horas.toFixed(1)}h` : `${(horas / 24).toFixed(1)}d`;
+            return (
+              <Card key={status} className="text-center">
+                <CardContent className="pt-4 pb-3 px-2">
+                  <Icon className={`h-4 w-4 mx-auto mb-1 ${statusCardColors[status]}`} />
+                  <div className="text-xl font-bold">{display}</div>
+                  <p className="text-[10px] text-muted-foreground leading-tight mt-1">{statusLabels[status]}</p>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       </div>
 
