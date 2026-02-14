@@ -43,7 +43,7 @@ const allMenuItems = [
   { title: "Ordens de Serviço", url: "/ordens", icon: ClipboardList, roles: null }, // all roles
   // { title: "Manutenção Preventiva", url: "/preventiva", icon: CalendarClock }, // TODO: implementar futuramente
   { title: "Contratos", url: "/contratos", icon: FileText, roles: ["gestor_nacional", "gestor_regional", "fiscal_contrato", "operador", "preposto"] },
-  { title: "Relatórios", url: "/relatorios", icon: FileBarChart, roles: ["gestor_nacional", "gestor_regional", "fiscal_contrato"] },
+  { title: "Relatórios", url: "/relatorios", icon: FileBarChart, roles: ["gestor_nacional", "gestor_regional", "fiscal_contrato", "preposto", "terceirizado"] },
 ];
 
 export function AppSidebar() {

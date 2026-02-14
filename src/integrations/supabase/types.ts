@@ -647,6 +647,86 @@ export type Database = {
         }
         Relationships: []
       }
+      relatorios_execucao: {
+        Row: {
+          codigo_os: string
+          contrato_empresa: string | null
+          contrato_id: string | null
+          contrato_numero: string | null
+          dados_json: Json
+          email_destinatarios: string[] | null
+          email_enviado: boolean
+          gerado_em: string
+          gerado_por_id: string
+          id: string
+          os_id: string
+          regional_id: string | null
+          titulo_os: string
+          valor_orcamento: number
+        }
+        Insert: {
+          codigo_os: string
+          contrato_empresa?: string | null
+          contrato_id?: string | null
+          contrato_numero?: string | null
+          dados_json?: Json
+          email_destinatarios?: string[] | null
+          email_enviado?: boolean
+          gerado_em?: string
+          gerado_por_id: string
+          id?: string
+          os_id: string
+          regional_id?: string | null
+          titulo_os: string
+          valor_orcamento?: number
+        }
+        Update: {
+          codigo_os?: string
+          contrato_empresa?: string | null
+          contrato_id?: string | null
+          contrato_numero?: string | null
+          dados_json?: Json
+          email_destinatarios?: string[] | null
+          email_enviado?: boolean
+          gerado_em?: string
+          gerado_por_id?: string
+          id?: string
+          os_id?: string
+          regional_id?: string | null
+          titulo_os?: string
+          valor_orcamento?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relatorios_execucao_contrato_id_fkey"
+            columns: ["contrato_id"]
+            isOneToOne: false
+            referencedRelation: "contratos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relatorios_execucao_contrato_id_fkey"
+            columns: ["contrato_id"]
+            isOneToOne: false
+            referencedRelation: "contratos_saldo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relatorios_execucao_os_id_fkey"
+            columns: ["os_id"]
+            isOneToOne: false
+            referencedRelation: "ordens_servico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relatorios_execucao_regional_id_fkey"
+            columns: ["regional_id"]
+            isOneToOne: false
+            referencedRelation: "regionais"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       relatorios_os: {
         Row: {
           codigo_os: string
