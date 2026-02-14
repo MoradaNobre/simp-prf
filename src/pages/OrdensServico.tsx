@@ -35,7 +35,7 @@ const statusColors: Record<string, string> = {
   encerrada: "bg-muted text-muted-foreground",
 };
 const statusLabels: Record<string, string> = {
-  aberta: "Aberta", triagem: "Triagem", orcamento: "Orçamento", autorizacao: "Autorização",
+  aberta: "Aberta", triagem: "Triagem", orcamento: "Orçamento", autorizacao: "Aguardando Autorização",
   execucao: "Execução", ateste: "Ateste", pagamento: "Pagamento", encerrada: "Encerrada",
 };
 const prioridadeColors: Record<string, string> = {
