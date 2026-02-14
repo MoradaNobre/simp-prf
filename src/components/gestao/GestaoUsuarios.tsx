@@ -17,7 +17,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useRegionais } from "@/hooks/useHierarchy";
 import { toast } from "sonner";
-import { Search, Loader2 } from "lucide-react";
+import { Search, Loader2, Trash2, Ban, CheckCircle } from "lucide-react";
 import { Constants } from "@/integrations/supabase/types";
 
 type UserRegional = { id: string; nome: string; sigla: string };
@@ -31,6 +31,7 @@ type UserWithRole = {
   regional: UserRegional | null;
   regionais: UserRegional[];
   role: string | null;
+  ativo: boolean;
 };
 
 function useAdminUsers() {
@@ -48,7 +49,6 @@ function useAdminUsers() {
         .select("*");
       if (rErr) throw rErr;
 
-      // Fetch user_regionais for all users
       const { data: userRegionais, error: urErr } = await supabase
         .from("user_regionais" as any)
         .select("user_id, regional_id, regionais:regional_id(id, nome, sigla)");
@@ -57,7 +57,6 @@ function useAdminUsers() {
       const roleMap = new Map<string, string>();
       (roles || []).forEach((r) => roleMap.set(r.user_id, r.role));
 
-      // Group regionais by user_id
       const regionaisMap = new Map<string, UserRegional[]>();
       (userRegionais || []).forEach((ur: any) => {
         const list = regionaisMap.get(ur.user_id) || [];
@@ -74,6 +73,7 @@ function useAdminUsers() {
         regional: (p as any).regional,
         regionais: regionaisMap.get(p.user_id) || [],
         role: roleMap.get(p.user_id) || "operador",
+        ativo: (p as any).ativo ?? true,
       })) as UserWithRole[];
     },
   });
@@ -110,14 +110,12 @@ function useUpdateUserRegionais() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ userId, regionalIds }: { userId: string; regionalIds: string[] }) => {
-      // Delete existing
       const { error: delErr } = await supabase
         .from("user_regionais" as any)
         .delete()
         .eq("user_id", userId);
       if (delErr) throw delErr;
 
-      // Insert new
       if (regionalIds.length > 0) {
         const rows = regionalIds.map((rid) => ({ user_id: userId, regional_id: rid }));
         const { error: insErr } = await supabase
@@ -126,7 +124,6 @@ function useUpdateUserRegionais() {
         if (insErr) throw insErr;
       }
 
-      // Also update profiles.regional_id for backwards compat (first regional or null)
       const { error: profErr } = await supabase
         .from("profiles")
         .update({ regional_id: regionalIds[0] || null } as any)
@@ -155,22 +152,33 @@ const roleColors: Record<string, string> = {
   terceirizado: "outline",
 };
 
-export default function GestaoUsuarios() {
+interface Props {
+  currentUserRole: string;
+}
+
+export default function GestaoUsuarios({ currentUserRole }: Props) {
   const { data: users, isLoading } = useAdminUsers();
   const regionais = useRegionais();
   const updateRole = useUpdateUserRole();
   const updateRegionais = useUpdateUserRegionais();
+  const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [editUser, setEditUser] = useState<UserWithRole | null>(null);
   const [editRole, setEditRole] = useState("");
   const [editRegionalIds, setEditRegionalIds] = useState<string[]>([]);
   const [editName, setEditName] = useState("");
+  const [deleteConfirm, setDeleteConfirm] = useState<UserWithRole | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [toggling, setToggling] = useState<string | null>(null);
+
+  const isNacional = currentUserRole === "gestor_nacional";
 
   const filtered = (users || []).filter((u) =>
     u.full_name.toLowerCase().includes(search.toLowerCase())
   );
 
   const openEdit = (user: UserWithRole) => {
+    if (!isNacional) return; // gestor_regional can only view
     setEditUser(user);
     setEditName(user.full_name);
     setEditRole(user.role || "operador");
@@ -188,7 +196,6 @@ export default function GestaoUsuarios() {
   const handleSave = async () => {
     if (!editUser) return;
     try {
-      // Update name
       if (editName.trim() && editName.trim() !== editUser.full_name) {
         const { error } = await supabase
           .from("profiles")
@@ -205,6 +212,42 @@ export default function GestaoUsuarios() {
       setEditUser(null);
     } catch (err: any) {
       toast.error("Erro: " + err.message);
+    }
+  };
+
+  const handleToggleAtivo = async (user: UserWithRole) => {
+    setToggling(user.user_id);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ ativo: !user.ativo } as any)
+        .eq("user_id", user.user_id);
+      if (error) throw error;
+      toast.success(user.ativo ? "Usuário inativado" : "Usuário reativado");
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+    } catch (err: any) {
+      toast.error("Erro: " + err.message);
+    } finally {
+      setToggling(null);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteConfirm) return;
+    setDeleting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("delete-user", {
+        body: { user_id: deleteConfirm.user_id },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success("Usuário excluído permanentemente");
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+      setDeleteConfirm(null);
+    } catch (err: any) {
+      toast.error("Erro: " + err.message);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -230,12 +273,13 @@ export default function GestaoUsuarios() {
               <TableHead>Nome</TableHead>
               <TableHead>Papel</TableHead>
               <TableHead>Regionais</TableHead>
-              <TableHead className="w-24">Ações</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="w-32">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filtered.map((u) => (
-              <TableRow key={u.id}>
+              <TableRow key={u.id} className={!u.ativo ? "opacity-50" : undefined}>
                 <TableCell className="font-medium">{u.full_name || "Sem nome"}</TableCell>
                 <TableCell>
                   <Badge variant={roleColors[u.role || "operador"] as any}>
@@ -248,7 +292,44 @@ export default function GestaoUsuarios() {
                     : "—"}
                 </TableCell>
                 <TableCell>
-                  <Button variant="ghost" size="sm" onClick={() => openEdit(u)}>Editar</Button>
+                  <Badge variant={u.ativo ? "default" : "destructive"}>
+                    {u.ativo ? "Ativo" : "Inativo"}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <div className="flex gap-1">
+                    {isNacional && (
+                      <>
+                        <Button variant="ghost" size="sm" onClick={() => openEdit(u)}>Editar</Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title={u.ativo ? "Inativar" : "Reativar"}
+                          onClick={() => handleToggleAtivo(u)}
+                          disabled={toggling === u.user_id}
+                        >
+                          {toggling === u.user_id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : u.ativo ? (
+                            <Ban className="h-4 w-4 text-orange-500" />
+                          ) : (
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                          )}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title="Excluir permanentemente"
+                          onClick={() => setDeleteConfirm(u)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </>
+                    )}
+                    {!isNacional && (
+                      <span className="text-xs text-muted-foreground">Somente leitura</span>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -256,6 +337,7 @@ export default function GestaoUsuarios() {
         </Table>
       )}
 
+      {/* Edit Dialog - only for gestor_nacional */}
       <Dialog open={!!editUser} onOpenChange={(o) => { if (!o) setEditUser(null); }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -307,6 +389,26 @@ export default function GestaoUsuarios() {
             <Button onClick={handleSave} disabled={updateRole.isPending || updateRegionais.isPending}>
               {(updateRole.isPending || updateRegionais.isPending) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={!!deleteConfirm} onOpenChange={(o) => { if (!o) setDeleteConfirm(null); }}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Excluir Usuário</DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja excluir permanentemente o usuário "{deleteConfirm?.full_name}"?
+              Esta ação não pode ser desfeita. Considere inativar o usuário como alternativa.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>Cancelar</Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
+              {deleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Excluir Permanentemente
             </Button>
           </DialogFooter>
         </DialogContent>

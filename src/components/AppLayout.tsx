@@ -15,7 +15,7 @@ export function AppLayout() {
     queryFn: async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("must_change_password")
+        .select("must_change_password, ativo")
         .eq("user_id", user!.id)
         .single();
       return data;
@@ -37,6 +37,11 @@ export function AppLayout() {
 
   if (profile?.must_change_password) {
     return <Navigate to="/alterar-senha" replace />;
+  }
+
+  if (profile && !(profile as any).ativo) {
+    signOut();
+    return <Navigate to="/login" replace />;
   }
 
   return (
