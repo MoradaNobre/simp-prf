@@ -25,6 +25,13 @@ interface ResponsavelInfo {
   data?: string;
 }
 
+interface HistoricoFluxoItem {
+  acao: string;
+  descricao: string;
+  data: string;
+  usuario: string;
+}
+
 interface ReportData {
   os: OrdemServico;
   contrato?: { numero: string; empresa: string; preposto_nome?: string | null } | null;
@@ -32,9 +39,10 @@ interface ReportData {
   responsaveis?: ResponsavelInfo[];
   valorAtestado?: number;
   geradoPor?: string;
+  historicoFluxo?: HistoricoFluxoItem[];
 }
 
-export function generateOSReport({ os, contrato, custos = [], responsaveis = [], valorAtestado, geradoPor }: ReportData) {
+export function generateOSReport({ os, contrato, custos = [], responsaveis = [], valorAtestado, geradoPor, historicoFluxo = [] }: ReportData) {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   let y = 20;
@@ -187,6 +195,28 @@ export function generateOSReport({ os, contrato, custos = [], responsaveis = [],
     addSection("9. Evidências Fotográficas");
     if (os.foto_antes) addLine("Foto Antes:", "Anexada (ver sistema)");
     if (os.foto_depois) addLine("Foto Depois:", "Anexada (ver sistema)");
+  }
+
+  // Histórico do Fluxo
+  if (historicoFluxo.length > 0) {
+    addSection("10. Histórico do Fluxo");
+    historicoFluxo.forEach((item, idx) => {
+      checkPage(20);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.text(`${idx + 1}. ${item.acao}`, 16, y);
+      y += 5;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.text(`Data: ${item.data} — Usuário: ${item.usuario}`, 20, y);
+      y += 5;
+      if (item.descricao) {
+        const descLines = doc.splitTextToSize(item.descricao, pageWidth - 40);
+        checkPage(descLines.length * 4 + 2);
+        doc.text(descLines, 20, y);
+        y += descLines.length * 4 + 3;
+      }
+    });
   }
 
   // Footer

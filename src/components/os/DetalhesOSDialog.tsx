@@ -705,6 +705,35 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
 
                       const valorAtestado = Number((os as any).valor_orcamento) || 0;
 
+                      // Fetch audit logs (status changes & restitutions)
+                      const { data: auditLogs } = await supabase
+                        .from("audit_logs")
+                        .select("action, description, created_at, user_id")
+                        .eq("record_id", os.id)
+                        .eq("table_name", "ordens_servico")
+                        .in("action", ["STATUS_CHANGE", "restituicao"])
+                        .order("created_at", { ascending: true });
+
+                      // Resolve audit log user names
+                      const auditUserIds = [...new Set((auditLogs || []).map(l => l.user_id).filter(Boolean))] as string[];
+                      let auditProfileMap: Record<string, string> = {};
+                      if (auditUserIds.length > 0) {
+                        const { data: auditProfiles } = await supabase
+                          .from("profiles")
+                          .select("user_id, full_name")
+                          .in("user_id", auditUserIds);
+                        if (auditProfiles) {
+                          auditProfileMap = Object.fromEntries(auditProfiles.map(p => [p.user_id, p.full_name]));
+                        }
+                      }
+
+                      const historicoFluxo = (auditLogs || []).map(log => ({
+                        acao: log.action === "restituicao" ? "Restituição" : "Avanço de Status",
+                        descricao: log.description || "",
+                        data: new Date(log.created_at).toLocaleString("pt-BR"),
+                        usuario: log.user_id ? (auditProfileMap[log.user_id] || "Não identificado") : "Sistema",
+                      }));
+
                       // Generate PDF report
                       generateOSReport({
                         os,
@@ -713,6 +742,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                         responsaveis,
                         valorAtestado,
                         geradoPor: geradoPorNome,
+                        historicoFluxo,
                       });
 
                       // Get regional_id
@@ -733,6 +763,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                           contrato,
                           responsaveis,
                           gerado_por_nome: geradoPorNome,
+                          historicoFluxo,
                         },
                       });
 
