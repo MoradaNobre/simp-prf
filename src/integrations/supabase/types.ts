@@ -250,6 +250,7 @@ export type Database = {
       }
       ordens_servico: {
         Row: {
+          arquivo_orcamento: string | null
           assinatura_digital: string | null
           codigo: string
           contrato_id: string | null
@@ -257,6 +258,7 @@ export type Database = {
           data_abertura: string
           data_encerramento: string | null
           descricao: string | null
+          documentos_pagamento: Json | null
           equipamento_id: string | null
           foto_antes: string | null
           foto_depois: string | null
@@ -273,8 +275,10 @@ export type Database = {
           titulo: string
           uop_id: string | null
           updated_at: string
+          valor_orcamento: number | null
         }
         Insert: {
+          arquivo_orcamento?: string | null
           assinatura_digital?: string | null
           codigo: string
           contrato_id?: string | null
@@ -282,6 +286,7 @@ export type Database = {
           data_abertura?: string
           data_encerramento?: string | null
           descricao?: string | null
+          documentos_pagamento?: Json | null
           equipamento_id?: string | null
           foto_antes?: string | null
           foto_depois?: string | null
@@ -298,8 +303,10 @@ export type Database = {
           titulo: string
           uop_id?: string | null
           updated_at?: string
+          valor_orcamento?: number | null
         }
         Update: {
+          arquivo_orcamento?: string | null
           assinatura_digital?: string | null
           codigo?: string
           contrato_id?: string | null
@@ -307,6 +314,7 @@ export type Database = {
           data_abertura?: string
           data_encerramento?: string | null
           descricao?: string | null
+          documentos_pagamento?: Json | null
           equipamento_id?: string | null
           foto_antes?: string | null
           foto_depois?: string | null
@@ -323,6 +331,7 @@ export type Database = {
           titulo?: string
           uop_id?: string | null
           updated_at?: string
+          valor_orcamento?: number | null
         }
         Relationships: [
           {
@@ -650,7 +659,15 @@ export type Database = {
         | "outro"
       frequencia_manutencao: "mensal" | "trimestral" | "semestral" | "anual"
       os_prioridade: "baixa" | "media" | "alta" | "urgente"
-      os_status: "aberta" | "triagem" | "execucao" | "encerrada"
+      os_status:
+        | "aberta"
+        | "triagem"
+        | "orcamento"
+        | "autorizacao"
+        | "execucao"
+        | "ateste"
+        | "pagamento"
+        | "encerrada"
       os_tipo: "corretiva" | "preventiva"
     }
     CompositeTypes: {
@@ -798,7 +815,16 @@ export const Constants = {
       ],
       frequencia_manutencao: ["mensal", "trimestral", "semestral", "anual"],
       os_prioridade: ["baixa", "media", "alta", "urgente"],
-      os_status: ["aberta", "triagem", "execucao", "encerrada"],
+      os_status: [
+        "aberta",
+        "triagem",
+        "orcamento",
+        "autorizacao",
+        "execucao",
+        "ateste",
+        "pagamento",
+        "encerrada",
+      ],
       os_tipo: ["corretiva", "preventiva"],
     },
   },

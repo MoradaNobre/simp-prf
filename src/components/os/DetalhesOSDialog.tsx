@@ -15,13 +15,14 @@ import { useContratos } from "@/hooks/useContratos";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Camera, DollarSign, User } from "lucide-react";
+import { Loader2, Camera, DollarSign, User, FileText, Upload, CheckCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
 const statusLabels: Record<string, string> = {
-  aberta: "Aberta", triagem: "Triagem", execucao: "Em Execução", encerrada: "Encerrada",
+  aberta: "Aberta", triagem: "Triagem", orcamento: "Orçamento", autorizacao: "Autorização",
+  execucao: "Execução", ateste: "Ateste", pagamento: "Pagamento",
 };
-const statusFlow = ["aberta", "triagem", "execucao", "encerrada"];
+const statusFlow = ["aberta", "triagem", "orcamento", "autorizacao", "execucao", "ateste", "pagamento"];
 const prioridadeLabels: Record<string, string> = {
   baixa: "Baixa", media: "Média", alta: "Alta", urgente: "Urgente",
 };
@@ -29,11 +30,14 @@ const prioridadeColors: Record<string, string> = {
   baixa: "outline", media: "secondary", alta: "default", urgente: "destructive",
 };
 
-// Map each status to which responsible field is set when advancing TO that status
-const statusResponsavelField: Record<string, string> = {
-  triagem: "responsavel_triagem_id",
-  execucao: "responsavel_execucao_id",
-  encerrada: "responsavel_encerramento_id",
+const statusColors: Record<string, string> = {
+  aberta: "bg-info text-info-foreground",
+  triagem: "bg-warning text-warning-foreground",
+  orcamento: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+  autorizacao: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+  execucao: "bg-accent text-accent-foreground",
+  ateste: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  pagamento: "bg-success text-success-foreground",
 };
 
 interface Props {
@@ -47,17 +51,20 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   const custos = useOSCustos(os?.id);
   const addCusto = useAddCusto();
   const { data: role } = useUserRole();
-  const canManage = role && !["operador", "preposto", "terceirizado"].includes(role);
-  const canManageCustos = canManage || role === "terceirizado";
-  const canUploadPhotos = canManage || role === "terceirizado";
-  const canAdvanceStatus = canManage || role === "terceirizado";
+  
+  const isGestorOrFiscal = role === "gestor_nacional" || role === "gestor_regional" || role === "fiscal_contrato";
+  const isPreposto = role === "preposto";
+  const isTerceirizado = role === "terceirizado";
+  const isOperador = role === "operador";
 
   const [uploading, setUploading] = useState(false);
   const [custoDesc, setCustoDesc] = useState("");
   const [custoTipo, setCustoTipo] = useState("peca");
   const [custoValor, setCustoValor] = useState("");
-  const [selectedResponsavel, setSelectedResponsavel] = useState("");
   const [selectedContratoId, setSelectedContratoId] = useState("");
+  const [valorOrcamento, setValorOrcamento] = useState("");
+  const [arquivoOrcamento, setArquivoOrcamento] = useState<File | null>(null);
+  const [documentosPagamento, setDocumentosPagamento] = useState<FileList | null>(null);
 
   const { data: contratosAll = [] } = useContratos();
   const contratoId = os?.contrato_id;
@@ -75,10 +82,11 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
     enabled: !!contratoId,
   });
 
-  // Reset selected responsavel when OS changes
   useEffect(() => {
-    setSelectedResponsavel("");
     setSelectedContratoId(os?.contrato_id ?? "");
+    setValorOrcamento("");
+    setArquivoOrcamento(null);
+    setDocumentosPagamento(null);
   }, [os?.id, os?.contrato_id]);
 
   if (!os) return null;
@@ -86,30 +94,65 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   const currentIdx = statusFlow.indexOf(os.status);
   const nextStatus = currentIdx < statusFlow.length - 1 ? statusFlow[currentIdx + 1] : null;
 
-  const isTerceirizado = role === "terceirizado";
+  // Permission logic per step
+  const canAdvance = (() => {
+    if (!nextStatus) return false;
+    switch (nextStatus) {
+      case "triagem": return isGestorOrFiscal; // vincular contrato
+      case "orcamento": return isGestorOrFiscal; // after triagem, move to orcamento
+      case "autorizacao": return isPreposto || isTerceirizado; // upload budget
+      case "execucao": return isGestorOrFiscal; // authorize execution
+      case "ateste": return isPreposto || isTerceirizado; // submit execution evidence
+      case "pagamento": return isGestorOrFiscal || isOperador; // approve (ateste)
+      default: return false;
+    }
+  })();
+
+  // Can submit payment docs (final step action, not advancing)
+  const canSubmitPayment = os.status === "pagamento" && (isPreposto || isTerceirizado);
+
+  const uploadFile = async (file: File, folder: string) => {
+    const ext = file.name.split(".").pop();
+    const path = `${folder}/${crypto.randomUUID()}.${ext}`;
+    const { error } = await supabase.storage.from("os-fotos").upload(path, file);
+    if (error) throw error;
+    const { data } = supabase.storage.from("os-fotos").getPublicUrl(path);
+    return data.publicUrl;
+  };
 
   const handleAdvanceStatus = async () => {
     if (!nextStatus) return;
+
+    // Validation for triagem: must link contract
     if (nextStatus === "triagem" && !selectedContratoId) {
       toast.error("Vincule um contrato antes de avançar para Triagem");
       return;
     }
-    // Terceirizado must register at least one custo before encerrar
-    if (nextStatus === "encerrada" && isTerceirizado && (!custos.data || custos.data.length === 0)) {
-      toast.error("Registre pelo menos um custo antes de encerrar a OS.");
-      return;
+
+    // Validation for autorizacao: must upload budget
+    if (nextStatus === "autorizacao") {
+      if (!arquivoOrcamento) {
+        toast.error("Carregue o arquivo do orçamento (Excel ou PDF)");
+        return;
+      }
+      if (!valorOrcamento || parseFloat(valorOrcamento) <= 0) {
+        toast.error("Informe o valor total do orçamento");
+        return;
+      }
     }
+
+    setUploading(true);
     try {
       const updates: any = { id: os.id, status: nextStatus };
-      if (nextStatus === "encerrada") updates.data_encerramento = new Date().toISOString();
-      if (nextStatus === "triagem") updates.contrato_id = selectedContratoId;
-      
-      const field = statusResponsavelField[nextStatus];
-      // For terceirizado advancing to encerrada, auto-assign solicitante as responsável
-      if (nextStatus === "encerrada" && isTerceirizado) {
-        updates.responsavel_encerramento_id = os.solicitante_id;
-      } else if (field && selectedResponsavel) {
-        updates[field] = selectedResponsavel;
+
+      if (nextStatus === "triagem") {
+        updates.contrato_id = selectedContratoId;
+      }
+
+      if (nextStatus === "autorizacao" && arquivoOrcamento) {
+        const url = await uploadFile(arquivoOrcamento, "orcamentos");
+        updates.arquivo_orcamento = url;
+        updates.valor_orcamento = parseFloat(valorOrcamento);
       }
 
       await updateOS.mutateAsync(updates);
@@ -118,36 +161,57 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
       // Notify preposto when advancing to triagem
       if (nextStatus === "triagem" && selectedContratoId) {
         try {
-          const appUrl = window.location.origin;
           await supabase.functions.invoke("notify-preposto", {
-            body: { os_id: os.id, contrato_id: selectedContratoId, app_url: appUrl },
+            body: { os_id: os.id, contrato_id: selectedContratoId, app_url: window.location.origin },
           });
           toast.success("Email enviado ao preposto para definir responsável");
-        } catch (emailErr) {
-          console.error("Email notification failed:", emailErr);
-          toast.warning("OS avançada, mas não foi possível notificar o preposto por email");
+        } catch {
+          toast.warning("OS avançada, mas não foi possível notificar o preposto");
         }
       }
 
-      setSelectedResponsavel("");
       onOpenChange(false);
     } catch (err: any) {
       toast.error("Erro: " + err.message);
+    } finally {
+      setUploading(false);
     }
   };
 
   const handleUploadFotoDepois = async (file: File) => {
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop();
-      const path = `depois/${crypto.randomUUID()}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("os-fotos").upload(path, file);
-      if (upErr) throw upErr;
-      const { data: urlData } = supabase.storage.from("os-fotos").getPublicUrl(path);
-      await updateOS.mutateAsync({ id: os.id, foto_depois: urlData.publicUrl });
+      const url = await uploadFile(file, "depois");
+      await updateOS.mutateAsync({ id: os.id, foto_depois: url });
       toast.success("Foto enviada!");
     } catch (err: any) {
       toast.error("Erro no upload: " + err.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleSubmitPaymentDocs = async () => {
+    if (!documentosPagamento || documentosPagamento.length === 0) {
+      toast.error("Selecione os documentos para pagamento");
+      return;
+    }
+    setUploading(true);
+    try {
+      const urls: string[] = [];
+      for (const file of Array.from(documentosPagamento)) {
+        const url = await uploadFile(file, "pagamento");
+        urls.push(url);
+      }
+      const existing = (os as any).documentos_pagamento || [];
+      await updateOS.mutateAsync({
+        id: os.id,
+        documentos_pagamento: [...existing, ...urls],
+      } as any);
+      toast.success("Documentos de pagamento enviados!");
+      setDocumentosPagamento(null);
+    } catch (err: any) {
+      toast.error("Erro: " + err.message);
     } finally {
       setUploading(false);
     }
@@ -170,20 +234,27 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   };
 
   const totalCustos = (custos.data || []).reduce((sum, c) => sum + Number(c.valor), 0);
+  const paymentDocs: string[] = (os as any).documentos_pagamento || [];
 
-  // Helper to get contato name by id
-  const getContatoNome = (id: string | null | undefined) => {
-    if (!id) return null;
-    const c = contatos.find((ct) => ct.id === id);
-    return c ? `${c.nome}${c.funcao ? ` (${c.funcao})` : ""}` : null;
-  };
-
-  // Show assigned responsáveis for completed stages
-  const responsaveis = [
-    { label: "Triagem", value: getContatoNome((os as any).responsavel_triagem_id) },
-    { label: "Execução", value: getContatoNome((os as any).responsavel_execucao_id) },
-    { label: "Encerramento", value: getContatoNome((os as any).responsavel_encerramento_id) },
-  ].filter((r) => r.value);
+  // Status stepper
+  const renderStepper = () => (
+    <div className="flex items-center gap-1 overflow-x-auto pb-1">
+      {statusFlow.map((s, i) => {
+        const isCurrent = s === os.status;
+        const isPast = i < currentIdx;
+        return (
+          <div key={s} className="flex items-center gap-1">
+            <div className={`text-xs px-2 py-1 rounded-full whitespace-nowrap font-medium ${
+              isCurrent ? statusColors[s] : isPast ? "bg-muted text-muted-foreground line-through" : "bg-muted/50 text-muted-foreground/50"
+            }`}>
+              {i + 1}. {statusLabels[s]}
+            </div>
+            {i < statusFlow.length - 1 && <span className="text-muted-foreground/30">→</span>}
+          </div>
+        );
+      })}
+    </div>
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -197,11 +268,11 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
         </DialogHeader>
 
         <div className="space-y-4">
+          {/* Stepper */}
+          {renderStepper()}
+
           {/* Status & Priority */}
           <div className="flex items-center gap-3 flex-wrap">
-            <Badge className={`${os.status === "aberta" ? "bg-info text-info-foreground" : os.status === "triagem" ? "bg-warning text-warning-foreground" : os.status === "execucao" ? "bg-accent text-accent-foreground" : "bg-success text-success-foreground"}`}>
-              {statusLabels[os.status]}
-            </Badge>
             <Badge variant={prioridadeColors[os.prioridade] as any}>
               {prioridadeLabels[os.prioridade]}
             </Badge>
@@ -221,28 +292,21 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
               <span className="text-muted-foreground">Abertura:</span>{" "}
               {new Date(os.data_abertura).toLocaleDateString("pt-BR")}
             </div>
-            {os.data_encerramento && (
+            {(os as any).valor_orcamento > 0 && (
               <div>
-                <span className="text-muted-foreground">Encerramento:</span>{" "}
-                {new Date(os.data_encerramento).toLocaleDateString("pt-BR")}
+                <span className="text-muted-foreground">Orçamento:</span>{" "}
+                R$ {Number((os as any).valor_orcamento).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
               </div>
             )}
           </div>
 
-          {/* Responsáveis atribuídos */}
-          {responsaveis.length > 0 && (
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground flex items-center gap-1">
-                <User className="h-3 w-3" /> Responsáveis por Etapa
-              </Label>
-              <div className="grid grid-cols-1 gap-1">
-                {responsaveis.map((r) => (
-                  <div key={r.label} className="flex items-center gap-2 text-sm">
-                    <span className="text-muted-foreground">{r.label}:</span>
-                    <span className="font-medium">{r.value}</span>
-                  </div>
-                ))}
-              </div>
+          {/* Budget file link */}
+          {(os as any).arquivo_orcamento && (
+            <div className="flex items-center gap-2 text-sm">
+              <FileText className="h-4 w-4 text-muted-foreground" />
+              <a href={(os as any).arquivo_orcamento} target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                Ver arquivo do orçamento
+              </a>
             </div>
           )}
 
@@ -259,7 +323,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                 <Label className="text-xs text-muted-foreground">Foto Depois</Label>
                 <img src={os.foto_depois} alt="Depois" className="mt-1 rounded-md border max-h-40 object-cover w-full" />
               </div>
-            ) : os.status === "execucao" && canUploadPhotos && (
+            ) : os.status === "execucao" && (isPreposto || isTerceirizado) && (
               <div>
                 <Label className="text-xs text-muted-foreground flex items-center gap-1">
                   <Camera className="h-3 w-3" /> Foto Depois
@@ -276,64 +340,190 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
             )}
           </div>
 
-          {/* Status transition with contrato & responsável selection */}
-          {canAdvanceStatus && nextStatus && (
+          {/* Payment documents */}
+          {paymentDocs.length > 0 && (
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Documentos de Pagamento</Label>
+              <div className="space-y-1">
+                {paymentDocs.map((url, i) => (
+                  <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm text-primary underline">
+                    <FileText className="h-3 w-3" /> Documento {i + 1}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* === STEP-SPECIFIC ACTIONS === */}
+
+          {/* TRIAGEM: vincular contrato */}
+          {canAdvance && nextStatus === "triagem" && (
             <>
               <Separator />
               <div className="space-y-3">
-                {/* Vincular contrato na triagem */}
-                {nextStatus === "triagem" && !os.contrato_id && (
-                  <div className="space-y-1.5">
-                    <Label className="text-sm font-medium">Vincular Contrato *</Label>
-                    <Select value={selectedContratoId || "none"} onValueChange={(v) => setSelectedContratoId(v === "none" ? "" : v)}>
-                      <SelectTrigger><SelectValue placeholder="Selecione o contrato" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Nenhum</SelectItem>
-                        {contratosAll
-                          .filter((c) => {
-                            const hoje = new Date();
-                            return hoje >= new Date(c.data_inicio) && hoje <= new Date(c.data_fim);
-                          })
-                          .map((c) => (
-                          <SelectItem key={c.id} value={c.id}>
-                            {c.numero} — {c.empresa}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground">O contrato deve ser vinculado na triagem para controle de saldo.</p>
-                  </div>
-                )}
-
-                {/* Responsável por etapa - hidden for terceirizado advancing to encerrada */}
-                {contratoId && contatos.length > 0 && !(isTerceirizado && nextStatus === "encerrada") && (
-                  <div className="space-y-1.5">
-                    <Label className="text-sm">Responsável pela etapa de {statusLabels[nextStatus]}</Label>
-                    <Select value={selectedResponsavel} onValueChange={setSelectedResponsavel}>
-                      <SelectTrigger><SelectValue placeholder="Selecione o responsável" /></SelectTrigger>
-                      <SelectContent>
-                        {contatos.map((c) => (
-                          <SelectItem key={c.id} value={c.id}>
-                            {c.nome}{c.funcao ? ` (${c.funcao})` : ""}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-                {isTerceirizado && nextStatus === "encerrada" && (
-                  <p className="text-xs text-muted-foreground">O responsável pelo encerramento será o solicitante da OS.</p>
-                )}
-                <Button onClick={handleAdvanceStatus} disabled={updateOS.isPending} className="w-full">
-                  {updateOS.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Avançar para: {statusLabels[nextStatus]}
+                <h4 className="text-sm font-medium">Triagem — Vincular Contrato</h4>
+                <Select value={selectedContratoId || "none"} onValueChange={(v) => setSelectedContratoId(v === "none" ? "" : v)}>
+                  <SelectTrigger><SelectValue placeholder="Selecione o contrato" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Nenhum</SelectItem>
+                    {contratosAll
+                      .filter((c) => {
+                        const hoje = new Date();
+                        return hoje >= new Date(c.data_inicio) && hoje <= new Date(c.data_fim);
+                      })
+                      .map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.numero} — {c.empresa}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button onClick={handleAdvanceStatus} disabled={uploading} className="w-full">
+                  {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Avançar para Triagem
                 </Button>
               </div>
             </>
           )}
 
-          {/* Custos - only visible during execução or after */}
-          {(os.status === "execucao" || os.status === "encerrada") && (
+          {/* ORCAMENTO → AUTORIZACAO: preposto/terceirizado uploads budget */}
+          {canAdvance && nextStatus === "autorizacao" && (
+            <>
+              <Separator />
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium flex items-center gap-1">
+                  <Upload className="h-4 w-4" /> Orçamento — Enviar proposta
+                </h4>
+                <div className="space-y-1.5">
+                  <Label>Arquivo do orçamento (Excel ou PDF) *</Label>
+                  <Input
+                    type="file"
+                    accept=".xlsx,.xls,.pdf"
+                    onChange={(e) => setArquivoOrcamento(e.target.files?.[0] || null)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Valor total do serviço (R$) *</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    placeholder="0,00"
+                    value={valorOrcamento}
+                    onChange={(e) => setValorOrcamento(e.target.value)}
+                  />
+                </div>
+                <Button onClick={handleAdvanceStatus} disabled={uploading} className="w-full">
+                  {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Enviar Orçamento
+                </Button>
+              </div>
+            </>
+          )}
+
+          {/* AUTORIZACAO → EXECUCAO: gestor/fiscal authorizes */}
+          {canAdvance && nextStatus === "execucao" && (
+            <>
+              <Separator />
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium flex items-center gap-1">
+                  <CheckCircle className="h-4 w-4" /> Autorização para Execução
+                </h4>
+                {(os as any).arquivo_orcamento && (
+                  <div className="text-sm p-3 bg-muted rounded-md space-y-1">
+                    <p><span className="text-muted-foreground">Orçamento:</span> R$ {Number((os as any).valor_orcamento).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
+                    <a href={(os as any).arquivo_orcamento} target="_blank" rel="noopener noreferrer" className="text-primary underline text-sm">
+                      Ver arquivo do orçamento
+                    </a>
+                  </div>
+                )}
+                <Button onClick={handleAdvanceStatus} disabled={uploading} className="w-full">
+                  {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Autorizar Execução
+                </Button>
+              </div>
+            </>
+          )}
+
+          {/* Move to orcamento (after triagem) */}
+          {canAdvance && nextStatus === "orcamento" && (
+            <>
+              <Separator />
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium">Encaminhar para Orçamento</h4>
+                <p className="text-sm text-muted-foreground">Após a triagem, encaminhe a OS para que o preposto/terceirizado elabore o orçamento.</p>
+                <Button onClick={handleAdvanceStatus} disabled={uploading} className="w-full">
+                  {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Encaminhar para Orçamento
+                </Button>
+              </div>
+            </>
+          )}
+
+          {/* EXECUCAO → ATESTE: preposto/terceirizado submits evidence */}
+          {canAdvance && nextStatus === "ateste" && (
+            <>
+              <Separator />
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium flex items-center gap-1">
+                  <Camera className="h-4 w-4" /> Execução — Submeter para Ateste
+                </h4>
+                <p className="text-sm text-muted-foreground">
+                  Certifique-se de que as fotos e evidências da execução foram carregadas antes de submeter.
+                </p>
+                <Button onClick={handleAdvanceStatus} disabled={uploading} className="w-full">
+                  {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Submeter para Ateste
+                </Button>
+              </div>
+            </>
+          )}
+
+          {/* ATESTE → PAGAMENTO: gestor/fiscal/operador approves */}
+          {canAdvance && nextStatus === "pagamento" && (
+            <>
+              <Separator />
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium flex items-center gap-1">
+                  <CheckCircle className="h-4 w-4" /> Ateste do Serviço
+                </h4>
+                <p className="text-sm text-muted-foreground">
+                  Aprove a execução do serviço e autorize o pagamento.
+                </p>
+                <Button onClick={handleAdvanceStatus} disabled={uploading} className="w-full">
+                  {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Aprovar e Autorizar Pagamento
+                </Button>
+              </div>
+            </>
+          )}
+
+          {/* PAGAMENTO: upload payment documents */}
+          {canSubmitPayment && (
+            <>
+              <Separator />
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium flex items-center gap-1">
+                  <Upload className="h-4 w-4" /> Pagamento — Documentos
+                </h4>
+                <p className="text-sm text-muted-foreground">
+                  Carregue a nota fiscal, certidões e demais documentos necessários.
+                </p>
+                <Input
+                  type="file"
+                  accept=".pdf,.xlsx,.xls,.jpg,.jpeg,.png"
+                  multiple
+                  onChange={(e) => setDocumentosPagamento(e.target.files)}
+                />
+                <Button onClick={handleSubmitPaymentDocs} disabled={uploading} className="w-full">
+                  {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Enviar Documentos de Pagamento
+                </Button>
+              </div>
+            </>
+          )}
+
+          {/* Custos - visible during execução and after */}
+          {currentIdx >= statusFlow.indexOf("execucao") && (
             <>
               <Separator />
               <div>
@@ -351,7 +541,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                     <span className="font-medium">R$ {Number(c.valor).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
                   </div>
                 ))}
-                {canManageCustos && os.status === "execucao" && (
+                {(isPreposto || isTerceirizado || isGestorOrFiscal) && os.status === "execucao" && (
                   <div className="flex gap-2 mt-2">
                     <Input placeholder="Descrição" value={custoDesc} onChange={(e) => setCustoDesc(e.target.value)} className="flex-1" />
                     <Select value={custoTipo} onValueChange={setCustoTipo}>
