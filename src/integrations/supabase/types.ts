@@ -262,6 +262,7 @@ export type Database = {
           foto_depois: string | null
           id: string
           prioridade: Database["public"]["Enums"]["os_prioridade"]
+          regional_id: string | null
           responsavel_encerramento_id: string | null
           responsavel_execucao_id: string | null
           responsavel_id: string | null
@@ -286,6 +287,7 @@ export type Database = {
           foto_depois?: string | null
           id?: string
           prioridade?: Database["public"]["Enums"]["os_prioridade"]
+          regional_id?: string | null
           responsavel_encerramento_id?: string | null
           responsavel_execucao_id?: string | null
           responsavel_id?: string | null
@@ -310,6 +312,7 @@ export type Database = {
           foto_depois?: string | null
           id?: string
           prioridade?: Database["public"]["Enums"]["os_prioridade"]
+          regional_id?: string | null
           responsavel_encerramento_id?: string | null
           responsavel_execucao_id?: string | null
           responsavel_id?: string | null
@@ -341,6 +344,13 @@ export type Database = {
             columns: ["equipamento_id"]
             isOneToOne: false
             referencedRelation: "equipamentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ordens_servico_regional_id_fkey"
+            columns: ["regional_id"]
+            isOneToOne: false
+            referencedRelation: "regionais"
             referencedColumns: ["id"]
           },
           {
