@@ -223,6 +223,37 @@ export default function OrdensServico() {
         )}
       </div>
 
+      {(role === "gestor_regional" || role === "gestor_nacional" || role === "fiscal_contrato") && (
+        <Card className="border-primary/30 bg-primary/5">
+          <CardContent className="py-3 px-4">
+            <div className="flex items-start gap-2">
+              <Info className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+              <div className="space-y-1.5">
+                <p className="text-sm font-medium text-foreground">Status que requerem sua ação:</p>
+                <div className="flex flex-wrap gap-2">
+                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors["triagem"]}`}>
+                    Triagem
+                  </span>
+                  <span className="text-xs text-muted-foreground">— Vincular contrato e encaminhar para orçamento</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors["autorizacao"]}`}>
+                    Aguardando Autorização
+                  </span>
+                  <span className="text-xs text-muted-foreground">— Aprovar ou restituir o orçamento para execução</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors["ateste"]}`}>
+                    Ateste
+                  </span>
+                  <span className="text-xs text-muted-foreground">— Validar a execução do serviço realizado</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {isExternalUser && (
         <Card className="border-primary/30 bg-primary/5">
           <CardContent className="py-3 px-4">
