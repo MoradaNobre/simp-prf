@@ -139,6 +139,7 @@ export default function OrdensServico() {
                   <TableHead>Regional</TableHead>
                   <TableHead>Delegacia</TableHead>
                   <TableHead>Unidade</TableHead>
+                  <TableHead>Valor</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Prioridade</TableHead>
                   <TableHead>Data</TableHead>
@@ -157,6 +158,11 @@ export default function OrdensServico() {
                     <TableCell className="text-muted-foreground">{regional?.sigla || "—"}</TableCell>
                     <TableCell className="text-muted-foreground">{delegacia?.nome || "—"}</TableCell>
                     <TableCell className="text-muted-foreground">{uop?.nome || "—"}</TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      {(os as any).valor_orcamento > 0
+                        ? `R$ ${Number((os as any).valor_orcamento).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
+                        : "—"}
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1.5">
                         <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors[os.status] || "bg-muted text-muted-foreground"}`}>
