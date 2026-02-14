@@ -14,21 +14,20 @@ export function useRegionalFilter() {
 
   const isNacional = role === "gestor_nacional";
   const userRegionalIds: string[] = (profile as any)?.regionais?.map((r: any) => r.id) ?? [];
+  const hasMultipleRegionais = userRegionalIds.length > 1;
+  const canFilterRegional = isNacional || hasMultipleRegionais;
 
   // The effective regional_id to filter by
   const effectiveRegionalId = useMemo(() => {
-    if (isNacional) {
+    if (canFilterRegional) {
       return selectedRegionalId || null; // null = show all
     }
-    // For non-national users, use selectedRegionalId if it's in their regionais, else first
-    if (selectedRegionalId && userRegionalIds.includes(selectedRegionalId)) {
-      return selectedRegionalId;
-    }
     return userRegionalIds[0] || null;
-  }, [isNacional, selectedRegionalId, userRegionalIds]);
+  }, [canFilterRegional, selectedRegionalId, userRegionalIds]);
 
   return {
     isNacional,
+    canFilterRegional,
     effectiveRegionalId,
     userRegionalIds,
     selectedRegionalId,

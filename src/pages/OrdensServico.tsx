@@ -42,7 +42,7 @@ export default function OrdensServico() {
   const canManage = role && !["operador", "preposto", "terceirizado"].includes(role);
   const isExternalUser = role === "preposto" || role === "terceirizado";
   const canCreateOS = role && !isExternalUser;
-  const { isNacional, effectiveRegionalId, selectedRegionalId, setSelectedRegionalId } = useRegionalFilter();
+  const { canFilterRegional, effectiveRegionalId, selectedRegionalId, setSelectedRegionalId } = useRegionalFilter();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [prioridadeFilter, setPrioridadeFilter] = useState("");
@@ -110,7 +110,7 @@ export default function OrdensServico() {
             ))}
           </SelectContent>
         </Select>
-        {isNacional && (
+        {canFilterRegional && (
           <RegionalFilterSelect value={selectedRegionalId} onChange={setSelectedRegionalId} />
         )}
       </div>
