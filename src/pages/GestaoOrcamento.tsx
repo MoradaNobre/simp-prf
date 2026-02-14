@@ -131,15 +131,15 @@ export default function GestaoOrcamento() {
 
   // Mutations
   const saveDotacao = useMutation({
-    mutationFn: async (values: { id?: string; regional_id: string; exercicio: number; observacoes: string }) => {
+    mutationFn: async (values: { id?: string; regional_id: string; exercicio: number; valor_dotacao?: number; observacoes: string }) => {
       if (values.id) {
-        const { error } = await supabase.from("orcamento_anual" as any).update({ observacoes: values.observacoes }).eq("id", values.id);
+        const { error } = await supabase.from("orcamento_anual" as any).update({ valor_dotacao: values.valor_dotacao ?? 0, observacoes: values.observacoes }).eq("id", values.id);
         if (error) throw error;
       } else {
         const { error } = await supabase.from("orcamento_anual" as any).insert({
           regional_id: values.regional_id,
           exercicio: values.exercicio,
-          valor_dotacao: 0,
+          valor_dotacao: values.valor_dotacao ?? 0,
           observacoes: values.observacoes,
         });
         if (error) throw error;
@@ -375,6 +375,7 @@ export default function GestaoOrcamento() {
 function DotacaoDialog({ open, item, regionais, exercicio, onClose, onSave, saving }: any) {
   const [regionalId, setRegionalId] = useState("");
   const [ano, setAno] = useState(exercicio);
+  const [valor, setValor] = useState("");
   const [obs, setObs] = useState("");
   const isEdit = !!item;
 
@@ -400,8 +401,8 @@ function DotacaoDialog({ open, item, regionais, exercicio, onClose, onSave, savi
 
   useEffect(() => {
     if (open) {
-      if (item) { setRegionalId(item.regional_id); setAno(item.exercicio); setObs(item.observacoes || ""); }
-      else { setRegionalId(""); setAno(exercicio); setObs(""); }
+      if (item) { setRegionalId(item.regional_id); setAno(item.exercicio); setValor(String(item.valor_dotacao)); setObs(item.observacoes || ""); }
+      else { setRegionalId(""); setAno(exercicio); setValor(""); setObs(""); }
     }
   }, [open, item, exercicio]);
 
@@ -438,13 +439,17 @@ function DotacaoDialog({ open, item, regionais, exercicio, onClose, onSave, savi
             </>
           )}
           <div className="space-y-2">
+            <Label>Valor da Dotação Inicial (R$)</Label>
+            <Input type="number" step="0.01" value={valor} onChange={(e) => setValor(e.target.value)} placeholder="0,00" />
+          </div>
+          <div className="space-y-2">
             <Label>Observações</Label>
             <Textarea value={obs} onChange={(e) => setObs(e.target.value)} rows={2} />
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancelar</Button>
-          <Button disabled={saving || (!isEdit && !regionalId)} onClick={() => onSave({ id: item?.id, regional_id: regionalId, exercicio: ano, observacoes: obs })}>
+          <Button disabled={saving || (!isEdit && (!regionalId || !valor))} onClick={() => onSave({ id: item?.id, regional_id: regionalId, exercicio: ano, valor_dotacao: Number(valor), observacoes: obs })}>
             {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Salvar
           </Button>
         </DialogFooter>
