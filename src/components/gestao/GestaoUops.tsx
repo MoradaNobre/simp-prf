@@ -137,7 +137,7 @@ export default function GestaoUops() {
           <SelectTrigger className="w-48"><SelectValue placeholder="Filtrar regional" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas as regionais</SelectItem>
-            {(regionais.data || []).map((r) => (
+            {(isRegional ? (profile as any)?.regionais || [] : regionais.data || []).map((r: any) => (
               <SelectItem key={r.id} value={r.id}>{r.sigla}</SelectItem>
             ))}
           </SelectContent>
@@ -211,7 +211,7 @@ export default function GestaoUops() {
               <Select value={formRegional} onValueChange={(v) => { setFormRegional(v); setForm({ ...form, delegacia_id: "" }); }}>
                 <SelectTrigger><SelectValue placeholder="Selecione a regional..." /></SelectTrigger>
                 <SelectContent>
-                  {(regionais.data || []).map((r) => (
+                  {(isRegional ? (profile as any)?.regionais || [] : regionais.data || []).map((r: any) => (
                     <SelectItem key={r.id} value={r.id}>{r.sigla} — {r.nome}</SelectItem>
                   ))}
                 </SelectContent>
