@@ -68,6 +68,7 @@ export default function Relatorios() {
         responsaveis: dados.responsaveis || [],
         valorAtestado: relatorio.valor_atestado,
         geradoPor: dados.gerado_por_nome || "",
+        historicoFluxo: dados.historicoFluxo || [],
       });
 
       toast.success("PDF gerado com sucesso!");
