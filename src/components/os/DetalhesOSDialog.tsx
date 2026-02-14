@@ -176,6 +176,109 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
         }
       }
 
+      // Generate execution report and send email when advancing to execucao
+      if (nextStatus === "execucao") {
+        try {
+          // Gather data for the report
+          const uop = os.uops as any;
+          const delegacia = uop?.delegacias;
+          const regional = (os as any).regionais || delegacia?.regionais;
+          
+          let contratoInfo: any = null;
+          if (os.contrato_id) {
+            const { data } = await supabase
+              .from("contratos")
+              .select("numero, empresa, preposto_nome")
+              .eq("id", os.contrato_id)
+              .single();
+            contratoInfo = data;
+          }
+
+          // Get solicitante name
+          const { data: solicitanteProfile } = await supabase
+            .from("profiles")
+            .select("full_name")
+            .eq("user_id", os.solicitante_id)
+            .single();
+
+          // Get execution responsible name
+          let responsavelExecNome = "";
+          if (os.responsavel_execucao_id) {
+            const { data: contatoData } = await supabase
+              .from("contrato_contatos")
+              .select("nome")
+              .eq("id", os.responsavel_execucao_id)
+              .maybeSingle();
+            if (contatoData) responsavelExecNome = contatoData.nome;
+          }
+
+          // Get current user (fiscal) name
+          const { data: { user: currentUser } } = await supabase.auth.getUser();
+          const { data: fiscalProfile } = await supabase
+            .from("profiles")
+            .select("full_name")
+            .eq("user_id", currentUser?.id || "")
+            .single();
+
+          const reportData = {
+            codigo: os.codigo,
+            titulo: os.titulo,
+            tipo: os.tipo,
+            descricao: os.descricao || "",
+            localNome: uop?.nome || "—",
+            regionalNome: regional?.nome || "",
+            regionalSigla: regional?.sigla || "",
+            solicitanteNome: solicitanteProfile?.full_name || "—",
+            valorOrcamento: Number((os as any).valor_orcamento) || 0,
+            contratoNumero: contratoInfo?.numero,
+            contratoEmpresa: contratoInfo?.empresa,
+            responsavelExecucaoNome: responsavelExecNome || undefined,
+            dataAbertura: new Date(os.data_abertura).toLocaleDateString("pt-BR"),
+            dataAutorizacao: new Date().toLocaleDateString("pt-BR"),
+            fiscalNome: fiscalProfile?.full_name || undefined,
+          };
+
+          // Save to relatorios_execucao
+          const { data: relatorio, error: relErr } = await supabase
+            .from("relatorios_execucao")
+            .insert({
+              os_id: os.id,
+              codigo_os: os.codigo,
+              titulo_os: os.titulo,
+              regional_id: (os as any).regional_id || delegacia?.regional_id || null,
+              contrato_id: os.contrato_id || null,
+              contrato_numero: contratoInfo?.numero || null,
+              contrato_empresa: contratoInfo?.empresa || null,
+              valor_orcamento: reportData.valorOrcamento,
+              dados_json: reportData,
+              gerado_por_id: currentUser?.id || "",
+            })
+            .select("id")
+            .single();
+
+          if (relErr) {
+            console.error("Error saving execution report:", relErr);
+          }
+
+          // Send email via edge function
+          try {
+            await supabase.functions.invoke("send-os-execucao", {
+              body: {
+                os_id: os.id,
+                relatorio_execucao_id: relatorio?.id,
+                report_data: reportData,
+              },
+            });
+            toast.success("Relatório de execução gerado e email enviado!");
+          } catch {
+            toast.warning("Relatório gerado, mas não foi possível enviar o email");
+          }
+        } catch (err) {
+          console.error("Error generating execution report:", err);
+          toast.warning("OS autorizada, mas houve erro ao gerar o relatório de execução");
+        }
+      }
+
       onOpenChange(false);
     } catch (err: any) {
       toast.error("Erro: " + err.message);
