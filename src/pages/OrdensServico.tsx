@@ -27,11 +27,15 @@ import { toast } from "sonner";
 const statusColors: Record<string, string> = {
   aberta: "bg-info text-info-foreground",
   triagem: "bg-warning text-warning-foreground",
+  orcamento: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+  autorizacao: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
   execucao: "bg-accent text-accent-foreground",
-  encerrada: "bg-success text-success-foreground",
+  ateste: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  pagamento: "bg-success text-success-foreground",
 };
 const statusLabels: Record<string, string> = {
-  aberta: "Aberta", triagem: "Triagem", execucao: "Em Execução", encerrada: "Encerrada",
+  aberta: "Aberta", triagem: "Triagem", orcamento: "Orçamento", autorizacao: "Autorização",
+  execucao: "Execução", ateste: "Ateste", pagamento: "Pagamento",
 };
 const prioridadeColors: Record<string, string> = {
   baixa: "outline", media: "secondary", alta: "default", urgente: "destructive",
@@ -153,8 +157,8 @@ export default function OrdensServico() {
                     <TableCell className="text-muted-foreground">{delegacia?.nome || "—"}</TableCell>
                     <TableCell className="text-muted-foreground">{uop?.nome || "—"}</TableCell>
                     <TableCell>
-                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors[os.status]}`}>
-                        {statusLabels[os.status]}
+                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors[os.status] || "bg-muted text-muted-foreground"}`}>
+                        {statusLabels[os.status] || os.status}
                       </span>
                     </TableCell>
                     <TableCell>
