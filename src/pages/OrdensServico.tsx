@@ -1,9 +1,13 @@
 import { useState } from "react";
+import { format } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Loader2, Pencil, Trash2 } from "lucide-react";
+import { Plus, Search, Loader2, Pencil, Trash2, CalendarIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -51,6 +55,8 @@ export default function OrdensServico() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [prioridadeFilter, setPrioridadeFilter] = useState("");
+  const [dataInicio, setDataInicio] = useState<Date | undefined>();
+  const [dataFim, setDataFim] = useState<Date | undefined>();
   const [novaOSOpen, setNovaOSOpen] = useState(false);
   const [selectedOS, setSelectedOS] = useState<OrdemServico | null>(null);
   const [editOS, setEditOS] = useState<OrdemServico | null>(null);
@@ -68,11 +74,23 @@ export default function OrdensServico() {
     setDeleteId(null);
   };
 
-  const { data: ordens, isLoading } = useOrdensServico({
+  const { data: ordensRaw, isLoading } = useOrdensServico({
     status: statusFilter || undefined,
     prioridade: prioridadeFilter || undefined,
     search: search || undefined,
     regionalId: effectiveRegionalId,
+  });
+
+  // Client-side date filter
+  const ordens = ordensRaw?.filter((os) => {
+    const osDate = new Date(os.data_abertura);
+    if (dataInicio && osDate < dataInicio) return false;
+    if (dataFim) {
+      const fimEnd = new Date(dataFim);
+      fimEnd.setHours(23, 59, 59, 999);
+      if (osDate > fimEnd) return false;
+    }
+    return true;
   });
 
   return (
@@ -117,6 +135,33 @@ export default function OrdensServico() {
         </Select>
         {canFilterRegional && (
           <RegionalFilterSelect value={selectedRegionalId} onChange={setSelectedRegionalId} />
+        )}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className={cn("w-[140px] justify-start text-left font-normal text-xs", !dataInicio && "text-muted-foreground")}>
+              <CalendarIcon className="mr-1 h-3 w-3" />
+              {dataInicio ? format(dataInicio, "dd/MM/yyyy") : "Data início"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar mode="single" selected={dataInicio} onSelect={setDataInicio} initialFocus className={cn("p-3 pointer-events-auto")} />
+          </PopoverContent>
+        </Popover>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className={cn("w-[140px] justify-start text-left font-normal text-xs", !dataFim && "text-muted-foreground")}>
+              <CalendarIcon className="mr-1 h-3 w-3" />
+              {dataFim ? format(dataFim, "dd/MM/yyyy") : "Data fim"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar mode="single" selected={dataFim} onSelect={setDataFim} initialFocus className={cn("p-3 pointer-events-auto")} />
+          </PopoverContent>
+        </Popover>
+        {(dataInicio || dataFim) && (
+          <Button variant="ghost" size="sm" onClick={() => { setDataInicio(undefined); setDataFim(undefined); }}>
+            Limpar datas
+          </Button>
         )}
       </div>
 
