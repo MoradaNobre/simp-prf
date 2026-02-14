@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Loader2, Pencil, Trash2, CalendarIcon } from "lucide-react";
+import { Plus, Search, Loader2, Pencil, Trash2, CalendarIcon, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
@@ -46,6 +46,32 @@ const prioridadeColors: Record<string, string> = {
   baixa: "outline", media: "secondary", alta: "default", urgente: "destructive",
 };
 
+const prioridadeOrder: Record<string, number> = { baixa: 0, media: 1, alta: 2, urgente: 3 };
+const statusOrder: Record<string, number> = {
+  aberta: 0, triagem: 1, orcamento: 2, autorizacao: 3, execucao: 4, ateste: 5, pagamento: 6, encerrada: 7,
+};
+
+type SortKey = "codigo" | "titulo" | "regional" | "delegacia" | "unidade" | "valor" | "status" | "prioridade" | "data";
+type SortDir = "asc" | "desc";
+
+function getOSSortValue(os: OrdemServico, key: SortKey): string | number {
+  const uop = os.uops as any;
+  const delegacia = uop?.delegacias;
+  const regional = os.regionais || delegacia?.regionais;
+  switch (key) {
+    case "codigo": return os.codigo;
+    case "titulo": return os.titulo.toLowerCase();
+    case "regional": return regional?.sigla?.toLowerCase() ?? "";
+    case "delegacia": return delegacia?.nome?.toLowerCase() ?? "";
+    case "unidade": return uop?.nome?.toLowerCase() ?? "";
+    case "valor": return Number((os as any).valor_orcamento) || 0;
+    case "status": return statusOrder[os.status] ?? 99;
+    case "prioridade": return prioridadeOrder[os.prioridade] ?? 99;
+    case "data": return new Date(os.data_abertura).getTime();
+    default: return "";
+  }
+}
+
 export default function OrdensServico() {
   const { data: role } = useUserRole();
   const canManage = role && !["operador", "preposto", "terceirizado"].includes(role);
@@ -61,6 +87,8 @@ export default function OrdensServico() {
   const [selectedOS, setSelectedOS] = useState<OrdemServico | null>(null);
   const [editOS, setEditOS] = useState<OrdemServico | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
   const deleteOS = useDeleteOS();
 
   const handleDelete = async () => {
@@ -74,6 +102,21 @@ export default function OrdensServico() {
     setDeleteId(null);
   };
 
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      if (sortDir === "asc") setSortDir("desc");
+      else { setSortKey(null); setSortDir("asc"); }
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  };
+
+  const SortIcon = ({ col }: { col: SortKey }) => {
+    if (sortKey !== col) return <ArrowUpDown className="h-3 w-3 ml-1 opacity-40" />;
+    return sortDir === "asc" ? <ArrowUp className="h-3 w-3 ml-1" /> : <ArrowDown className="h-3 w-3 ml-1" />;
+  };
+
   const { data: ordensRaw, isLoading } = useOrdensServico({
     status: statusFilter || undefined,
     prioridade: prioridadeFilter || undefined,
@@ -81,17 +124,32 @@ export default function OrdensServico() {
     regionalId: effectiveRegionalId,
   });
 
-  // Client-side date filter
-  const ordens = ordensRaw?.filter((os) => {
-    const osDate = new Date(os.data_abertura);
-    if (dataInicio && osDate < dataInicio) return false;
-    if (dataFim) {
-      const fimEnd = new Date(dataFim);
-      fimEnd.setHours(23, 59, 59, 999);
-      if (osDate > fimEnd) return false;
+  // Client-side date filter + sort
+  const ordens = useMemo(() => {
+    let filtered = ordensRaw?.filter((os) => {
+      const osDate = new Date(os.data_abertura);
+      if (dataInicio && osDate < dataInicio) return false;
+      if (dataFim) {
+        const fimEnd = new Date(dataFim);
+        fimEnd.setHours(23, 59, 59, 999);
+        if (osDate > fimEnd) return false;
+      }
+      return true;
+    });
+
+    if (filtered && sortKey) {
+      filtered = [...filtered].sort((a, b) => {
+        const va = getOSSortValue(a, sortKey);
+        const vb = getOSSortValue(b, sortKey);
+        let cmp = 0;
+        if (typeof va === "number" && typeof vb === "number") cmp = va - vb;
+        else cmp = String(va).localeCompare(String(vb), "pt-BR");
+        return sortDir === "desc" ? -cmp : cmp;
+      });
     }
-    return true;
-  });
+
+    return filtered;
+  }, [ordensRaw, dataInicio, dataFim, sortKey, sortDir]);
 
   return (
     <div className="space-y-6">
@@ -179,15 +237,28 @@ export default function OrdensServico() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Código</TableHead>
-                  <TableHead>Título</TableHead>
-                  <TableHead>Regional</TableHead>
-                  <TableHead>Delegacia</TableHead>
-                  <TableHead>Unidade</TableHead>
-                  <TableHead>Valor</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Prioridade</TableHead>
-                  <TableHead>Data</TableHead>
+                  {([
+                    ["codigo", "Código"],
+                    ["titulo", "Título"],
+                    ["regional", "Regional"],
+                    ["delegacia", "Delegacia"],
+                    ["unidade", "Unidade"],
+                    ["valor", "Valor"],
+                    ["status", "Status"],
+                    ["prioridade", "Prioridade"],
+                    ["data", "Data"],
+                  ] as [SortKey, string][]).map(([key, label]) => (
+                    <TableHead
+                      key={key}
+                      className="cursor-pointer select-none hover:bg-muted/50 transition-colors"
+                      onClick={() => toggleSort(key)}
+                    >
+                      <span className="flex items-center">
+                        {label}
+                        <SortIcon col={key} />
+                      </span>
+                    </TableHead>
+                  ))}
                   {canManage && <TableHead className="w-20">Ações</TableHead>}
                 </TableRow>
               </TableHeader>
