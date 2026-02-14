@@ -130,7 +130,7 @@ export default function GestaoDelegacias() {
           <SelectTrigger className="w-48"><SelectValue placeholder="Filtrar regional" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas as regionais</SelectItem>
-            {(regionais.data || []).map((r) => (
+            {(isRegional ? (profile as any)?.regionais || [] : regionais.data || []).map((r: any) => (
               <SelectItem key={r.id} value={r.id}>{r.sigla}</SelectItem>
             ))}
           </SelectContent>
@@ -193,7 +193,7 @@ export default function GestaoDelegacias() {
               <Select value={form.regional_id} onValueChange={(v) => setForm({ ...form, regional_id: v })}>
                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>
-                  {(regionais.data || []).map((r) => (
+                  {(isRegional ? (profile as any)?.regionais || [] : regionais.data || []).map((r: any) => (
                     <SelectItem key={r.id} value={r.id}>{r.sigla} — {r.nome}</SelectItem>
                   ))}
                 </SelectContent>
