@@ -605,6 +605,11 @@ export type Database = {
       }
     }
     Functions: {
+      get_user_regional_ids: { Args: { _user_id: string }; Returns: string[] }
+      get_users_in_same_regionals: {
+        Args: { _user_id: string }
+        Returns: string[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
