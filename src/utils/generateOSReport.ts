@@ -19,35 +19,48 @@ const prioridadeLabels: Record<string, string> = {
   urgente: "Urgente",
 };
 
+interface ResponsavelInfo {
+  etapa: string;
+  nome: string;
+  data?: string;
+}
+
 interface ReportData {
   os: OrdemServico;
   contrato?: { numero: string; empresa: string; preposto_nome?: string | null } | null;
   custos?: { descricao: string; tipo: string; valor: number }[];
+  responsaveis?: ResponsavelInfo[];
+  valorAtestado?: number;
+  geradoPor?: string;
 }
 
-export function generateOSReport({ os, contrato, custos = [] }: ReportData) {
+export function generateOSReport({ os, contrato, custos = [], responsaveis = [], valorAtestado, geradoPor }: ReportData) {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   let y = 20;
 
-  const addLine = (label: string, value: string, indent = 14) => {
-    if (y > 270) {
+  const checkPage = (needed = 12) => {
+    if (y > 280 - needed) {
       doc.addPage();
       y = 20;
     }
+  };
+
+  const addLine = (label: string, value: string, indent = 14) => {
+    checkPage();
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
     doc.text(label, indent, y);
     doc.setFont("helvetica", "normal");
-    doc.text(value, indent + doc.getTextWidth(label) + 2, y);
-    y += 6;
+    const labelWidth = doc.getTextWidth(label) + 2;
+    const maxWidth = pageWidth - indent - labelWidth - 14;
+    const lines = doc.splitTextToSize(value, maxWidth);
+    doc.text(lines, indent + labelWidth, y);
+    y += lines.length * 5 + 2;
   };
 
   const addSection = (title: string) => {
-    if (y > 260) {
-      doc.addPage();
-      y = 20;
-    }
+    checkPage(16);
     y += 4;
     doc.setFillColor(240, 240, 240);
     doc.rect(14, y - 4, pageWidth - 28, 8, "F");
@@ -62,16 +75,23 @@ export function generateOSReport({ os, contrato, custos = [] }: ReportData) {
   doc.setFontSize(16);
   doc.text("RELATÓRIO DE ORDEM DE SERVIÇO", pageWidth / 2, y, { align: "center" });
   y += 8;
+  doc.setFontSize(12);
+  doc.text(os.codigo, pageWidth / 2, y, { align: "center" });
+  y += 6;
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
   doc.text(`Gerado em: ${new Date().toLocaleString("pt-BR")}`, pageWidth / 2, y, { align: "center" });
+  if (geradoPor) {
+    y += 5;
+    doc.text(`Gerado por: ${geradoPor}`, pageWidth / 2, y, { align: "center" });
+  }
   y += 4;
   doc.setDrawColor(0);
   doc.line(14, y, pageWidth - 14, y);
   y += 8;
 
   // Identification
-  addSection("Identificação");
+  addSection("1. Identificação");
   addLine("Código:", os.codigo);
   addLine("Título:", os.titulo);
   addLine("Status:", statusLabels[os.status] || os.status);
@@ -83,6 +103,7 @@ export function generateOSReport({ os, contrato, custos = [] }: ReportData) {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     const lines = doc.splitTextToSize(os.descricao, pageWidth - 32);
+    checkPage(lines.length * 5);
     doc.text(lines, 16, y);
     y += lines.length * 5 + 2;
   }
@@ -92,7 +113,7 @@ export function generateOSReport({ os, contrato, custos = [] }: ReportData) {
   const delegacia = uop?.delegacias;
   const regional = (os as any).regionais || delegacia?.regionais;
   if (regional || delegacia || uop) {
-    addSection("Localização");
+    addSection("2. Localização");
     if (regional) addLine("Regional:", `${regional.nome} (${regional.sigla})`);
     if (delegacia) addLine("Delegacia:", delegacia.nome);
     if (uop) addLine("Unidade:", uop.nome);
@@ -100,36 +121,54 @@ export function generateOSReport({ os, contrato, custos = [] }: ReportData) {
 
   // Contract
   if (contrato) {
-    addSection("Contrato");
+    addSection("3. Contrato");
     addLine("Número:", contrato.numero);
     addLine("Empresa:", contrato.empresa);
     if (contrato.preposto_nome) addLine("Preposto:", contrato.preposto_nome);
   }
 
   // Dates
-  addSection("Datas");
+  addSection("4. Datas");
   addLine("Abertura:", new Date(os.data_abertura).toLocaleString("pt-BR"));
   if (os.data_encerramento) {
     addLine("Encerramento:", new Date(os.data_encerramento).toLocaleString("pt-BR"));
   }
 
-  // Budget
+  // Responsáveis por etapa
+  if (responsaveis.length > 0) {
+    addSection("5. Responsáveis por Etapa");
+    responsaveis.forEach((r) => {
+      const dateStr = r.data ? ` (${r.data})` : "";
+      addLine(`${r.etapa}:`, `${r.nome}${dateStr}`);
+    });
+  }
+
+  // Budget & Attested Value
+  addSection("6. Valores");
   if ((os as any).valor_orcamento > 0) {
-    addSection("Orçamento");
-    addLine("Valor:", `R$ ${Number((os as any).valor_orcamento).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`);
-    if ((os as any).arquivo_orcamento) {
-      addLine("Arquivo:", "Anexado (ver sistema)");
-    }
+    addLine("Valor do Orçamento:", `R$ ${Number((os as any).valor_orcamento).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`);
+  }
+  if (valorAtestado !== undefined && valorAtestado > 0) {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    checkPage();
+    doc.text(`VALOR GLOBAL ATESTADO: R$ ${valorAtestado.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`, 16, y);
+    doc.setFontSize(10);
+    y += 8;
+  }
+  if ((os as any).arquivo_orcamento) {
+    addLine("Arquivo de Orçamento:", "Anexado (ver sistema)");
   }
 
   // Costs
   if (custos.length > 0) {
-    addSection("Custos");
+    addSection("7. Custos Detalhados");
     const totalCustos = custos.reduce((sum, c) => sum + Number(c.valor), 0);
     custos.forEach((c) => {
       addLine(`• ${c.descricao} (${c.tipo}):`, `R$ ${Number(c.valor).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`);
     });
     y += 2;
+    checkPage();
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
     doc.text(`Total de Custos: R$ ${totalCustos.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`, 16, y);
@@ -139,29 +178,28 @@ export function generateOSReport({ os, contrato, custos = [] }: ReportData) {
   // Payment documents
   const paymentDocs: string[] = (os as any).documentos_pagamento || [];
   if (paymentDocs.length > 0) {
-    addSection("Documentos de Pagamento");
+    addSection("8. Documentos de Pagamento");
     addLine("Quantidade:", `${paymentDocs.length} documento(s) anexado(s)`);
   }
 
   // Photos
   if (os.foto_antes || os.foto_depois) {
-    addSection("Evidências Fotográficas");
+    addSection("9. Evidências Fotográficas");
     if (os.foto_antes) addLine("Foto Antes:", "Anexada (ver sistema)");
     if (os.foto_depois) addLine("Foto Depois:", "Anexada (ver sistema)");
   }
 
   // Footer
   y += 10;
-  if (y > 260) {
-    doc.addPage();
-    y = 20;
-  }
+  checkPage(20);
   doc.setDrawColor(0);
   doc.line(14, y, pageWidth - 14, y);
   y += 8;
   doc.setFont("helvetica", "italic");
   doc.setFontSize(8);
-  doc.text("Documento gerado automaticamente pelo SIMP-PRF", pageWidth / 2, y, { align: "center" });
+  doc.text("Documento gerado automaticamente pelo SIMP-PRF — Sistema de Manutenção Predial", pageWidth / 2, y, { align: "center" });
+  y += 4;
+  doc.text("Este relatório deve ser juntado ao processo de pagamento no sistema competente.", pageWidth / 2, y, { align: "center" });
 
   doc.save(`Relatorio_${os.codigo}.pdf`);
 }

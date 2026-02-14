@@ -529,16 +529,16 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
             </>
           )}
 
-          {/* PAGAMENTO: gestor/fiscal processes payment and generates report */}
+          {/* PAGAMENTO: gestor/fiscal generates report and encerras OS */}
           {os.status === "pagamento" && paymentDocs.length > 0 && isGestorOrFiscal && (
             <>
               <Separator />
               <div className="space-y-3">
                 <h4 className="text-sm font-medium flex items-center gap-1">
-                  <CheckCircle className="h-4 w-4" /> Processar Pagamento
+                  <CheckCircle className="h-4 w-4" /> Encerrar OS e Gerar Relatório
                 </h4>
                 <p className="text-sm text-muted-foreground">
-                  Ao confirmar o pagamento, será gerado um relatório PDF com todos os detalhes do fluxo desta OS.
+                  Ao confirmar, a OS será encerrada e um relatório PDF será gerado com todos os detalhes do fluxo, incluindo valor global atestado e responsáveis por cada etapa.
                 </p>
                 <Button
                   onClick={async () => {
@@ -555,11 +555,96 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                         contrato = data;
                       }
 
+                      // Fetch responsáveis names from profiles
+                      const responsavelIds = [
+                        os.solicitante_id,
+                        os.responsavel_id,
+                        os.responsavel_triagem_id,
+                        os.responsavel_execucao_id,
+                        os.responsavel_encerramento_id,
+                      ].filter(Boolean) as string[];
+
+                      const uniqueIds = [...new Set(responsavelIds)];
+                      let profileMap: Record<string, string> = {};
+                      if (uniqueIds.length > 0) {
+                        const { data: profiles } = await supabase
+                          .from("profiles")
+                          .select("user_id, full_name")
+                          .in("user_id", uniqueIds);
+                        if (profiles) {
+                          profileMap = Object.fromEntries(profiles.map(p => [p.user_id, p.full_name]));
+                        }
+                      }
+
+                      // Also check contato names for responsáveis that are contato IDs
+                      const contatoIds = [
+                        os.responsavel_triagem_id,
+                        os.responsavel_execucao_id,
+                        os.responsavel_encerramento_id,
+                      ].filter(Boolean) as string[];
+                      
+                      if (contatoIds.length > 0) {
+                        const { data: contatosData } = await supabase
+                          .from("contrato_contatos")
+                          .select("id, nome")
+                          .in("id", contatoIds);
+                        if (contatosData) {
+                          contatosData.forEach(c => {
+                            if (!profileMap[c.id]) profileMap[c.id] = c.nome;
+                          });
+                        }
+                      }
+
+                      const getName = (id: string | null) => id ? (profileMap[id] || "Não identificado") : "—";
+
+                      // Get current user name
+                      const { data: { user } } = await supabase.auth.getUser();
+                      const { data: currentProfile } = await supabase
+                        .from("profiles")
+                        .select("full_name")
+                        .eq("user_id", user?.id || "")
+                        .single();
+                      const geradoPorNome = currentProfile?.full_name || "Não identificado";
+
+                      const responsaveis = [
+                        { etapa: "Solicitante", nome: getName(os.solicitante_id) },
+                        ...(os.responsavel_id ? [{ etapa: "Responsável", nome: getName(os.responsavel_id) }] : []),
+                        ...(os.responsavel_triagem_id ? [{ etapa: "Triagem", nome: getName(os.responsavel_triagem_id) }] : []),
+                        ...(os.responsavel_execucao_id ? [{ etapa: "Execução", nome: getName(os.responsavel_execucao_id) }] : []),
+                        ...(os.responsavel_encerramento_id ? [{ etapa: "Encerramento", nome: getName(os.responsavel_encerramento_id) }] : []),
+                      ];
+
+                      const valorAtestado = Number((os as any).valor_orcamento) || 0;
+
                       // Generate PDF report
                       generateOSReport({
                         os,
                         contrato,
                         custos: custos.data?.map(c => ({ descricao: c.descricao, tipo: c.tipo, valor: Number(c.valor) })) || [],
+                        responsaveis,
+                        valorAtestado,
+                        geradoPor: geradoPorNome,
+                      });
+
+                      // Get regional_id
+                      const uopData = os.uops as any;
+                      const regionalId = (os as any).regional_id || uopData?.delegacias?.regional_id || null;
+
+                      // Save report record to DB
+                      await supabase.from("relatorios_os").insert({
+                        os_id: os.id,
+                        codigo_os: os.codigo,
+                        titulo_os: os.titulo,
+                        valor_atestado: valorAtestado,
+                        gerado_por_id: user?.id || "",
+                        regional_id: regionalId,
+                        contrato_numero: contrato?.numero || null,
+                        contrato_empresa: contrato?.empresa || null,
+                        dados_json: {
+                          contrato,
+                          responsaveis,
+                          gerado_por_nome: geradoPorNome,
+                        },
                       });
 
                       // Update status to encerrada
@@ -567,9 +652,10 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                         id: os.id,
                         status: "encerrada" as any,
                         data_encerramento: new Date().toISOString(),
+                        responsavel_encerramento_id: user?.id,
                       });
 
-                      toast.success("Pagamento processado e relatório gerado!");
+                      toast.success("OS encerrada e relatório gerado!");
                       onOpenChange(false);
                     } catch (err: any) {
                       toast.error("Erro: " + err.message);
@@ -582,7 +668,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                 >
                   {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   <Download className="mr-2 h-4 w-4" />
-                  Confirmar Pagamento e Gerar Relatório
+                  Encerrar OS e Gerar Relatório PDF
                 </Button>
               </div>
             </>
