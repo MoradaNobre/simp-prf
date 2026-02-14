@@ -58,7 +58,10 @@ export default function Gestao() {
     );
   }
 
-  if (role !== "gestor_nacional") {
+  const isNacional = role === "gestor_nacional";
+  const isRegional = role === "gestor_regional";
+
+  if (!isNacional && !isRegional) {
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -70,27 +73,33 @@ export default function Gestao() {
             <Shield className="h-6 w-6" />
             Gestão do Sistema
           </h1>
-          <p className="text-muted-foreground">Painel administrativo do SIMP-PRF</p>
+          <p className="text-muted-foreground">
+            {isNacional ? "Painel administrativo do SIMP-PRF" : "Gestão da sua regional"}
+          </p>
         </div>
-        <div>
-          <input ref={fileRef} type="file" accept=".csv,.xlsx,.xls" className="hidden" onChange={handleImport} />
-          <Button variant="outline" onClick={() => fileRef.current?.click()} disabled={importing}>
-            {importing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
-            Importar Planilha
-          </Button>
-        </div>
+        {isNacional && (
+          <div>
+            <input ref={fileRef} type="file" accept=".csv,.xlsx,.xls" className="hidden" onChange={handleImport} />
+            <Button variant="outline" onClick={() => fileRef.current?.click()} disabled={importing}>
+              {importing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+              Importar Planilha
+            </Button>
+          </div>
+        )}
       </div>
 
-      <Tabs defaultValue="usuarios" className="w-full">
+      <Tabs defaultValue={isNacional ? "usuarios" : "delegacias"} className="w-full">
         <TabsList>
           <TabsTrigger value="usuarios" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             Usuários
           </TabsTrigger>
-          <TabsTrigger value="regionais" className="flex items-center gap-2">
-            <Map className="h-4 w-4" />
-            Regionais
-          </TabsTrigger>
+          {isNacional && (
+            <TabsTrigger value="regionais" className="flex items-center gap-2">
+              <Map className="h-4 w-4" />
+              Regionais
+            </TabsTrigger>
+          )}
           <TabsTrigger value="delegacias" className="flex items-center gap-2">
             <Building2 className="h-4 w-4" />
             Delegacias
@@ -104,18 +113,20 @@ export default function Gestao() {
         <TabsContent value="usuarios">
           <Card>
             <CardContent className="pt-6">
-              <GestaoUsuarios />
+              <GestaoUsuarios currentUserRole={role || "operador"} />
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="regionais">
-          <Card>
-            <CardContent className="pt-6">
-              <GestaoRegionais />
-            </CardContent>
-          </Card>
-        </TabsContent>
+        {isNacional && (
+          <TabsContent value="regionais">
+            <Card>
+              <CardContent className="pt-6">
+                <GestaoRegionais />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
 
         <TabsContent value="delegacias">
           <Card>
