@@ -113,8 +113,9 @@ export default function GestaoUops() {
 
   const filtered = (uops || []).filter((u) => {
     const matchSearch = u.nome.toLowerCase().includes(search.toLowerCase());
+    const matchRegional = filterRegional === "all" || (u as any).delegacia?.regional_id === filterRegional;
     const matchDel = filterDelegacia === "all" || u.delegacia_id === filterDelegacia;
-    return matchSearch && matchDel;
+    return matchSearch && matchRegional && matchDel;
   });
 
   const toggleSelect = (id: string) => {
