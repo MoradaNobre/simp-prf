@@ -306,6 +306,8 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
         documentos_pagamento: [...existing, ...urls],
       } as any);
       toast.success("Documentos de pagamento enviados!");
+      // Notify gestor/fiscal that payment docs are ready for closure
+      await sendTransitionNotification("pagamento", "encerrada");
       setDocumentosPagamento(null);
       onOpenChange(false);
     } catch (err: any) {
@@ -684,8 +686,8 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                               motivo_restituicao: null,
                             } as any);
                             toast.success("Documentos reenviados e OS encaminhada para pagamento!");
-                            // Notify gestor/fiscal about resubmission
-                            await sendTransitionNotification(os.status, "pagamento");
+                            // Notify gestor/fiscal about resubmission (they need to review)
+                            await sendTransitionNotification(os.status, "ateste");
                             setDocumentosPagamento(null);
                             onOpenChange(false);
                           } catch (err: any) {

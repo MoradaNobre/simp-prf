@@ -146,7 +146,10 @@ Deno.serve(async (req) => {
           break;
 
         case "encerrada":
-          // Preposto confirmation
+          // When preposto submits payment docs, notify gestor/fiscal to close
+          // When OS is actually closed, also notify preposto
+          await addRegionalGestorEmails(supabase, regionalId, recipientEmails);
+          await addFiscalEmails(supabase, recipientEmails);
           await addPrepostoEmails(supabase, os.contrato_id, recipientEmails);
           break;
       }
