@@ -52,6 +52,11 @@ export function OSCardMobile({ os, canManage, onSelect, onEdit, onDelete }: OSCa
           <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${statusColors[os.status] || "bg-muted text-muted-foreground"}`}>
             {statusLabels[os.status] || os.status}
           </span>
+          {os.motivo_restituicao && (
+            <span className="inline-flex items-center justify-center rounded-full h-4 w-4 text-[9px] font-bold bg-destructive text-destructive-foreground" title={`Restituída: ${os.motivo_restituicao}`}>
+              R
+            </span>
+          )}
           {os.status === "pagamento" && (os.documentos_pagamento as any[])?.length > 0 && (
             <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
               Aguardando Pagamento
