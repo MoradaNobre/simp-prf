@@ -14,7 +14,7 @@ import Contratos from "@/pages/Contratos";
 import Login from "@/pages/Login";
 import AlterarSenha from "@/pages/AlterarSenha";
 import Gestao from "@/pages/Gestao";
-import AuditLogs from "@/pages/AuditLogs";
+
 import Relatorios from "@/pages/Relatorios";
 import GestaoOrcamento from "@/pages/GestaoOrcamento";
 import NotFound from "@/pages/NotFound";
@@ -42,7 +42,7 @@ const App = () => (
                 <Route path="contratos" element={<Contratos />} />
                 <Route path="gestao" element={<Gestao />} />
                 <Route path="orcamento" element={<GestaoOrcamento />} />
-                <Route path="logs" element={<AuditLogs />} />
+                
                 <Route path="relatorios" element={<Relatorios />} />
               </Route>
               <Route path="/definir-responsavel/:osId" element={<DefinirResponsavel />} />
