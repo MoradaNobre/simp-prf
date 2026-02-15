@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Loader2, Pencil, Trash2, CalendarIcon, ArrowUp, ArrowDown, ArrowUpDown, Info } from "lucide-react";
+import { Plus, Search, Loader2, Pencil, Trash2, CalendarIcon, ArrowUp, ArrowDown, ArrowUpDown, Info, Filter } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
@@ -25,6 +25,8 @@ import { RegionalFilterSelect } from "@/components/RegionalFilterSelect";
 import { NovaOSDialog } from "@/components/os/NovaOSDialog";
 import { EditarOSDialog } from "@/components/os/EditarOSDialog";
 import { DetalhesOSDialog } from "@/components/os/DetalhesOSDialog";
+import { OSCardMobile } from "@/components/os/OSCardMobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Constants } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 
@@ -73,6 +75,7 @@ function getOSSortValue(os: OrdemServico, key: SortKey): string | number {
 
 export default function OrdensServico() {
   const { data: role } = useUserRole();
+  const isMobile = useIsMobile();
   const canManage = role && !["operador", "preposto", "terceirizado"].includes(role);
   const isExternalUser = role === "preposto" || role === "terceirizado";
   const canCreateOS = role && !isExternalUser;
@@ -88,6 +91,7 @@ export default function OrdensServico() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const deleteOS = useDeleteOS();
 
   const handleDelete = async () => {
@@ -152,74 +156,89 @@ export default function OrdensServico() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Ordens de Serviço</h1>
-          <p className="text-muted-foreground">
-            Gerencie todas as OS de manutenção
-            {ordens && <span className="ml-1">({ordens.length} registros)</span>}
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Ordens de Serviço</h1>
+          <p className="text-muted-foreground text-sm">
+            Gerencie todas as OS
+            {ordens && <span className="ml-1">({ordens.length})</span>}
           </p>
         </div>
-        {canCreateOS && (
-          <Button onClick={() => setNovaOSOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" /> Nova OS
-          </Button>
-        )}
+        <div className="flex items-center gap-2 shrink-0">
+          {isMobile && (
+            <Button variant="outline" size="icon" onClick={() => setFiltersOpen(!filtersOpen)}>
+              <Filter className="h-4 w-4" />
+            </Button>
+          )}
+          {canCreateOS && (
+            <Button onClick={() => setNovaOSOpen(true)} size={isMobile ? "icon" : "default"}>
+              <Plus className={isMobile ? "h-4 w-4" : "mr-2 h-4 w-4"} />
+              {!isMobile && "Nova OS"}
+            </Button>
+          )}
+        </div>
       </div>
 
-      <div className="flex items-center gap-2 flex-wrap">
-        <div className="relative flex-1 max-w-sm">
+      <div className={cn(
+        "flex flex-col sm:flex-row sm:items-center gap-2 flex-wrap",
+        isMobile && !filtersOpen && "hidden"
+      )}>
+        <div className="relative flex-1 min-w-0 sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Buscar OS..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
-        <Select value={statusFilter || "all"} onValueChange={(v) => setStatusFilter(v === "all" ? "" : v)}>
-          <SelectTrigger className="w-40"><SelectValue placeholder="Status" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
-            {Constants.public.Enums.os_status.map((s) => (
-              <SelectItem key={s} value={s}>{statusLabels[s]}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={prioridadeFilter || "all"} onValueChange={(v) => setPrioridadeFilter(v === "all" ? "" : v)}>
-          <SelectTrigger className="w-40"><SelectValue placeholder="Prioridade" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todas</SelectItem>
-            {Constants.public.Enums.os_prioridade.map((p) => (
-              <SelectItem key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {canFilterRegional && (
-          <RegionalFilterSelect value={selectedRegionalId} onChange={setSelectedRegionalId} />
-        )}
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline" className={cn("w-[140px] justify-start text-left font-normal text-xs", !dataInicio && "text-muted-foreground")}>
-              <CalendarIcon className="mr-1 h-3 w-3" />
-              {dataInicio ? format(dataInicio, "dd/MM/yyyy") : "Data início"}
+        <div className="flex items-center gap-2 flex-wrap">
+          <Select value={statusFilter || "all"} onValueChange={(v) => setStatusFilter(v === "all" ? "" : v)}>
+            <SelectTrigger className="w-full sm:w-40"><SelectValue placeholder="Status" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              {Constants.public.Enums.os_status.map((s) => (
+                <SelectItem key={s} value={s}>{statusLabels[s]}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={prioridadeFilter || "all"} onValueChange={(v) => setPrioridadeFilter(v === "all" ? "" : v)}>
+            <SelectTrigger className="w-full sm:w-40"><SelectValue placeholder="Prioridade" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas</SelectItem>
+              {Constants.public.Enums.os_prioridade.map((p) => (
+                <SelectItem key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {canFilterRegional && (
+            <RegionalFilterSelect value={selectedRegionalId} onChange={setSelectedRegionalId} />
+          )}
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className={cn("w-full sm:w-[140px] justify-start text-left font-normal text-xs", !dataInicio && "text-muted-foreground")}>
+                <CalendarIcon className="mr-1 h-3 w-3" />
+                {dataInicio ? format(dataInicio, "dd/MM/yyyy") : "Data início"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar mode="single" selected={dataInicio} onSelect={setDataInicio} initialFocus className={cn("p-3 pointer-events-auto")} />
+            </PopoverContent>
+          </Popover>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className={cn("w-full sm:w-[140px] justify-start text-left font-normal text-xs", !dataFim && "text-muted-foreground")}>
+                <CalendarIcon className="mr-1 h-3 w-3" />
+                {dataFim ? format(dataFim, "dd/MM/yyyy") : "Data fim"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar mode="single" selected={dataFim} onSelect={setDataFim} initialFocus className={cn("p-3 pointer-events-auto")} />
+            </PopoverContent>
+          </Popover>
+          {(dataInicio || dataFim) && (
+            <Button variant="ghost" size="sm" onClick={() => { setDataInicio(undefined); setDataFim(undefined); }}>
+              Limpar datas
             </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar mode="single" selected={dataInicio} onSelect={setDataInicio} initialFocus className={cn("p-3 pointer-events-auto")} />
-          </PopoverContent>
-        </Popover>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline" className={cn("w-[140px] justify-start text-left font-normal text-xs", !dataFim && "text-muted-foreground")}>
-              <CalendarIcon className="mr-1 h-3 w-3" />
-              {dataFim ? format(dataFim, "dd/MM/yyyy") : "Data fim"}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar mode="single" selected={dataFim} onSelect={setDataFim} initialFocus className={cn("p-3 pointer-events-auto")} />
-          </PopoverContent>
-        </Popover>
-        {(dataInicio || dataFim) && (
-          <Button variant="ghost" size="sm" onClick={() => { setDataInicio(undefined); setDataFim(undefined); }}>
-            Limpar datas
-          </Button>
-        )}
+          )}
+        </div>
       </div>
 
       {(role === "gestor_regional" || role === "gestor_nacional" || role === "fiscal_contrato") && (
@@ -284,17 +303,40 @@ export default function OrdensServico() {
         </Card>
       )}
 
-      <Card>
-        <CardContent className="p-0">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : !ordens?.length ? (
-            <div className="text-center py-8 text-muted-foreground text-sm">
-              Nenhuma OS encontrada. Crie uma nova OS para começar.
-            </div>
-          ) : (
+      {isLoading ? (
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      ) : !ordens?.length ? (
+        <Card>
+          <CardContent className="text-center py-8 text-muted-foreground text-sm">
+            Nenhuma OS encontrada. Crie uma nova OS para começar.
+          </CardContent>
+        </Card>
+      ) : isMobile ? (
+        <>
+          <div className="space-y-3">
+            {ordens.map((os) => (
+              <OSCardMobile
+                key={os.id}
+                os={os}
+                canManage={!!canManage}
+                onSelect={setSelectedOS}
+                onEdit={setEditOS}
+                onDelete={setDeleteId}
+              />
+            ))}
+          </div>
+          <Card>
+            <CardContent className="py-3 px-4 text-sm font-semibold flex justify-between">
+              <span>Total:</span>
+              <span>R$ {ordens.reduce((sum, os) => sum + (Number((os as any).valor_orcamento) || 0), 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+            </CardContent>
+          </Card>
+        </>
+      ) : (
+        <Card>
+          <CardContent className="p-0">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -384,9 +426,9 @@ export default function OrdensServico() {
                 </TableRow>
               </TableBody>
             </Table>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       <NovaOSDialog open={novaOSOpen} onOpenChange={setNovaOSOpen} />
       <DetalhesOSDialog os={selectedOS} open={!!selectedOS} onOpenChange={(o) => { if (!o) setSelectedOS(null); }} />

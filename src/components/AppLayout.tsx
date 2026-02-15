@@ -62,7 +62,7 @@ export function AppLayout() {
               </Button>
             </div>
           </header>
-          <div className="flex-1 p-6 overflow-auto">
+          <div className="flex-1 p-3 sm:p-6 overflow-auto">
             <Outlet />
           </div>
         </main>
