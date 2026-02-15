@@ -411,7 +411,7 @@ function buildEmail(
         <div style="text-align: center; margin: 25px 0 15px;">
           <a href="${appUrl}" style="display: inline-block; background-color: ${actionColor}; color: white; text-decoration: none; padding: 12px 30px; border-radius: 6px; font-weight: bold; font-size: 14px;">Acessar o Sistema</a>
         </div>
-        <p style="color: #999; font-size: 12px; text-align: center; margin-top: 10px;">Ou copie e cole este link no navegador: <a href="${appUrl}" style="color: #999;">${appUrl}</a></p>
+        
       </div>
       <div style="background-color: #f5f5f5; padding: 15px; text-align: center; font-size: 12px; color: #888;">
         SIMP-PRF — Sistema de Manutenção Predial da PRF
