@@ -124,6 +124,16 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
     return data.publicUrl;
   };
 
+  const sendTransitionNotification = async (fromStatus: string, toStatus: string, motivoRestituicao?: string) => {
+    try {
+      await supabase.functions.invoke("notify-os-transition", {
+        body: { os_id: os.id, from_status: fromStatus, to_status: toStatus, motivo_restituicao: motivoRestituicao },
+      });
+    } catch {
+      console.warn("Não foi possível enviar notificação por email");
+    }
+  };
+
   const handleAdvanceStatus = async () => {
     if (!nextStatus) return;
 
@@ -162,17 +172,8 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
       await updateOS.mutateAsync(updates);
       toast.success(`Status alterado para ${statusLabels[nextStatus]}`);
 
-      // Notify preposto when advancing to orcamento (contract linked)
-      if (nextStatus === "orcamento" && selectedContratoId) {
-        try {
-          await supabase.functions.invoke("notify-preposto", {
-            body: { os_id: os.id, contrato_id: selectedContratoId, app_url: window.location.origin },
-          });
-          toast.success("Email enviado ao preposto para definir responsável");
-        } catch {
-          toast.warning("OS avançada, mas não foi possível notificar o preposto");
-        }
-      }
+      // Send notification for this transition
+      await sendTransitionNotification(os.status, nextStatus);
 
       // Generate execution report and send email when advancing to execucao
       if (nextStatus === "execucao") {
@@ -258,19 +259,8 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
             console.error("Error saving execution report:", relErr);
           }
 
-          // Send email via edge function
-          try {
-            await supabase.functions.invoke("send-os-execucao", {
-              body: {
-                os_id: os.id,
-                relatorio_execucao_id: relatorio?.id,
-                report_data: reportData,
-              },
-            });
-            toast.success("Relatório de execução gerado e email enviado!");
-          } catch {
-            toast.warning("Relatório gerado, mas não foi possível enviar o email");
-          }
+          // Email notification already sent via sendTransitionNotification above
+          toast.success("Relatório de execução gerado!");
         } catch (err) {
           console.error("Error generating execution report:", err);
           toast.warning("OS autorizada, mas houve erro ao gerar o relatório de execução");
@@ -694,6 +684,8 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                               motivo_restituicao: null,
                             } as any);
                             toast.success("Documentos reenviados e OS encaminhada para pagamento!");
+                            // Notify gestor/fiscal about resubmission
+                            await sendTransitionNotification(os.status, "pagamento");
                             setDocumentosPagamento(null);
                             onOpenChange(false);
                           } catch (err: any) {
@@ -920,6 +912,9 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                         responsavel_encerramento_id: user?.id,
                       });
 
+                      // Notify preposto about closure
+                      await sendTransitionNotification("pagamento", "encerrada");
+
                       toast.success("OS encerrada e relatório gerado!");
                       onOpenChange(false);
                     } catch (err: any) {
@@ -995,6 +990,8 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                               record_id: os.id,
                               description: `OS ${os.codigo} restituída de ${statusLabels[os.status]} para ${statusLabels[prevStatus]}. Motivo: ${motivoRestituicao.trim()}`,
                             });
+                            // Notify responsible party about restitution
+                            await sendTransitionNotification(os.status, prevStatus, motivoRestituicao.trim());
                             toast.success(`OS restituída para ${statusLabels[prevStatus]}`);
                             setShowRestituir(false);
                             setMotivoRestituicao("");
