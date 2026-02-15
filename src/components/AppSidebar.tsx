@@ -5,7 +5,7 @@ import {
   FileText,
   LogOut,
   Shield,
-  ScrollText,
+  
   User,
   FileBarChart,
   DollarSign,
@@ -139,25 +139,6 @@ export function AppSidebar() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 </>
-              )}
-              {isAdmin && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                      isActive={location.pathname === "/app/logs"}
-                      tooltip="Logs de Auditoria"
-                    >
-                      <NavLink
-                        to="/app/logs"
-                        end
-                      className="hover:bg-sidebar-accent/50"
-                      activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                    >
-                      <ScrollText className="h-4 w-4" />
-                      <span>Logs de Auditoria</span>
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
               )}
             </SidebarMenu>
           </SidebarGroupContent>
