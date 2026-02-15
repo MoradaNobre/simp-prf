@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
     // Fetch OS with relationships
     const { data: os, error: osErr } = await supabase
       .from("ordens_servico")
-      .select("id, codigo, titulo, contrato_id, regional_id, uop_id, valor_orcamento, responsavel_execucao_id")
+      .select("id, codigo, titulo, descricao, contrato_id, regional_id, uop_id, valor_orcamento, responsavel_execucao_id")
       .eq("id", os_id)
       .single();
 
@@ -273,7 +273,7 @@ async function addFiscalEmails(supabase: any, emails: string[]) {
 }
 
 function buildEmail(
-  os: { codigo: string; titulo: string; valor_orcamento: number | null },
+  os: { codigo: string; titulo: string; descricao: string | null; valor_orcamento: number | null },
   fromStatus: string,
   toStatus: string,
   motivoRestituicao?: string
@@ -282,6 +282,8 @@ function buildEmail(
   const valorFormatado = os.valor_orcamento
     ? `R$ ${Number(os.valor_orcamento).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
     : "—";
+
+  const appUrl = "https://simp-prf.lovable.app/app/ordens";
 
   let subject: string;
   let actionTitle: string;
@@ -341,6 +343,13 @@ function buildEmail(
       </div>`
     : "";
 
+  const descricaoHtml = os.descricao
+    ? `<tr>
+        <td style="padding: 6px 0; color: #666; vertical-align: top;">Descrição:</td>
+        <td style="padding: 6px 0;">${os.descricao}</td>
+      </tr>`
+    : "";
+
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <div style="background-color: ${actionColor}; padding: 20px; text-align: center;">
@@ -361,13 +370,17 @@ function buildEmail(
               <td style="padding: 6px 0; color: #666;">Título:</td>
               <td style="padding: 6px 0;">${os.titulo}</td>
             </tr>
+            ${descricaoHtml}
             <tr>
               <td style="padding: 6px 0; color: #666;">Status atual:</td>
               <td style="padding: 6px 0; font-weight: bold;">${statusLabels[toStatus] || toStatus}</td>
             </tr>
           </table>
         </div>
-        <p style="color: #666; font-size: 13px;">Acesse o sistema SIMP-PRF para realizar as ações necessárias.</p>
+        <div style="text-align: center; margin: 25px 0 15px;">
+          <a href="${appUrl}" style="display: inline-block; background-color: ${actionColor}; color: white; text-decoration: none; padding: 12px 30px; border-radius: 6px; font-weight: bold; font-size: 14px;">Acessar o Sistema</a>
+        </div>
+        <p style="color: #999; font-size: 12px; text-align: center; margin-top: 10px;">Ou copie e cole este link no navegador: <a href="${appUrl}" style="color: #999;">${appUrl}</a></p>
       </div>
       <div style="background-color: #f5f5f5; padding: 15px; text-align: center; font-size: 12px; color: #888;">
         SIMP-PRF — Sistema de Manutenção Predial da PRF
