@@ -99,7 +99,7 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
         outro: "Outros",
       };
 
-      await createOS.mutateAsync({
+      const result = await createOS.mutateAsync({
         titulo: categoriaLabels[categoria] || categoria,
         descricao,
         tipo: tipo as any,
@@ -112,6 +112,17 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
         codigo: "",
         regional_id: regionalId || null,
       } as any);
+
+      // Notify gestor regional about new OS
+      if (result?.id) {
+        try {
+          await supabase.functions.invoke("notify-os-transition", {
+            body: { os_id: result.id, from_status: "", to_status: "aberta" },
+          });
+        } catch {
+          console.warn("Não foi possível enviar notificação");
+        }
+      }
 
       toast.success("OS criada com sucesso!");
       reset();

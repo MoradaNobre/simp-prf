@@ -125,6 +125,11 @@ Deno.serve(async (req) => {
     } else {
       // Normal transition
       switch (to_status) {
+        case "aberta":
+          // Gestor regional needs to know about new OS
+          await addRegionalGestorEmails(supabase, regionalId, recipientEmails);
+          break;
+
         case "orcamento":
           // Preposto needs to submit budget
           await addPrepostoEmails(supabase, os.contrato_id, recipientEmails);
@@ -317,6 +322,12 @@ function buildEmail(
     actionColor = "#dc2626";
   } else {
     switch (toStatus) {
+      case "aberta":
+        subject = `[SIMP-PRF] Nova OS Aberta - ${os.codigo}`;
+        actionTitle = "Nova Ordem de Serviço";
+        actionDescription = `Uma nova Ordem de Serviço <strong>${os.codigo} — ${os.titulo}</strong> foi aberta na sua regional e aguarda encaminhamento.`;
+        actionColor = "#2563eb";
+        break;
       case "orcamento":
         subject = `[SIMP-PRF] Nova OS para Orçamento - ${os.codigo}`;
         actionTitle = "Nova OS Aguardando Orçamento";
