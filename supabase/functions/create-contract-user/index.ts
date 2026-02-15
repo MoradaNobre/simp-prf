@@ -207,7 +207,7 @@ Deno.serve(async (req) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            from: "SIMP-PRF <onboarding@resend.dev>",
+            from: "SIMP-PRF <noreply@simp.estudioai.site>",
             to: [trimmedEmail],
             subject: "[SIMP-PRF] Sua conta foi criada — Acesse o sistema",
             html: `
