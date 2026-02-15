@@ -51,6 +51,15 @@ export function NovoContratoDialog({ open, onOpenChange }: Props) {
       return;
     }
     try {
+      // Fetch preposto email if a preposto is selected
+      let prepostoEmail: string | null = null;
+      if (form.preposto_user_id) {
+        const { data: emailMap } = await supabase.functions.invoke("list-user-emails");
+        if (emailMap && emailMap[form.preposto_user_id]) {
+          prepostoEmail = emailMap[form.preposto_user_id];
+        }
+      }
+
       await createContrato.mutateAsync({
         numero: form.numero.trim(),
         empresa: form.empresa.trim(),
@@ -62,6 +71,7 @@ export function NovoContratoDialog({ open, onOpenChange }: Props) {
         data_fim: form.data_fim,
         preposto_user_id: form.preposto_user_id || null,
         preposto_nome: selectedPreposto?.full_name || null,
+        preposto_email: prepostoEmail,
         preposto_telefone: selectedPreposto?.phone || null,
       });
       toast({ title: "Contrato cadastrado com sucesso" });

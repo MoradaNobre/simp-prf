@@ -71,6 +71,15 @@ export function EditarContratoDialog({ contrato, open, onOpenChange }: Props) {
       return;
     }
     try {
+      // Fetch preposto email if a preposto is selected
+      let prepostoEmail: string | null = null;
+      if (form.preposto_user_id && form.preposto_user_id !== "none") {
+        const { data: emailMap } = await supabase.functions.invoke("list-user-emails");
+        if (emailMap && emailMap[form.preposto_user_id]) {
+          prepostoEmail = emailMap[form.preposto_user_id];
+        }
+      }
+
       await updateContrato.mutateAsync({
         id: contrato.id,
         numero: form.numero.trim(),
@@ -84,6 +93,7 @@ export function EditarContratoDialog({ contrato, open, onOpenChange }: Props) {
         status: form.status,
         preposto_user_id: form.preposto_user_id && form.preposto_user_id !== "none" ? form.preposto_user_id : null,
         preposto_nome: selectedPreposto?.full_name || null,
+        preposto_email: prepostoEmail,
         preposto_telefone: selectedPreposto?.phone || null,
       });
       toast({ title: "Contrato atualizado com sucesso" });
