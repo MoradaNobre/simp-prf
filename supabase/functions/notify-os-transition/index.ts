@@ -91,17 +91,36 @@ Deno.serve(async (req) => {
     const isRestitution = motivo_restituicao && from_status !== to_status;
 
     if (isRestitution) {
-      // Restitution: notify whoever needs to redo the step
-      // to_status is the step they're being sent back to
-      if (["orcamento", "execucao", "pagamento"].includes(to_status)) {
-        // External users (preposto/terceirizado) need to act
-        await addPrepostoEmails(supabase, os.contrato_id, recipientEmails);
-        await addContratoContatoEmails(supabase, os.contrato_id, recipientEmails);
-      }
-      if (["autorizacao", "ateste"].includes(to_status)) {
-        // Internal users (gestor regional / fiscal) need to act
-        await addRegionalGestorEmails(supabase, regionalId, recipientEmails);
-        await addFiscalEmails(supabase, recipientEmails);
+      // Restitution: notify ONLY whoever needs to redo the step
+      switch (to_status) {
+        case "orcamento":
+          // Only preposto needs to redo the budget
+          await addPrepostoEmails(supabase, os.contrato_id, recipientEmails);
+          break;
+        case "execucao":
+          // Preposto + specific execution responsible (if set)
+          await addPrepostoEmails(supabase, os.contrato_id, recipientEmails);
+          if (os.responsavel_execucao_id) {
+            const { data: contato } = await supabase
+              .from("contrato_contatos")
+              .select("email")
+              .eq("id", os.responsavel_execucao_id)
+              .maybeSingle();
+            if (contato?.email && !recipientEmails.includes(contato.email)) {
+              recipientEmails.push(contato.email);
+            }
+          }
+          break;
+        case "pagamento":
+          // Only preposto needs to resubmit payment docs
+          await addPrepostoEmails(supabase, os.contrato_id, recipientEmails);
+          break;
+        case "autorizacao":
+        case "ateste":
+          // Internal users (gestor regional / fiscal) need to act
+          await addRegionalGestorEmails(supabase, regionalId, recipientEmails);
+          await addFiscalEmails(supabase, recipientEmails);
+          break;
       }
     } else {
       // Normal transition
