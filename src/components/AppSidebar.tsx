@@ -29,6 +29,8 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 
+const BUILD_DATE = new Date().toLocaleDateString("pt-BR");
+
 const roleLabels: Record<string, string> = {
   gestor_nacional: "Gestor Nacional",
   gestor_regional: "Gestor Regional",
@@ -70,7 +72,7 @@ export function AppSidebar() {
           <div className="flex flex-col">
             <span className="text-sm font-bold text-sidebar-foreground tracking-wide">SIMP-PRF</span>
             <span className="text-xs text-sidebar-foreground/60">Manutenção Predial</span>
-            <span className="text-[10px] text-sidebar-foreground/40">Build {new Date(__BUILD_TIMESTAMP__).toLocaleDateString("pt-BR")}</span>
+            <span className="text-[10px] text-sidebar-foreground/40">Build {BUILD_DATE}</span>
           </div>
         </div>
       </SidebarHeader>
