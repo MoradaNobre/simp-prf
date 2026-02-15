@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { useRegionalFilter } from "@/hooks/useRegionalFilter";
 import { RegionalFilterSelect } from "@/components/RegionalFilterSelect";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export function RelatoriosPagamento() {
   const [search, setSearch] = useState("");
@@ -29,6 +30,7 @@ export function RelatoriosPagamento() {
   const { data: role } = useUserRole();
   const isGestorNacional = role === "gestor_nacional";
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -146,17 +148,49 @@ export function RelatoriosPagamento() {
         )}
       </div>
 
-      <Card className="overflow-hidden">
-        <div className="overflow-x-auto">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : !relatorios?.length ? (
-            <div className="text-center py-8 text-muted-foreground text-sm">
-              Nenhum relatório encontrado.
-            </div>
-          ) : (
+      {isLoading ? (
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      ) : !relatorios?.length ? (
+        <div className="text-center py-8 text-muted-foreground text-sm">
+          Nenhum relatório encontrado.
+        </div>
+      ) : isMobile ? (
+        <div className="space-y-3">
+          {relatorios.map((r: any) => (
+            <Card key={r.id} className="p-4 space-y-2">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="font-mono text-sm font-medium">{r.codigo_os}</p>
+                  <p className="text-sm truncate">{r.titulo_os}</p>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <Button size="sm" variant="outline" onClick={() => handleDownload(r)} disabled={downloading === r.id}>
+                    {downloading === r.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                  </Button>
+                  {isGestorNacional && (
+                    <>
+                      <Button size="sm" variant="outline" onClick={() => openEdit(r)}><Pencil className="h-4 w-4" /></Button>
+                      <Button size="sm" variant="outline" className="text-destructive hover:text-destructive" onClick={() => setDeleteId(r.id)}><Trash2 className="h-4 w-4" /></Button>
+                    </>
+                  )}
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                <span className="font-medium text-foreground">R$ {Number(r.valor_atestado).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                <span>·</span>
+                <span>{new Date(r.gerado_em).toLocaleDateString("pt-BR")}</span>
+              </div>
+              {r.contrato_numero && (
+                <p className="text-xs text-muted-foreground truncate">{r.contrato_numero} — {r.contrato_empresa}</p>
+              )}
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <Card className="overflow-hidden">
+          <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -184,33 +218,13 @@ export function RelatoriosPagamento() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleDownload(r)}
-                          disabled={downloading === r.id}
-                          title="Baixar PDF"
-                        >
-                          {downloading === r.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <Download className="h-4 w-4" />
-                          )}
+                        <Button size="sm" variant="outline" onClick={() => handleDownload(r)} disabled={downloading === r.id} title="Baixar PDF">
+                          {downloading === r.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
                         </Button>
                         {isGestorNacional && (
                           <>
-                            <Button size="sm" variant="outline" onClick={() => openEdit(r)} title="Editar">
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="text-destructive hover:text-destructive"
-                              onClick={() => setDeleteId(r.id)}
-                              title="Excluir"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => openEdit(r)} title="Editar"><Pencil className="h-4 w-4" /></Button>
+                            <Button size="sm" variant="outline" className="text-destructive hover:text-destructive" onClick={() => setDeleteId(r.id)} title="Excluir"><Trash2 className="h-4 w-4" /></Button>
                           </>
                         )}
                       </div>
@@ -219,9 +233,9 @@ export function RelatoriosPagamento() {
                 ))}
               </TableBody>
             </Table>
-          )}
-        </div>
-      </Card>
+          </div>
+        </Card>
+      )}
 
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>

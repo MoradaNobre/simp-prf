@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -13,11 +13,13 @@ import { downloadOSExecucaoReport } from "@/utils/generateOSExecucaoReport";
 import { toast } from "sonner";
 import { useRegionalFilter } from "@/hooks/useRegionalFilter";
 import { RegionalFilterSelect } from "@/components/RegionalFilterSelect";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export function RelatoriosExecucao() {
   const [search, setSearch] = useState("");
   const [downloading, setDownloading] = useState<string | null>(null);
   const { canFilterRegional, effectiveRegionalId, selectedRegionalId, setSelectedRegionalId } = useRegionalFilter();
+  const isMobile = useIsMobile();
 
   const { data: relatorios, isLoading } = useQuery({
     queryKey: ["relatorios_execucao", effectiveRegionalId, search],
@@ -73,7 +75,7 @@ export function RelatoriosExecucao() {
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center gap-2 flex-wrap">
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative flex-1 min-w-0 sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Buscar por código, título ou empresa..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
@@ -82,17 +84,51 @@ export function RelatoriosExecucao() {
         )}
       </div>
 
-      <Card className="overflow-hidden">
-        <div className="overflow-x-auto">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : !relatorios?.length ? (
-            <div className="text-center py-8 text-muted-foreground text-sm">
-              Nenhum relatório de execução encontrado.
-            </div>
-          ) : (
+      {isLoading ? (
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      ) : !relatorios?.length ? (
+        <div className="text-center py-8 text-muted-foreground text-sm">
+          Nenhum relatório de execução encontrado.
+        </div>
+      ) : isMobile ? (
+        <div className="space-y-3">
+          {relatorios.map((r: any) => (
+            <Card key={r.id} className="p-4 space-y-2">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="font-mono text-sm font-medium">{r.codigo_os}</p>
+                  <p className="text-sm truncate">{r.titulo_os}</p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleDownload(r)}
+                  disabled={downloading === r.id}
+                >
+                  {downloading === r.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                </Button>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                <span>R$ {Number(r.valor_orcamento).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                <span>·</span>
+                <span>{new Date(r.gerado_em).toLocaleDateString("pt-BR")}</span>
+              </div>
+              {r.contrato_numero && (
+                <p className="text-xs text-muted-foreground truncate">{r.contrato_numero} — {r.contrato_empresa}</p>
+              )}
+              {r.email_enviado ? (
+                <Badge variant="outline" className="text-xs gap-1"><Mail className="h-3 w-3" /> Enviado</Badge>
+              ) : (
+                <Badge variant="secondary" className="text-xs gap-1"><MailX className="h-3 w-3" /> Não enviado</Badge>
+              )}
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <Card className="overflow-hidden">
+          <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -121,13 +157,9 @@ export function RelatoriosExecucao() {
                     </TableCell>
                     <TableCell>
                       {r.email_enviado ? (
-                        <Badge variant="outline" className="text-xs gap-1">
-                          <Mail className="h-3 w-3" /> Enviado
-                        </Badge>
+                        <Badge variant="outline" className="text-xs gap-1"><Mail className="h-3 w-3" /> Enviado</Badge>
                       ) : (
-                        <Badge variant="secondary" className="text-xs gap-1">
-                          <MailX className="h-3 w-3" /> Não enviado
-                        </Badge>
+                        <Badge variant="secondary" className="text-xs gap-1"><MailX className="h-3 w-3" /> Não enviado</Badge>
                       )}
                     </TableCell>
                     <TableCell>
@@ -138,20 +170,16 @@ export function RelatoriosExecucao() {
                         disabled={downloading === r.id}
                         title="Baixar PDF"
                       >
-                        {downloading === r.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Download className="h-4 w-4" />
-                        )}
+                        {downloading === r.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
                       </Button>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-          )}
-        </div>
-      </Card>
+          </div>
+        </Card>
+      )}
     </div>
   );
 }
