@@ -70,6 +70,7 @@ export function AppSidebar() {
           <div className="flex flex-col">
             <span className="text-sm font-bold text-sidebar-foreground tracking-wide">SIMP-PRF</span>
             <span className="text-xs text-sidebar-foreground/60">Manutenção Predial</span>
+            <span className="text-[10px] text-sidebar-foreground/40">v1.0</span>
           </div>
         </div>
       </SidebarHeader>
