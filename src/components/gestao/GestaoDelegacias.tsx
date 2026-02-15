@@ -154,17 +154,18 @@ export default function GestaoDelegacias() {
       ) : isMobile ? (
         <div className="space-y-3">
           {filtered.map((d) => (
-            <div key={d.id} className="border rounded-lg p-4 flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 min-w-0">
-                <Checkbox checked={selected.has(d.id)} onCheckedChange={() => toggleSelect(d.id)} />
-                <div className="min-w-0">
-                  <p className="font-medium text-sm truncate">{d.nome}</p>
-                  <p className="text-xs text-muted-foreground">{d.municipio || "—"} · {d.regional?.sigla || "—"}</p>
+            <div key={d.id} className="border rounded-lg p-4 space-y-2">
+              <div className="flex items-start gap-2">
+                <Checkbox checked={selected.has(d.id)} onCheckedChange={() => toggleSelect(d.id)} className="mt-1" />
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium text-sm">{d.nome}</p>
+                  <p className="text-xs text-muted-foreground">Município: {d.municipio || "—"}</p>
+                  <p className="text-xs text-muted-foreground">Regional: {d.regional?.sigla || "—"}</p>
                 </div>
               </div>
-              <div className="flex gap-1 shrink-0">
-                <Button variant="ghost" size="icon" onClick={() => openEdit(d)}><Pencil className="h-4 w-4" /></Button>
-                <Button variant="ghost" size="icon" onClick={() => setDeleteConfirm(d)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+              <div className="flex gap-2 pt-1">
+                <Button variant="outline" size="sm" className="flex-1" onClick={() => openEdit(d)}><Pencil className="h-3.5 w-3.5 mr-1" /> Editar</Button>
+                <Button variant="outline" size="sm" className="flex-1 text-destructive" onClick={() => setDeleteConfirm(d)}><Trash2 className="h-3.5 w-3.5 mr-1" /> Excluir</Button>
               </div>
             </div>
           ))}

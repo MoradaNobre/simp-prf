@@ -124,17 +124,18 @@ export default function GestaoRegionais() {
       ) : isMobile ? (
         <div className="space-y-3">
           {filtered.map((r) => (
-            <div key={r.id} className="border rounded-lg p-4 flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 min-w-0">
-                <Checkbox checked={selected.has(r.id)} onCheckedChange={() => toggleSelect(r.id)} />
-                <div className="min-w-0">
+            <div key={r.id} className="border rounded-lg p-4 space-y-2">
+              <div className="flex items-start gap-2">
+                <Checkbox checked={selected.has(r.id)} onCheckedChange={() => toggleSelect(r.id)} className="mt-1" />
+                <div className="min-w-0 flex-1">
                   <p className="font-medium text-sm">{r.sigla}</p>
-                  <p className="text-xs text-muted-foreground truncate">{r.nome} · {r.uf}</p>
+                  <p className="text-xs text-muted-foreground">{r.nome}</p>
+                  <p className="text-xs text-muted-foreground">UF: {r.uf}</p>
                 </div>
               </div>
-              <div className="flex gap-1 shrink-0">
-                <Button variant="ghost" size="icon" onClick={() => openEdit(r)}><Pencil className="h-4 w-4" /></Button>
-                <Button variant="ghost" size="icon" onClick={() => setDeleteConfirm(r)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+              <div className="flex gap-2 pt-1">
+                <Button variant="outline" size="sm" className="flex-1" onClick={() => openEdit(r)}><Pencil className="h-3.5 w-3.5 mr-1" /> Editar</Button>
+                <Button variant="outline" size="sm" className="flex-1 text-destructive" onClick={() => setDeleteConfirm(r)}><Trash2 className="h-3.5 w-3.5 mr-1" /> Excluir</Button>
               </div>
             </div>
           ))}
