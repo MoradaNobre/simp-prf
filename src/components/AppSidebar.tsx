@@ -39,11 +39,11 @@ const roleLabels: Record<string, string> = {
 };
 
 const allMenuItems = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, roles: ["gestor_nacional", "gestor_regional", "fiscal_contrato", "operador"] },
-  { title: "Ordens de Serviço", url: "/ordens", icon: ClipboardList, roles: null }, // all roles
-  // { title: "Manutenção Preventiva", url: "/preventiva", icon: CalendarClock }, // TODO: implementar futuramente
-  { title: "Contratos", url: "/contratos", icon: FileText, roles: ["gestor_nacional", "gestor_regional", "fiscal_contrato", "operador", "preposto"] },
-  { title: "Relatórios", url: "/relatorios", icon: FileBarChart, roles: ["gestor_nacional", "gestor_regional", "fiscal_contrato", "preposto", "terceirizado"] },
+  { title: "Dashboard", url: "/app/dashboard", icon: LayoutDashboard, roles: ["gestor_nacional", "gestor_regional", "fiscal_contrato", "operador"] },
+  { title: "Ordens de Serviço", url: "/app/ordens", icon: ClipboardList, roles: null }, // all roles
+  // { title: "Manutenção Preventiva", url: "/app/preventiva", icon: CalendarClock }, // TODO: implementar futuramente
+  { title: "Contratos", url: "/app/contratos", icon: FileText, roles: ["gestor_nacional", "gestor_regional", "fiscal_contrato", "operador", "preposto"] },
+  { title: "Relatórios", url: "/app/relatorios", icon: FileBarChart, roles: ["gestor_nacional", "gestor_regional", "fiscal_contrato", "preposto", "terceirizado"] },
 ];
 
 export function AppSidebar() {
@@ -107,11 +107,11 @@ export function AppSidebar() {
                   <SidebarMenuItem>
                     <SidebarMenuButton
                       asChild
-                      isActive={location.pathname === "/orcamento"}
+                      isActive={location.pathname === "/app/orcamento"}
                       tooltip="Gestão do Orçamento"
                     >
                       <NavLink
-                        to="/orcamento"
+                        to="/app/orcamento"
                         end
                         className="hover:bg-sidebar-accent/50"
                         activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
@@ -124,11 +124,11 @@ export function AppSidebar() {
                   <SidebarMenuItem>
                     <SidebarMenuButton
                       asChild
-                      isActive={location.pathname === "/gestao"}
+                      isActive={location.pathname === "/app/gestao"}
                       tooltip="Gestão do Sistema"
                     >
                       <NavLink
-                        to="/gestao"
+                        to="/app/gestao"
                         end
                         className="hover:bg-sidebar-accent/50"
                         activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
@@ -144,12 +144,12 @@ export function AppSidebar() {
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     asChild
-                    isActive={location.pathname === "/logs"}
-                    tooltip="Logs de Auditoria"
-                  >
-                    <NavLink
-                      to="/logs"
-                      end
+                      isActive={location.pathname === "/app/logs"}
+                      tooltip="Logs de Auditoria"
+                    >
+                      <NavLink
+                        to="/app/logs"
+                        end
                       className="hover:bg-sidebar-accent/50"
                       activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
                     >

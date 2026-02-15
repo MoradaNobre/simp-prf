@@ -7,7 +7,7 @@ import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/AppLayout";
 import Dashboard from "@/pages/Dashboard";
-
+import LandingPage from "@/pages/LandingPage";
 import OrdensServico from "@/pages/OrdensServico";
 import Preventiva from "@/pages/Preventiva";
 import Contratos from "@/pages/Contratos";
@@ -31,12 +31,12 @@ const App = () => (
         <BrowserRouter>
           <AuthProvider>
             <Routes>
+              <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<Login />} />
               <Route path="/alterar-senha" element={<AlterarSenha />} />
-              <Route path="/" element={<AppLayout />}>
-                <Route index element={<Navigate to="/ordens" replace />} />
+              <Route path="/app" element={<AppLayout />}>
+                <Route index element={<Navigate to="/app/ordens" replace />} />
                 <Route path="dashboard" element={<Dashboard />} />
-                
                 <Route path="ordens" element={<OrdensServico />} />
                 <Route path="preventiva" element={<Preventiva />} />
                 <Route path="contratos" element={<Contratos />} />
