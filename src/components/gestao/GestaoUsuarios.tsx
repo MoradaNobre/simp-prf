@@ -267,6 +267,7 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
       ) : !filtered.length ? (
         <div className="text-center py-8 text-muted-foreground text-sm">Nenhum usuário encontrado.</div>
       ) : (
+        <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -335,6 +336,7 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
             ))}
           </TableBody>
         </Table>
+        </div>
       )}
 
       {/* Edit Dialog - only for gestor_nacional */}

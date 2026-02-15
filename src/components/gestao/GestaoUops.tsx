@@ -166,6 +166,7 @@ export default function GestaoUops() {
       ) : !filtered.length ? (
         <div className="text-center py-8 text-muted-foreground text-sm">Nenhuma UOP encontrada.</div>
       ) : (
+        <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -195,6 +196,7 @@ export default function GestaoUops() {
             ))}
           </TableBody>
         </Table>
+        </div>
       )}
 
       <Dialog open={!!editItem} onOpenChange={(o) => { if (!o) closeDialog(); }}>

@@ -150,6 +150,7 @@ export default function GestaoDelegacias() {
       ) : !filtered.length ? (
         <div className="text-center py-8 text-muted-foreground text-sm">Nenhuma delegacia encontrada.</div>
       ) : (
+        <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -177,6 +178,7 @@ export default function GestaoDelegacias() {
             ))}
           </TableBody>
         </Table>
+        </div>
       )}
 
       <Dialog open={!!editItem} onOpenChange={(o) => { if (!o) closeDialog(); }}>

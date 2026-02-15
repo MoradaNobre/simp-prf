@@ -136,8 +136,8 @@ export function RelatoriosPagamento() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 flex-wrap">
-        <div className="relative flex-1 max-w-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 flex-wrap">
+        <div className="relative flex-1 min-w-0 sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Buscar por código, título ou empresa..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
@@ -146,8 +146,8 @@ export function RelatoriosPagamento() {
         )}
       </div>
 
-      <Card>
-        <CardContent className="p-0">
+      <Card className="overflow-hidden">
+        <div className="overflow-x-auto">
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -220,7 +220,7 @@ export function RelatoriosPagamento() {
               </TableBody>
             </Table>
           )}
-        </CardContent>
+        </div>
       </Card>
 
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
