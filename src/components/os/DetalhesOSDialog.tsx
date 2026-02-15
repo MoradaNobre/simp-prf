@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { Loader2, Camera, DollarSign, User, FileText, Upload, CheckCircle, Download, Undo2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { generateOSReport } from "@/utils/generateOSReport";
+import { generateOSExecucaoReport } from "@/utils/generateOSExecucaoReport";
 import { useQuery } from "@tanstack/react-query";
 
 const statusLabels: Record<string, string> = {
@@ -259,8 +260,24 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
             console.error("Error saving execution report:", relErr);
           }
 
-          // Email notification already sent via sendTransitionNotification above
-          toast.success("Relatório de execução gerado!");
+          // Generate PDF as base64 and send via email with attachment
+          try {
+            const pdfDoc = generateOSExecucaoReport(reportData);
+            const pdfBase64 = pdfDoc.output("datauristring").split(",")[1];
+
+            await supabase.functions.invoke("send-os-execucao", {
+              body: {
+                os_id: os.id,
+                relatorio_execucao_id: relatorio?.id || null,
+                report_data: reportData,
+                pdf_base64: pdfBase64,
+              },
+            });
+          } catch (emailErr) {
+            console.warn("Erro ao enviar email com PDF:", emailErr);
+          }
+
+          toast.success("Relatório de execução gerado e enviado por e-mail!");
         } catch (err) {
           console.error("Error generating execution report:", err);
           toast.warning("OS autorizada, mas houve erro ao gerar o relatório de execução");
