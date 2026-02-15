@@ -149,7 +149,7 @@ const roleColors: Record<string, string> = {
   gestor_regional: "default",
   fiscal_contrato: "secondary",
   operador: "outline",
-  preposto: "default",
+  preposto: "success",
   terceirizado: "outline",
 };
 
