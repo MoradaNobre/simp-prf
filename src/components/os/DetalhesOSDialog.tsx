@@ -70,6 +70,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   const [documentosPagamento, setDocumentosPagamento] = useState<FileList | null>(null);
   const [motivoRestituicao, setMotivoRestituicao] = useState("");
   const [showRestituir, setShowRestituir] = useState(false);
+  const [selectedPrioridade, setSelectedPrioridade] = useState("");
 
   const { data: contratosAll = [] } = useContratos();
   const { data: saldos = [] } = useContratosSaldo();
@@ -90,10 +91,11 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
 
   useEffect(() => {
     setSelectedContratoId(os?.contrato_id ?? "");
+    setSelectedPrioridade(os?.prioridade ?? "");
     setValorOrcamento("");
     setArquivoOrcamento(null);
     setDocumentosPagamento(null);
-  }, [os?.id, os?.contrato_id]);
+  }, [os?.id, os?.contrato_id, os?.prioridade]);
 
   if (!os) return null;
 
@@ -160,8 +162,11 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
     try {
       const updates: any = { id: os.id, status: nextStatus, motivo_restituicao: null };
 
-      if (nextStatus === "orcamento" && selectedContratoId) {
-        updates.contrato_id = selectedContratoId;
+      if (nextStatus === "orcamento") {
+        if (selectedContratoId) updates.contrato_id = selectedContratoId;
+        if (selectedPrioridade && selectedPrioridade !== os.prioridade) {
+          updates.prioridade = selectedPrioridade;
+        }
       }
 
       if (nextStatus === "autorizacao" && arquivoOrcamento) {
@@ -554,7 +559,19 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                     </div>
                   );
                 })()}
-                <p className="text-sm text-muted-foreground">Vincule o contrato e encaminhe para que o preposto/terceirizado elabore o orçamento.</p>
+                <div className="space-y-1.5">
+                  <Label>Prioridade</Label>
+                  <Select value={selectedPrioridade} onValueChange={setSelectedPrioridade}>
+                    <SelectTrigger><SelectValue placeholder="Selecione a prioridade" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="baixa">Baixa</SelectItem>
+                      <SelectItem value="media">Média</SelectItem>
+                      <SelectItem value="alta">Alta</SelectItem>
+                      <SelectItem value="urgente">Urgente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <p className="text-sm text-muted-foreground">Vincule o contrato, ajuste a prioridade se necessário, e encaminhe para que o preposto/terceirizado elabore o orçamento.</p>
                 <Button onClick={handleAdvanceStatus} disabled={uploading} className="w-full">
                   {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Encaminhar para Orçamento
