@@ -29,6 +29,7 @@ export default function Contratos() {
   const { data: role } = useUserRole();
   const isMobile = useIsMobile();
   const canManage = role && !["operador", "preposto", "terceirizado"].includes(role);
+  const canDelete = role && ["gestor_nacional", "gestor_regional"].includes(role);
   const isPreposto = role === "preposto";
   const { isNacional, effectiveRegionalId, selectedRegionalId, setSelectedRegionalId } = useRegionalFilter();
   const { data: contratos = [], isLoading } = useContratos(
@@ -181,7 +182,7 @@ export default function Contratos() {
                             <Users className="h-3.5 w-3.5" />
                           </Button>
                         )}
-                        {canManage && (
+                        {canDelete && (
                           <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setDeleteId(c.id)}>
                             <Trash2 className="h-3.5 w-3.5 text-destructive" />
                           </Button>
@@ -300,7 +301,7 @@ export default function Contratos() {
                             <Users className="h-4 w-4" />
                           </Button>
                         )}
-                        {canManage && (
+                        {canDelete && (
                           <Button
                             size="icon"
                             variant="ghost"
