@@ -114,17 +114,28 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
       } as any);
 
       // Notify gestor regional about new OS
+      let emailWarning = false;
       if (result?.id) {
         try {
-          await supabase.functions.invoke("notify-os-transition", {
+          const { data: notifyData, error: notifyError } = await supabase.functions.invoke("notify-os-transition", {
             body: { os_id: result.id, from_status: "", to_status: "aberta" },
           });
+          if (notifyError) {
+            emailWarning = true;
+          } else if (notifyData && notifyData.success === false) {
+            emailWarning = true;
+          } else if (notifyData && notifyData.warning && notifyData.recipients?.length === 0) {
+            emailWarning = true;
+          }
         } catch {
-          console.warn("Não foi possível enviar notificação");
+          emailWarning = true;
         }
       }
 
       toast.success("OS criada com sucesso!");
+      if (emailWarning) {
+        toast.warning("A OS foi criada, mas a notificação por e-mail ao gestor regional pode não ter sido enviada. Verifique manualmente.", { duration: 8000 });
+      }
       reset();
       onOpenChange(false);
     } catch (err: any) {

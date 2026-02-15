@@ -127,13 +127,17 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
     return data.publicUrl;
   };
 
-  const sendTransitionNotification = async (fromStatus: string, toStatus: string, motivoRestituicao?: string) => {
+  const sendTransitionNotification = async (fromStatus: string, toStatus: string, motivoRestituicao?: string): Promise<boolean> => {
     try {
-      await supabase.functions.invoke("notify-os-transition", {
+      const { data: notifyData, error: notifyError } = await supabase.functions.invoke("notify-os-transition", {
         body: { os_id: os.id, from_status: fromStatus, to_status: toStatus, motivo_restituicao: motivoRestituicao },
       });
+      if (notifyError) return false;
+      if (notifyData && notifyData.success === false) return false;
+      if (notifyData && notifyData.warning && notifyData.recipients?.length === 0) return false;
+      return true;
     } catch {
-      console.warn("Não foi possível enviar notificação por email");
+      return false;
     }
   };
 
@@ -179,7 +183,10 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
       toast.success(`Status alterado para ${statusLabels[nextStatus]}`);
 
       // Send notification for this transition
-      await sendTransitionNotification(os.status, nextStatus);
+      const emailOk = await sendTransitionNotification(os.status, nextStatus);
+      if (!emailOk) {
+        toast.warning("A notificação por e-mail pode não ter sido enviada. Verifique manualmente.", { duration: 8000 });
+      }
 
       // Generate execution report and send email when advancing to execucao
       if (nextStatus === "execucao") {
@@ -329,7 +336,8 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
       } as any);
       toast.success("Documentos de pagamento enviados!");
       // Notify gestor/fiscal that payment docs are ready for closure
-      await sendTransitionNotification("pagamento", "encerrada");
+      const emailOk2 = await sendTransitionNotification("pagamento", "encerrada");
+      if (!emailOk2) toast.warning("A notificação por e-mail pode não ter sido enviada.", { duration: 8000 });
       setDocumentosPagamento(null);
       onOpenChange(false);
     } catch (err: any) {
@@ -721,7 +729,8 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                             } as any);
                             toast.success("Documentos reenviados e OS encaminhada para pagamento!");
                             // Notify gestor/fiscal about resubmission (they need to review)
-                            await sendTransitionNotification(os.status, "ateste");
+                            const emailOk3 = await sendTransitionNotification(os.status, "ateste");
+                            if (!emailOk3) toast.warning("A notificação por e-mail pode não ter sido enviada.", { duration: 8000 });
                             setDocumentosPagamento(null);
                             onOpenChange(false);
                           } catch (err: any) {
@@ -949,7 +958,8 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                       });
 
                       // Notify preposto about closure
-                      await sendTransitionNotification("pagamento", "encerrada");
+                      const emailOk4 = await sendTransitionNotification("pagamento", "encerrada");
+                      if (!emailOk4) toast.warning("A notificação por e-mail pode não ter sido enviada.", { duration: 8000 });
 
                       toast.success("OS encerrada e relatório gerado!");
                       onOpenChange(false);
@@ -1027,7 +1037,8 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                               description: `OS ${os.codigo} restituída de ${statusLabels[os.status]} para ${statusLabels[prevStatus]}. Motivo: ${motivoRestituicao.trim()}`,
                             });
                             // Notify responsible party about restitution
-                            await sendTransitionNotification(os.status, prevStatus, motivoRestituicao.trim());
+                            const emailOk5 = await sendTransitionNotification(os.status, prevStatus, motivoRestituicao.trim());
+                            if (!emailOk5) toast.warning("A notificação por e-mail pode não ter sido enviada.", { duration: 8000 });
                             toast.success(`OS restituída para ${statusLabels[prevStatus]}`);
                             setShowRestituir(false);
                             setMotivoRestituicao("");
