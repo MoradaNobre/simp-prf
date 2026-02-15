@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { FileText, Plus, Users, Phone, Pencil, Trash2 } from "lucide-react";
+import { FileText, Plus, Users, Phone, Pencil, Trash2, FileDown, Loader2 } from "lucide-react";
 import { useContratos, useContratosSaldo, useDeleteContrato, type Contrato } from "@/hooks/useContratos";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useRegionalFilter } from "@/hooks/useRegionalFilter";
@@ -16,6 +16,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
+import { generateContratoReport } from "@/utils/generateContratoReport";
+import { toast as sonnerToast } from "sonner";
 
 const TIPO_LABELS: Record<string, string> = {
   manutencao_predial: "Manutenção Predial",
@@ -40,6 +42,35 @@ export default function Contratos() {
   const [editContrato, setEditContrato] = useState<Contrato | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [contatosContrato, setContatosContrato] = useState<{ id: string; empresa: string } | null>(null);
+  const [generatingPdf, setGeneratingPdf] = useState<string | null>(null);
+
+  const handleGenerateReport = async (c: any) => {
+    setGeneratingPdf(c.id);
+    try {
+      await generateContratoReport({
+        id: c.id,
+        numero: c.numero,
+        empresa: c.empresa,
+        objeto: c.objeto,
+        tipo_servico: c.tipo_servico,
+        valor_total: c.valor_total,
+        data_inicio: c.data_inicio,
+        data_fim: c.data_fim,
+        status: c.status,
+        preposto_nome: c.preposto_nome,
+        preposto_email: c.preposto_email,
+        preposto_telefone: c.preposto_telefone,
+        regional_sigla: c.regionais?.sigla,
+        regional_nome: c.regionais?.nome,
+      });
+      sonnerToast.success("Relatório gerado com sucesso!");
+    } catch (err) {
+      sonnerToast.error("Erro ao gerar relatório");
+      console.error(err);
+    } finally {
+      setGeneratingPdf(null);
+    }
+  };
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -130,6 +161,16 @@ export default function Contratos() {
                         </div>
                       )}
                       <div className="flex justify-end gap-1 pt-1" onClick={(e) => e.stopPropagation()}>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-8 w-8"
+                          title="Relatório PDF"
+                          disabled={generatingPdf === c.id}
+                          onClick={() => handleGenerateReport(c)}
+                        >
+                          {generatingPdf === c.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileDown className="h-3.5 w-3.5" />}
+                        </Button>
                         {canManage && (
                           <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditContrato(c as Contrato)}>
                             <Pencil className="h-3.5 w-3.5" />
@@ -228,6 +269,15 @@ export default function Contratos() {
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-1">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          title="Relatório PDF"
+                          disabled={generatingPdf === c.id}
+                          onClick={() => handleGenerateReport(c)}
+                        >
+                          {generatingPdf === c.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
+                        </Button>
                         {canManage && (
                           <Button
                             size="icon"
