@@ -69,6 +69,18 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Clean up references that block auth user deletion
+    await adminClient.from("ordens_servico").update({ solicitante_id: callerId }).eq("solicitante_id", user_id);
+    await adminClient.from("ordens_servico").update({ responsavel_id: null }).eq("responsavel_id", user_id);
+    await adminClient.from("ordens_servico").update({ responsavel_execucao_id: null }).eq("responsavel_execucao_id", user_id);
+    await adminClient.from("ordens_servico").update({ responsavel_encerramento_id: null }).eq("responsavel_encerramento_id", user_id);
+    await adminClient.from("contratos").update({ preposto_user_id: null }).eq("preposto_user_id", user_id);
+    await adminClient.from("contrato_contatos").update({ user_id: null }).eq("user_id", user_id);
+    await adminClient.from("relatorios_execucao").update({ gerado_por_id: callerId }).eq("gerado_por_id", user_id);
+    await adminClient.from("relatorios_os").update({ gerado_por_id: callerId }).eq("gerado_por_id", user_id);
+    await adminClient.from("orcamento_creditos").update({ created_by: callerId }).eq("created_by", user_id);
+    await adminClient.from("orcamento_empenhos").update({ created_by: callerId }).eq("created_by", user_id);
+
     // Delete from auth (cascades to profiles, user_roles, etc.)
     const { error: deleteErr } = await adminClient.auth.admin.deleteUser(user_id);
     if (deleteErr) {
