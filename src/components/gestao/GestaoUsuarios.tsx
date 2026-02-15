@@ -386,6 +386,10 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
               <Input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Nome completo" />
             </div>
             <div>
+              <Label>Telefone</Label>
+              <p className="text-sm text-muted-foreground mt-1">{editUser?.phone || "Não informado"}</p>
+            </div>
+            <div>
               <Label>Papel</Label>
               <Select value={editRole} onValueChange={setEditRole}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
