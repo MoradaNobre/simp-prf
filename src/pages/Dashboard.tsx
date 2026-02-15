@@ -3,25 +3,24 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ClipboardList, AlertTriangle, CheckCircle, Clock, Building2,
-  DollarSign, FileText, Search, ShieldCheck, Hammer, FileCheck, CreditCard,
+  DollarSign, FileText, ShieldCheck, Hammer, FileCheck, CreditCard,
 } from "lucide-react";
 import { differenceInHours, startOfMonth } from "date-fns";
 import { useRegionalFilter } from "@/hooks/useRegionalFilter";
 import { RegionalFilterSelect } from "@/components/RegionalFilterSelect";
 
 const statusLabels: Record<string, string> = {
-  aberta: "Aberta", triagem: "Triagem", orcamento: "Orçamento", autorizacao: "Aguard. Autorização",
+  aberta: "Aberta", orcamento: "Orçamento", autorizacao: "Aguard. Autorização",
   execucao: "Execução", ateste: "Ateste", pagamento: "Pagamento", encerrada: "Encerrada",
 };
 
 const statusIcons: Record<string, any> = {
-  aberta: FileText, triagem: Search, orcamento: DollarSign, autorizacao: ShieldCheck,
+  aberta: FileText, orcamento: DollarSign, autorizacao: ShieldCheck,
   execucao: Hammer, ateste: FileCheck, pagamento: CreditCard, encerrada: CheckCircle,
 };
 
 const statusCardColors: Record<string, string> = {
   aberta: "text-blue-500",
-  triagem: "text-amber-500",
   orcamento: "text-orange-500",
   autorizacao: "text-purple-500",
   execucao: "text-cyan-500",
@@ -176,7 +175,7 @@ export default function Dashboard() {
   const pctCorretiva = data?.pctCorretiva ?? 0;
   const pctPreventiva = data?.pctPreventiva ?? 0;
 
-  const flowStatuses = ["aberta", "triagem", "orcamento", "autorizacao", "execucao", "ateste", "pagamento", "encerrada"];
+  const flowStatuses = ["aberta", "orcamento", "autorizacao", "execucao", "ateste", "pagamento", "encerrada"];
 
   return (
     <div className="space-y-6">
@@ -227,7 +226,7 @@ export default function Dashboard() {
       {/* OS por posição no fluxo */}
       <div>
         <h2 className="text-lg font-semibold text-foreground mb-3">OS por Etapa do Fluxo</h2>
-        <div className="grid gap-3 grid-cols-2 sm:grid-cols-4 lg:grid-cols-8">
+        <div className="grid gap-3 grid-cols-2 sm:grid-cols-4 lg:grid-cols-7">
           {flowStatuses.map((status) => {
             const Icon = statusIcons[status];
             const count = data?.osPorStatus?.[status] ?? 0;
@@ -314,7 +313,7 @@ export default function Dashboard() {
       {/* Tempo médio por etapa */}
       <div>
         <h2 className="text-lg font-semibold text-foreground mb-3">Tempo Médio por Etapa</h2>
-        <div className="grid gap-3 grid-cols-2 sm:grid-cols-4 lg:grid-cols-7">
+        <div className="grid gap-3 grid-cols-2 sm:grid-cols-4 lg:grid-cols-6">
           {flowStatuses.filter(s => s !== "encerrada").map((status) => {
             const Icon = statusIcons[status];
             const horas = data?.tempoMedioEtapa?.[status] ?? 0;

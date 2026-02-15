@@ -3,7 +3,6 @@ import type { OrdemServico } from "@/hooks/useOrdensServico";
 
 const statusLabels: Record<string, string> = {
   aberta: "Aberta",
-  triagem: "Triagem",
   orcamento: "Orçamento",
   autorizacao: "Aguardando Autorização",
   execucao: "Execução",

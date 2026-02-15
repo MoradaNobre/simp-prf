@@ -88,10 +88,10 @@ Deno.serve(async (req) => {
         subject: `[SIMP-PRF] Definir responsável - ${os.codigo}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #1e3a5f;">SIMP-PRF — Nova Ordem de Serviço em Triagem</h2>
+            <h2 style="color: #1e3a5f;">SIMP-PRF — Nova Ordem de Serviço Encaminhada</h2>
             <p>Olá, <strong>${contrato.preposto_nome ?? "Preposto"}</strong>!</p>
             <p>A Ordem de Serviço <strong>${os.codigo} — ${os.titulo}</strong> foi vinculada ao contrato 
-            <strong>${contrato.numero} (${contrato.empresa})</strong> e está em fase de triagem.</p>
+            <strong>${contrato.numero} (${contrato.empresa})</strong> e está aguardando orçamento.</p>
             <p>Por favor, defina o responsável pela execução clicando no botão abaixo:</p>
             <div style="text-align: center; margin: 30px 0;">
               <a href="${selectionUrl}" 
