@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,6 +31,7 @@ type Delegacia = {
 };
 
 export default function GestaoDelegacias() {
+  const isMobile = useIsMobile();
   const qc = useQueryClient();
   const regionais = useRegionais();
   const { data: role } = useUserRole();
@@ -122,12 +124,12 @@ export default function GestaoDelegacias() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 flex-wrap">
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative flex-1 min-w-0 sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Buscar delegacia..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <Select value={filterRegional} onValueChange={setFilterRegional}>
-          <SelectTrigger className="w-48"><SelectValue placeholder="Filtrar regional" /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-48"><SelectValue placeholder="Filtrar regional" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas as regionais</SelectItem>
             {(isRegional ? (profile as any)?.regionais || [] : regionais.data || []).map((r: any) => (
@@ -149,6 +151,24 @@ export default function GestaoDelegacias() {
         <div className="flex items-center justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
       ) : !filtered.length ? (
         <div className="text-center py-8 text-muted-foreground text-sm">Nenhuma delegacia encontrada.</div>
+      ) : isMobile ? (
+        <div className="space-y-3">
+          {filtered.map((d) => (
+            <div key={d.id} className="border rounded-lg p-4 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <Checkbox checked={selected.has(d.id)} onCheckedChange={() => toggleSelect(d.id)} />
+                <div className="min-w-0">
+                  <p className="font-medium text-sm truncate">{d.nome}</p>
+                  <p className="text-xs text-muted-foreground">{d.municipio || "—"} · {d.regional?.sigla || "—"}</p>
+                </div>
+              </div>
+              <div className="flex gap-1 shrink-0">
+                <Button variant="ghost" size="icon" onClick={() => openEdit(d)}><Pencil className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" onClick={() => setDeleteConfirm(d)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+              </div>
+            </div>
+          ))}
+        </div>
       ) : (
         <div className="overflow-x-auto">
         <Table>

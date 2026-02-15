@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -162,6 +163,7 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
   const updateRole = useUpdateUserRole();
   const updateRegionais = useUpdateUserRegionais();
   const qc = useQueryClient();
+  const isMobile = useIsMobile();
   const [search, setSearch] = useState("");
   const [editUser, setEditUser] = useState<UserWithRole | null>(null);
   const [editRole, setEditRole] = useState("");
@@ -178,7 +180,7 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
   );
 
   const openEdit = (user: UserWithRole) => {
-    if (!isNacional) return; // gestor_regional can only view
+    if (!isNacional) return;
     setEditUser(user);
     setEditName(user.full_name);
     setEditRole(user.role || "operador");
@@ -266,6 +268,38 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
         </div>
       ) : !filtered.length ? (
         <div className="text-center py-8 text-muted-foreground text-sm">Nenhum usuário encontrado.</div>
+      ) : isMobile ? (
+        <div className="space-y-3">
+          {filtered.map((u) => (
+            <div key={u.id} className={`border rounded-lg p-4 space-y-2 ${!u.ativo ? "opacity-50" : ""}`}>
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="font-medium text-sm">{u.full_name || "Sem nome"}</p>
+                  <Badge variant={roleColors[u.role || "operador"] as any} className="text-xs mt-1">
+                    {roleLabels[u.role || "operador"]}
+                  </Badge>
+                </div>
+                <Badge variant={u.ativo ? "default" : "destructive"} className="text-xs shrink-0">
+                  {u.ativo ? "Ativo" : "Inativo"}
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {u.regionais.length > 0 ? u.regionais.map((r) => r.sigla).join(", ") : "Sem regional"}
+              </p>
+              {isNacional && (
+                <div className="flex gap-1 pt-1">
+                  <Button variant="outline" size="sm" onClick={() => openEdit(u)}>Editar</Button>
+                  <Button variant="ghost" size="icon" onClick={() => handleToggleAtivo(u)} disabled={toggling === u.user_id}>
+                    {toggling === u.user_id ? <Loader2 className="h-4 w-4 animate-spin" /> : u.ativo ? <Ban className="h-4 w-4 text-orange-500" /> : <CheckCircle className="h-4 w-4 text-green-600" />}
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => setDeleteConfirm(u)}>
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       ) : (
         <div className="overflow-x-auto">
         <Table>

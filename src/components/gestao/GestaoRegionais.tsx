@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,6 +24,7 @@ type Regional = {
 };
 
 export default function GestaoRegionais() {
+  const isMobile = useIsMobile();
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [editItem, setEditItem] = useState<Regional | null>(null);
@@ -107,7 +109,7 @@ export default function GestaoRegionais() {
         </div>
         {selected.size > 0 && (
           <Button variant="destructive" size="sm" onClick={() => setBulkDeleteConfirm(true)}>
-            <Trash2 className="h-4 w-4 mr-1" /> Excluir {selected.size} selecionado(s)
+            <Trash2 className="h-4 w-4 mr-1" /> Excluir {selected.size}
           </Button>
         )}
         <Button onClick={openNew} size="sm">
@@ -119,6 +121,24 @@ export default function GestaoRegionais() {
         <div className="flex items-center justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
       ) : !filtered.length ? (
         <div className="text-center py-8 text-muted-foreground text-sm">Nenhuma regional encontrada.</div>
+      ) : isMobile ? (
+        <div className="space-y-3">
+          {filtered.map((r) => (
+            <div key={r.id} className="border rounded-lg p-4 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <Checkbox checked={selected.has(r.id)} onCheckedChange={() => toggleSelect(r.id)} />
+                <div className="min-w-0">
+                  <p className="font-medium text-sm">{r.sigla}</p>
+                  <p className="text-xs text-muted-foreground truncate">{r.nome} · {r.uf}</p>
+                </div>
+              </div>
+              <div className="flex gap-1 shrink-0">
+                <Button variant="ghost" size="icon" onClick={() => openEdit(r)}><Pencil className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" onClick={() => setDeleteConfirm(r)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+              </div>
+            </div>
+          ))}
+        </div>
       ) : (
         <div className="overflow-x-auto">
         <Table>

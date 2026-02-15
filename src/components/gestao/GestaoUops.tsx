@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,6 +34,7 @@ type Uop = {
 };
 
 export default function GestaoUops() {
+  const isMobile = useIsMobile();
   const qc = useQueryClient();
   const regionais = useRegionais();
   const { data: role } = useUserRole();
@@ -129,12 +131,12 @@ export default function GestaoUops() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 flex-wrap">
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative flex-1 min-w-0 sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Buscar UOP..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <Select value={filterRegional} onValueChange={(v) => { setFilterRegional(v); setFilterDelegacia("all"); }}>
-          <SelectTrigger className="w-48"><SelectValue placeholder="Filtrar regional" /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-48"><SelectValue placeholder="Filtrar regional" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas as regionais</SelectItem>
             {(isRegional ? (profile as any)?.regionais || [] : regionais.data || []).map((r: any) => (
@@ -143,7 +145,7 @@ export default function GestaoUops() {
           </SelectContent>
         </Select>
         <Select value={filterDelegacia} onValueChange={setFilterDelegacia}>
-          <SelectTrigger className="w-48"><SelectValue placeholder="Filtrar delegacia" /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-48"><SelectValue placeholder="Filtrar delegacia" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas as delegacias</SelectItem>
             {(delegacias.data || []).map((d) => (
@@ -165,6 +167,25 @@ export default function GestaoUops() {
         <div className="flex items-center justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
       ) : !filtered.length ? (
         <div className="text-center py-8 text-muted-foreground text-sm">Nenhuma UOP encontrada.</div>
+      ) : isMobile ? (
+        <div className="space-y-3">
+          {filtered.map((u) => (
+            <div key={u.id} className="border rounded-lg p-4 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <Checkbox checked={selected.has(u.id)} onCheckedChange={() => toggleSelect(u.id)} />
+                <div className="min-w-0">
+                  <p className="font-medium text-sm truncate">{u.nome}</p>
+                  <p className="text-xs text-muted-foreground truncate">{u.delegacia?.nome || "—"} · {u.delegacia?.regional?.sigla || "—"}</p>
+                  {u.endereco && <p className="text-xs text-muted-foreground truncate">{u.endereco}</p>}
+                </div>
+              </div>
+              <div className="flex gap-1 shrink-0">
+                <Button variant="ghost" size="icon" onClick={() => openEdit(u)}><Pencil className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" onClick={() => setDeleteConfirm(u)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+              </div>
+            </div>
+          ))}
+        </div>
       ) : (
         <div className="overflow-x-auto">
         <Table>
