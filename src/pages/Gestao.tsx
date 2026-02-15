@@ -13,12 +13,14 @@ import GestaoUsuarios from "@/components/gestao/GestaoUsuarios";
 import GestaoRegionais from "@/components/gestao/GestaoRegionais";
 import GestaoDelegacias from "@/components/gestao/GestaoDelegacias";
 import GestaoUops from "@/components/gestao/GestaoUops";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Gestao() {
   const { data: role, isLoading } = useUserRole();
   const [importing, setImporting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
 
   const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -67,52 +69,52 @@ export default function Gestao() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <Shield className="h-6 w-6" />
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
+            <Shield className="h-5 w-5 sm:h-6 sm:w-6" />
             Gestão do Sistema
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             {isNacional ? "Painel administrativo do SIMP-PRF" : "Gestão da sua regional"}
           </p>
         </div>
         {isNacional && (
           <div>
             <input ref={fileRef} type="file" accept=".csv,.xlsx,.xls" className="hidden" onChange={handleImport} />
-            <Button variant="outline" onClick={() => fileRef.current?.click()} disabled={importing}>
+            <Button variant="outline" size={isMobile ? "sm" : "default"} onClick={() => fileRef.current?.click()} disabled={importing}>
               {importing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
-              Importar Planilha
+              {isMobile ? "Importar" : "Importar Planilha"}
             </Button>
           </div>
         )}
       </div>
 
       <Tabs defaultValue={isNacional ? "usuarios" : "delegacias"} className="w-full">
-        <TabsList>
-          <TabsTrigger value="usuarios" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
+        <TabsList className="w-full sm:w-auto flex-wrap h-auto gap-1 p-1">
+          <TabsTrigger value="usuarios" className="flex items-center gap-1.5 text-xs sm:text-sm">
+            <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             Usuários
           </TabsTrigger>
           {isNacional && (
-            <TabsTrigger value="regionais" className="flex items-center gap-2">
-              <Map className="h-4 w-4" />
+            <TabsTrigger value="regionais" className="flex items-center gap-1.5 text-xs sm:text-sm">
+              <Map className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               Regionais
             </TabsTrigger>
           )}
-          <TabsTrigger value="delegacias" className="flex items-center gap-2">
-            <Building2 className="h-4 w-4" />
+          <TabsTrigger value="delegacias" className="flex items-center gap-1.5 text-xs sm:text-sm">
+            <Building2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             Delegacias
           </TabsTrigger>
-          <TabsTrigger value="uops" className="flex items-center gap-2">
-            <MapPin className="h-4 w-4" />
+          <TabsTrigger value="uops" className="flex items-center gap-1.5 text-xs sm:text-sm">
+            <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             UOPs
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="usuarios">
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-6 px-3 sm:px-6">
               <GestaoUsuarios currentUserRole={role || "operador"} />
             </CardContent>
           </Card>
@@ -121,7 +123,7 @@ export default function Gestao() {
         {isNacional && (
           <TabsContent value="regionais">
             <Card>
-              <CardContent className="pt-6">
+              <CardContent className="pt-6 px-3 sm:px-6">
                 <GestaoRegionais />
               </CardContent>
             </Card>
@@ -130,7 +132,7 @@ export default function Gestao() {
 
         <TabsContent value="delegacias">
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-6 px-3 sm:px-6">
               <GestaoDelegacias />
             </CardContent>
           </Card>
@@ -138,7 +140,7 @@ export default function Gestao() {
 
         <TabsContent value="uops">
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-6 px-3 sm:px-6">
               <GestaoUops />
             </CardContent>
           </Card>

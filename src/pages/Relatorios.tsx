@@ -10,17 +10,17 @@ export default function Relatorios() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Relatórios</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Relatórios</h1>
+        <p className="text-muted-foreground text-sm">
           Relatórios de Ordens de Serviço
         </p>
       </div>
 
       <Tabs defaultValue="execucao">
-        <TabsList>
-          <TabsTrigger value="execucao">OS - Execução</TabsTrigger>
+        <TabsList className="w-full sm:w-auto">
+          <TabsTrigger value="execucao" className="flex-1 sm:flex-initial">OS - Execução</TabsTrigger>
           {!isExternalOnly && (
-            <TabsTrigger value="pagamento">OS - Pagamento</TabsTrigger>
+            <TabsTrigger value="pagamento" className="flex-1 sm:flex-initial">OS - Pagamento</TabsTrigger>
           )}
         </TabsList>
 

@@ -12,6 +12,7 @@ import { RegionalFilterSelect } from "@/components/RegionalFilterSelect";
 import { NovoContratoDialog } from "@/components/contratos/NovoContratoDialog";
 import { EditarContratoDialog } from "@/components/contratos/EditarContratoDialog";
 import { ContratoContatosDialog } from "@/components/contratos/ContratoContatosDialog";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
@@ -24,6 +25,7 @@ const TIPO_LABELS: Record<string, string> = {
 export default function Contratos() {
   const { user } = useAuth();
   const { data: role } = useUserRole();
+  const isMobile = useIsMobile();
   const canManage = role && !["operador", "preposto", "terceirizado"].includes(role);
   const isPreposto = role === "preposto";
   const { isNacional, effectiveRegionalId, selectedRegionalId, setSelectedRegionalId } = useRegionalFilter();
@@ -52,14 +54,15 @@ export default function Contratos() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Contratos</h1>
-          <p className="text-muted-foreground">Gestão de contratos e custos com terceirizadas</p>
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Contratos</h1>
+          <p className="text-muted-foreground text-sm">Gestão de contratos e custos</p>
         </div>
         {canManage && (
-          <Button onClick={() => setNovoOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" /> Novo Contrato
+          <Button onClick={() => setNovoOpen(true)} size={isMobile ? "icon" : "default"} className="shrink-0">
+            <Plus className={isMobile ? "h-4 w-4" : "mr-2 h-4 w-4"} />
+            {!isMobile && "Novo Contrato"}
           </Button>
         )}
       </div>
@@ -71,16 +74,81 @@ export default function Contratos() {
       )}
 
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
             <FileText className="h-5 w-5" /> Contratos Vigentes
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0 sm:p-6 sm:pt-0">
           {isLoading ? (
-            <p className="text-muted-foreground text-sm">Carregando...</p>
+            <p className="text-muted-foreground text-sm p-4">Carregando...</p>
           ) : contratos.length === 0 ? (
-            <p className="text-muted-foreground text-sm">Nenhum contrato cadastrado. Adicione contratos com terceirizadas.</p>
+            <p className="text-muted-foreground text-sm p-4">Nenhum contrato cadastrado.</p>
+          ) : isMobile ? (
+            <div className="space-y-3 p-3">
+              {contratos.map((c) => {
+                const s = saldos.find((x: any) => x.id === c.id);
+                const saldo = s ? Number(s.saldo) : null;
+                const pct = s && c.valor_total > 0 ? Math.round((Number(s.total_custos) / c.valor_total) * 100) : 0;
+                const hoje = new Date();
+                const computedStatus = hoje >= new Date(c.data_inicio) && hoje <= new Date(c.data_fim) ? "vigente" : "encerrado";
+                return (
+                  <Card key={c.id} className="border">
+                    <CardContent className="p-4 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-mono text-xs text-muted-foreground">{c.numero}</p>
+                          <p className="font-medium text-sm">{c.empresa}</p>
+                        </div>
+                        <Badge variant={computedStatus === "vigente" ? "default" : "secondary"} className="shrink-0 text-[10px]">
+                          {computedStatus}
+                        </Badge>
+                      </div>
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                        <span>Regional: {(c as any).regionais?.sigla ?? "—"}</span>
+                        <span className="text-right">{TIPO_LABELS[(c as any).tipo_servico] ?? "—"}</span>
+                        <span>Valor: {c.valor_total.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
+                        <span className={`text-right ${saldo !== null && saldo < 0 ? "text-destructive font-medium" : ""}`}>
+                          Saldo: {saldo !== null ? saldo.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "—"}
+                        </span>
+                        <span>{format(new Date(c.data_inicio), "dd/MM/yy")} — {format(new Date(c.data_fim), "dd/MM/yy")}</span>
+                        <span className="text-right">{pct}% utilizado</span>
+                      </div>
+                      {(c as any).preposto_nome && (
+                        <div className="text-xs text-muted-foreground">
+                          Preposto: {(c as any).preposto_nome}
+                          {(c as any).preposto_telefone && (
+                            <a
+                              href={`https://wa.me/${(c as any).preposto_telefone.replace(/\D/g, "")}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="ml-2 text-primary hover:underline inline-flex items-center gap-0.5"
+                            >
+                              <Phone className="h-3 w-3" /> {(c as any).preposto_telefone}
+                            </a>
+                          )}
+                        </div>
+                      )}
+                      <div className="flex justify-end gap-1 pt-1" onClick={(e) => e.stopPropagation()}>
+                        {canManage && (
+                          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditContrato(c as Contrato)}>
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                        <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setContatosContrato({ id: c.id, empresa: c.empresa })}>
+                          <Users className="h-3.5 w-3.5" />
+                        </Button>
+                        {canManage && (
+                          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setDeleteId(c.id)}>
+                            <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                          </Button>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
           ) : (
             <Table>
               <TableHeader>

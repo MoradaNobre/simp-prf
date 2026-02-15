@@ -8,12 +8,14 @@ import { ptBR } from "date-fns/locale";
 import { ScrollText, Loader2, Search, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const actionLabels: Record<string, string> = {
   DELETE: "Exclusão",
@@ -58,7 +60,6 @@ function useAuditLogs(actionFilter: string, tableFilter: string) {
       const { data, error } = await query;
       if (error) throw error;
 
-      // Fetch profile names for user_ids
       const userIds = [...new Set((data || []).map((l) => l.user_id).filter(Boolean))];
       let profileMap = new Map<string, string>();
       if (userIds.length > 0) {
@@ -79,9 +80,11 @@ function useAuditLogs(actionFilter: string, tableFilter: string) {
 
 export default function AuditLogs() {
   const { data: role, isLoading: roleLoading } = useUserRole();
+  const isMobile = useIsMobile();
   const [actionFilter, setActionFilter] = useState("all");
   const [tableFilter, setTableFilter] = useState("all");
   const [search, setSearch] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const { data: logs, isLoading } = useAuditLogs(actionFilter, tableFilter);
 
@@ -106,16 +109,23 @@ export default function AuditLogs() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-          <ScrollText className="h-6 w-6" />
-          Logs de Auditoria
-        </h1>
-        <p className="text-muted-foreground">Histórico de ações críticas no sistema</p>
+      <div className="flex items-center justify-between gap-2">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
+            <ScrollText className="h-5 w-5 sm:h-6 sm:w-6" />
+            Logs de Auditoria
+          </h1>
+          <p className="text-muted-foreground text-sm">Histórico de ações críticas</p>
+        </div>
+        {isMobile && (
+          <button onClick={() => setFiltersOpen(!filtersOpen)} className="p-2 rounded-md border border-border">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+          </button>
+        )}
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 min-w-[200px] max-w-sm">
+      <div className={`flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 ${isMobile && !filtersOpen ? "hidden" : ""}`}>
+        <div className="relative flex-1 min-w-0 sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar na descrição..."
@@ -124,10 +134,10 @@ export default function AuditLogs() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-muted-foreground" />
+        <div className="flex items-center gap-2 flex-wrap">
+          {!isMobile && <Filter className="h-4 w-4 text-muted-foreground" />}
           <Select value={actionFilter} onValueChange={setActionFilter}>
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="w-full sm:w-[200px]">
               <SelectValue placeholder="Tipo de ação" />
             </SelectTrigger>
             <SelectContent>
@@ -139,7 +149,7 @@ export default function AuditLogs() {
             </SelectContent>
           </Select>
           <Select value={tableFilter} onValueChange={setTableFilter}>
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="w-full sm:w-[200px]">
               <SelectValue placeholder="Tabela" />
             </SelectTrigger>
             <SelectContent>
@@ -162,6 +172,30 @@ export default function AuditLogs() {
       ) : !filtered.length ? (
         <div className="text-center py-8 text-muted-foreground text-sm">
           Nenhum log encontrado.
+        </div>
+      ) : isMobile ? (
+        <div className="space-y-3">
+          {filtered.map((log) => (
+            <Card key={log.id}>
+              <CardContent className="p-3 space-y-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <Badge variant={actionColors[log.action] as any} className="text-[10px]">
+                    {actionLabels[log.action] || log.action}
+                  </Badge>
+                  <span className="text-[10px] text-muted-foreground">
+                    {format(new Date(log.created_at), "dd/MM/yy HH:mm", { locale: ptBR })}
+                  </span>
+                </div>
+                <div className="text-xs">
+                  <span className="font-medium">{log.user_name}</span>
+                  <span className="text-muted-foreground"> · {tableLabels[log.table_name] || log.table_name}</span>
+                </div>
+                {log.description && (
+                  <p className="text-xs text-muted-foreground line-clamp-2">{log.description}</p>
+                )}
+              </CardContent>
+            </Card>
+          ))}
         </div>
       ) : (
         <Table>
