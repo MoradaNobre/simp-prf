@@ -137,10 +137,8 @@ Deno.serve(async (req) => {
           break;
 
         case "execucao":
-          // Preposto + terceirizado can start work
+          // Preposto + specific execution responsible only
           await addPrepostoEmails(supabase, os.contrato_id, recipientEmails);
-          await addContratoContatoEmails(supabase, os.contrato_id, recipientEmails);
-          // Also add specific execution responsible if set
           if (os.responsavel_execucao_id) {
             const { data: contato } = await supabase
               .from("contrato_contatos")
