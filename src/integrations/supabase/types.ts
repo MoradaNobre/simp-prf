@@ -644,6 +644,32 @@ export type Database = {
         }
         Relationships: []
       }
+      regional_os_seq: {
+        Row: {
+          id: string
+          last_number: number
+          regional_id: string
+        }
+        Insert: {
+          id?: string
+          last_number?: number
+          regional_id: string
+        }
+        Update: {
+          id?: string
+          last_number?: number
+          regional_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "regional_os_seq_regional_id_fkey"
+            columns: ["regional_id"]
+            isOneToOne: true
+            referencedRelation: "regionais"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       relatorios_execucao: {
         Row: {
           codigo_os: string
