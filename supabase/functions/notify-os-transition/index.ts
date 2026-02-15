@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
 
     const { os_id, from_status, to_status, motivo_restituicao }: TransitionPayload = await req.json();
 
-    if (!os_id || !from_status || !to_status) {
+    if (!os_id || from_status === undefined || from_status === null || !to_status) {
       return new Response(JSON.stringify({ error: "os_id, from_status, and to_status required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
