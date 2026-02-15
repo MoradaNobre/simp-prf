@@ -387,6 +387,11 @@ export default function OrdensServico() {
                         <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors[os.status] || "bg-muted text-muted-foreground"}`}>
                           {statusLabels[os.status] || os.status}
                         </span>
+                        {os.motivo_restituicao && (
+                          <span className="inline-flex items-center justify-center rounded-full h-5 w-5 text-[10px] font-bold bg-destructive text-destructive-foreground" title={`Restituída: ${os.motivo_restituicao}`}>
+                            R
+                          </span>
+                        )}
                         {os.status === "pagamento" && ((os as any).documentos_pagamento as any[])?.length > 0 && (
                           <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
                             Aguardando Pagamento
