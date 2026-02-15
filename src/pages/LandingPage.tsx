@@ -12,6 +12,7 @@ import {
   Play,
   ArrowRight,
 } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import logoImg from "@/assets/logo.jpg";
 import heroBg from "@/assets/hero-bg.jpg";
 import featureManutencao from "@/assets/feature-manutencao.jpg";
@@ -81,9 +82,12 @@ export default function LandingPage() {
               SIMP
             </span>
           </div>
-          <Button onClick={() => navigate("/login")} className="gap-2">
-            Acessar Sistema <ArrowRight className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Button onClick={() => navigate("/login")} className="gap-2">
+              Acessar Sistema <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </nav>
 
