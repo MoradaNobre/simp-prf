@@ -5,7 +5,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, DollarSign, Plus, Pencil, Trash2, TrendingUp, TrendingDown, CircleDot } from "lucide-react";
+import { Loader2, DollarSign, Plus, Pencil, Trash2, TrendingUp, TrendingDown, CircleDot, FileSpreadsheet } from "lucide-react";
+import * as XLSX from "xlsx";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -129,6 +130,68 @@ export default function GestaoOrcamento() {
     });
   }, [orcamentos, creditos, empenhos, custosOS]);
 
+  const exportToXLS = () => {
+    if (!consolidado.length) { toast.error("Nenhum dado para exportar."); return; }
+    const wb = XLSX.utils.book_new();
+
+    // Resumo
+    const resumoData = consolidado.map((item: any) => ({
+      "Regional": item.regional?.sigla || "—",
+      "Nome": item.regional?.nome || "—",
+      "Exercício": exercicio,
+      "Dotação Base": Number(item.valor_dotacao),
+      "Dotação Total": item.dotacaoTotal,
+      "Custos OS": item.totalCustosOS,
+      "Empenhos Manuais": item.totalEmpenhos,
+      "Total Consumido": item.totalConsumido,
+      "Saldo": item.saldo,
+      "% Consumido": Number(item.percentual.toFixed(1)),
+      "Observações": item.observacoes || "",
+    }));
+    const wsResumo = XLSX.utils.json_to_sheet(resumoData);
+    XLSX.utils.book_append_sheet(wb, wsResumo, "Resumo");
+
+    // Créditos
+    const creditosData: any[] = [];
+    consolidado.forEach((item: any) => {
+      (item.creditosList || []).forEach((c: any) => {
+        creditosData.push({
+          "Regional": item.regional?.sigla || "—",
+          "Data": new Date(c.data_credito).toLocaleDateString("pt-BR"),
+          "Tipo": tipoLabels[c.tipo] || c.tipo,
+          "Nº Documento": c.numero_documento || "",
+          "Descrição": c.descricao,
+          "Valor": c.tipo === "reducao" ? -Number(c.valor) : Number(c.valor),
+        });
+      });
+    });
+    if (creditosData.length) {
+      const wsCreditos = XLSX.utils.json_to_sheet(creditosData);
+      XLSX.utils.book_append_sheet(wb, wsCreditos, "Créditos");
+    }
+
+    // Empenhos
+    const empenhosData: any[] = [];
+    consolidado.forEach((item: any) => {
+      (item.empenhosList || []).forEach((e: any) => {
+        empenhosData.push({
+          "Regional": item.regional?.sigla || "—",
+          "Data": new Date(e.data_empenho).toLocaleDateString("pt-BR"),
+          "Nº Empenho": e.numero_empenho || "",
+          "Descrição": e.descricao,
+          "Valor": Number(e.valor),
+        });
+      });
+    });
+    if (empenhosData.length) {
+      const wsEmpenhos = XLSX.utils.json_to_sheet(empenhosData);
+      XLSX.utils.book_append_sheet(wb, wsEmpenhos, "Empenhos");
+    }
+
+    XLSX.writeFile(wb, `Orcamento_${exercicio}.xlsx`);
+    toast.success("Planilha exportada!");
+  };
+
   // Mutations
   const saveDotacao = useMutation({
     mutationFn: async (values: { id?: string; regional_id: string; exercicio: number; valor_dotacao?: number; observacoes: string }) => {
@@ -227,6 +290,9 @@ export default function GestaoOrcamento() {
               {yearRange.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
             </SelectContent>
           </Select>
+          <Button variant="outline" onClick={exportToXLS} disabled={!consolidado.length}>
+            <FileSpreadsheet className="mr-2 h-4 w-4" /> Exportar XLS
+          </Button>
           {isNacional && (
             <Button onClick={() => setDotacaoDialog({ open: true })}>
               <Plus className="mr-2 h-4 w-4" /> Novo Orçamento
