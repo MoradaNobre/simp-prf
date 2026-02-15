@@ -137,7 +137,7 @@ export default function GestaoOrcamento() {
     // Resumo
     const resumoData = consolidado.map((item: any) => ({
       "Regional": item.regional?.sigla || "—",
-      "Nome": item.regional?.nome || "—",
+      
       "Exercício": exercicio,
       "Dotação Base": Number(item.valor_dotacao),
       "Dotação Total": item.dotacaoTotal,
