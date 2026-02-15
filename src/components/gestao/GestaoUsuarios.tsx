@@ -147,7 +147,7 @@ const roleLabels: Record<string, string> = {
 const roleColors: Record<string, string> = {
   gestor_nacional: "destructive",
   gestor_regional: "default",
-  fiscal_contrato: "secondary",
+  fiscal_contrato: "warning",
   operador: "outline",
   preposto: "success",
   terceirizado: "outline",
