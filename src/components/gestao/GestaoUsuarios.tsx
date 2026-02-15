@@ -163,6 +163,18 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
   const updateRole = useUpdateUserRole();
   const updateRegionais = useUpdateUserRegionais();
   const qc = useQueryClient();
+
+  const { data: emailMap } = useQuery({
+    queryKey: ["user-emails"],
+    queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return {};
+      const res = await supabase.functions.invoke("list-user-emails");
+      if (res.error) throw res.error;
+      return (res.data || {}) as Record<string, string>;
+    },
+    enabled: currentUserRole === "gestor_nacional",
+  });
   const isMobile = useIsMobile();
   const [search, setSearch] = useState("");
   const [editUser, setEditUser] = useState<UserWithRole | null>(null);
@@ -384,6 +396,10 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
             <div>
               <Label>Nome</Label>
               <Input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Nome completo" />
+            </div>
+            <div>
+              <Label>E-mail</Label>
+              <p className="text-sm text-muted-foreground mt-1">{editUser ? (emailMap?.[editUser.user_id] || "Não disponível") : "—"}</p>
             </div>
             <div>
               <Label>Telefone</Label>
