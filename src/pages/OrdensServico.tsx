@@ -30,7 +30,6 @@ import { toast } from "sonner";
 
 const statusColors: Record<string, string> = {
   aberta: "bg-info text-info-foreground",
-  triagem: "bg-warning text-warning-foreground",
   orcamento: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
   autorizacao: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
   execucao: "bg-accent text-accent-foreground",
@@ -39,7 +38,7 @@ const statusColors: Record<string, string> = {
   encerrada: "bg-muted text-muted-foreground",
 };
 const statusLabels: Record<string, string> = {
-  aberta: "Aberta", triagem: "Triagem", orcamento: "Orçamento", autorizacao: "Aguardando Autorização",
+  aberta: "Aberta", orcamento: "Orçamento", autorizacao: "Aguardando Autorização",
   execucao: "Execução", ateste: "Ateste", pagamento: "Pagamento", encerrada: "Encerrada",
 };
 const prioridadeColors: Record<string, string> = {
@@ -48,7 +47,7 @@ const prioridadeColors: Record<string, string> = {
 
 const prioridadeOrder: Record<string, number> = { baixa: 0, media: 1, alta: 2, urgente: 3 };
 const statusOrder: Record<string, number> = {
-  aberta: 0, triagem: 1, orcamento: 2, autorizacao: 3, execucao: 4, ateste: 5, pagamento: 6, encerrada: 7,
+  aberta: 0, orcamento: 1, autorizacao: 2, execucao: 3, ateste: 4, pagamento: 5, encerrada: 6,
 };
 
 type SortKey = "codigo" | "titulo" | "regional" | "delegacia" | "unidade" | "valor" | "status" | "prioridade" | "data";
@@ -231,8 +230,8 @@ export default function OrdensServico() {
               <div className="space-y-1.5">
                 <p className="text-sm font-medium text-foreground">Status que requerem sua ação:</p>
                 <div className="flex flex-wrap gap-2">
-                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors["triagem"]}`}>
-                    Triagem
+                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors["aberta"]}`}>
+                    Aberta
                   </span>
                   <span className="text-xs text-muted-foreground">— Vincular contrato e encaminhar para orçamento</span>
                 </div>

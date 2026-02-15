@@ -392,7 +392,6 @@ export type Database = {
           responsavel_encerramento_id: string | null
           responsavel_execucao_id: string | null
           responsavel_id: string | null
-          responsavel_triagem_id: string | null
           solicitante_id: string
           status: Database["public"]["Enums"]["os_status"]
           tipo: Database["public"]["Enums"]["os_tipo"]
@@ -421,7 +420,6 @@ export type Database = {
           responsavel_encerramento_id?: string | null
           responsavel_execucao_id?: string | null
           responsavel_id?: string | null
-          responsavel_triagem_id?: string | null
           solicitante_id: string
           status?: Database["public"]["Enums"]["os_status"]
           tipo?: Database["public"]["Enums"]["os_tipo"]
@@ -450,7 +448,6 @@ export type Database = {
           responsavel_encerramento_id?: string | null
           responsavel_execucao_id?: string | null
           responsavel_id?: string | null
-          responsavel_triagem_id?: string | null
           solicitante_id?: string
           status?: Database["public"]["Enums"]["os_status"]
           tipo?: Database["public"]["Enums"]["os_tipo"]
@@ -924,7 +921,6 @@ export type Database = {
       os_prioridade: "baixa" | "media" | "alta" | "urgente"
       os_status:
         | "aberta"
-        | "triagem"
         | "orcamento"
         | "autorizacao"
         | "execucao"
@@ -1080,7 +1076,6 @@ export const Constants = {
       os_prioridade: ["baixa", "media", "alta", "urgente"],
       os_status: [
         "aberta",
-        "triagem",
         "orcamento",
         "autorizacao",
         "execucao",

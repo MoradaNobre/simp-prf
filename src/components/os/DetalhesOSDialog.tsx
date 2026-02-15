@@ -21,10 +21,10 @@ import { generateOSReport } from "@/utils/generateOSReport";
 import { useQuery } from "@tanstack/react-query";
 
 const statusLabels: Record<string, string> = {
-  aberta: "Aberta", triagem: "Triagem", orcamento: "Orçamento", autorizacao: "Aguardando Autorização",
+  aberta: "Aberta", orcamento: "Orçamento", autorizacao: "Aguardando Autorização",
   execucao: "Execução", ateste: "Ateste", pagamento: "Pagamento", encerrada: "Encerrada",
 };
-const statusFlow = ["aberta", "triagem", "orcamento", "autorizacao", "execucao", "ateste", "pagamento", "encerrada"];
+const statusFlow = ["aberta", "orcamento", "autorizacao", "execucao", "ateste", "pagamento", "encerrada"];
 const prioridadeLabels: Record<string, string> = {
   baixa: "Baixa", media: "Média", alta: "Alta", urgente: "Urgente",
 };
@@ -34,7 +34,6 @@ const prioridadeColors: Record<string, string> = {
 
 const statusColors: Record<string, string> = {
   aberta: "bg-info text-info-foreground",
-  triagem: "bg-warning text-warning-foreground",
   orcamento: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
   autorizacao: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
   execucao: "bg-accent text-accent-foreground",
@@ -104,8 +103,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   const canAdvance = (() => {
     if (!nextStatus) return false;
     switch (nextStatus) {
-      case "triagem": return isGestorOrFiscal; // vincular contrato
-      case "orcamento": return isGestorOrFiscal; // after triagem, move to orcamento
+      case "orcamento": return isGestorOrFiscal; // vincular contrato e encaminhar
       case "autorizacao": return isPreposto || isTerceirizado; // upload budget
       case "execucao": return isGestorOrFiscal; // authorize execution
       case "ateste": return isPreposto || isTerceirizado; // submit execution evidence
@@ -129,9 +127,9 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   const handleAdvanceStatus = async () => {
     if (!nextStatus) return;
 
-    // Validation for triagem: must link contract
-    if (nextStatus === "triagem" && !selectedContratoId) {
-      toast.error("Vincule um contrato antes de avançar para Triagem");
+    // Validation for orcamento: must link contract
+    if (nextStatus === "orcamento" && !selectedContratoId) {
+      toast.error("Vincule um contrato antes de encaminhar para Orçamento");
       return;
     }
 
@@ -151,7 +149,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
     try {
       const updates: any = { id: os.id, status: nextStatus, motivo_restituicao: null };
 
-      if (nextStatus === "triagem") {
+      if (nextStatus === "orcamento" && selectedContratoId) {
         updates.contrato_id = selectedContratoId;
       }
 
@@ -164,8 +162,8 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
       await updateOS.mutateAsync(updates);
       toast.success(`Status alterado para ${statusLabels[nextStatus]}`);
 
-      // Notify preposto when advancing to triagem
-      if (nextStatus === "triagem" && selectedContratoId) {
+      // Notify preposto when advancing to orcamento (contract linked)
+      if (nextStatus === "orcamento" && selectedContratoId) {
         try {
           await supabase.functions.invoke("notify-preposto", {
             body: { os_id: os.id, contrato_id: selectedContratoId, app_url: window.location.origin },
@@ -508,12 +506,12 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
 
           {/* === STEP-SPECIFIC ACTIONS === */}
 
-          {/* TRIAGEM: vincular contrato */}
-          {canAdvance && nextStatus === "triagem" && (
+          {/* ABERTA → ORCAMENTO: vincular contrato e encaminhar */}
+          {canAdvance && nextStatus === "orcamento" && (
             <>
               <Separator />
               <div className="space-y-3">
-                <h4 className="text-sm font-medium">Triagem — Vincular Contrato</h4>
+                <h4 className="text-sm font-medium">Vincular Contrato e Encaminhar para Orçamento</h4>
                 <Select value={selectedContratoId || "none"} onValueChange={(v) => setSelectedContratoId(v === "none" ? "" : v)}>
                   <SelectTrigger><SelectValue placeholder="Selecione o contrato" /></SelectTrigger>
                   <SelectContent>
@@ -547,9 +545,10 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                     </div>
                   );
                 })()}
+                <p className="text-sm text-muted-foreground">Vincule o contrato e encaminhe para que o preposto/terceirizado elabore o orçamento.</p>
                 <Button onClick={handleAdvanceStatus} disabled={uploading} className="w-full">
                   {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Avançar para Triagem
+                  Encaminhar para Orçamento
                 </Button>
               </div>
             </>
@@ -627,20 +626,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
             </>
           )}
 
-          {/* Move to orcamento (after triagem) */}
-          {canAdvance && nextStatus === "orcamento" && (
-            <>
-              <Separator />
-              <div className="space-y-3">
-                <h4 className="text-sm font-medium">Encaminhar para Orçamento</h4>
-                <p className="text-sm text-muted-foreground">Após a triagem, encaminhe a OS para que o preposto/terceirizado elabore o orçamento.</p>
-                <Button onClick={handleAdvanceStatus} disabled={uploading} className="w-full">
-                  {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Encaminhar para Orçamento
-                </Button>
-              </div>
-            </>
-          )}
+          {/* (orcamento section now merged into aberta above) */}
 
           {/* EXECUCAO → ATESTE: preposto/terceirizado submits evidence */}
           {canAdvance && nextStatus === "ateste" && (
@@ -810,7 +796,6 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                       const responsavelIds = [
                         os.solicitante_id,
                         os.responsavel_id,
-                        os.responsavel_triagem_id,
                         os.responsavel_execucao_id,
                         os.responsavel_encerramento_id,
                       ].filter(Boolean) as string[];
@@ -829,7 +814,6 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
 
                       // Also check contato names for responsáveis that are contato IDs
                       const contatoIds = [
-                        os.responsavel_triagem_id,
                         os.responsavel_execucao_id,
                         os.responsavel_encerramento_id,
                       ].filter(Boolean) as string[];
@@ -860,7 +844,6 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                       const responsaveis = [
                         { etapa: "Solicitante", nome: getName(os.solicitante_id) },
                         ...(os.responsavel_id ? [{ etapa: "Responsável", nome: getName(os.responsavel_id) }] : []),
-                        ...(os.responsavel_triagem_id ? [{ etapa: "Triagem", nome: getName(os.responsavel_triagem_id) }] : []),
                         ...(os.responsavel_execucao_id ? [{ etapa: "Execução", nome: getName(os.responsavel_execucao_id) }] : []),
                         ...(os.responsavel_encerramento_id ? [{ etapa: "Encerramento", nome: getName(os.responsavel_encerramento_id) }] : []),
                       ];

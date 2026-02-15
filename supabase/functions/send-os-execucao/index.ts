@@ -40,7 +40,7 @@ Deno.serve(async (req) => {
     // Get OS with contract info
     const { data: os, error: osErr } = await supabase
       .from("ordens_servico")
-      .select("id, codigo, titulo, contrato_id, responsavel_execucao_id, responsavel_triagem_id")
+      .select("id, codigo, titulo, contrato_id, responsavel_execucao_id")
       .eq("id", os_id)
       .single();
 
