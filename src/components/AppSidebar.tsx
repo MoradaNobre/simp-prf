@@ -97,7 +97,7 @@ export function AppSidebar() {
                       to={item.url}
                       end
                       className="hover:bg-sidebar-accent/50"
-                      activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                      activeClassName="bg-sidebar-accent text-yellow-400 font-medium"
                     >
                       <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
@@ -117,7 +117,7 @@ export function AppSidebar() {
                         to="/app/orcamento"
                         end
                         className="hover:bg-sidebar-accent/50"
-                        activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                        activeClassName="bg-sidebar-accent text-yellow-400 font-medium"
                       >
                         <DollarSign className="h-4 w-4" />
                         <span>Gestão do Orçamento</span>
@@ -134,7 +134,7 @@ export function AppSidebar() {
                         to="/app/gestao"
                         end
                         className="hover:bg-sidebar-accent/50"
-                        activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                        activeClassName="bg-sidebar-accent text-yellow-400 font-medium"
                       >
                         <Shield className="h-4 w-4" />
                         <span>Gestão do Sistema</span>
