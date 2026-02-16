@@ -14,6 +14,7 @@ import Contratos from "@/pages/Contratos";
 import Login from "@/pages/Login";
 import AlterarSenha from "@/pages/AlterarSenha";
 import Gestao from "@/pages/Gestao";
+import Sobre from "@/pages/Sobre";
 
 import Relatorios from "@/pages/Relatorios";
 import GestaoOrcamento from "@/pages/GestaoOrcamento";
@@ -44,6 +45,7 @@ const App = () => (
                 <Route path="orcamento" element={<GestaoOrcamento />} />
                 
                 <Route path="relatorios" element={<Relatorios />} />
+                <Route path="sobre" element={<Sobre />} />
               </Route>
               <Route path="/definir-responsavel/:osId" element={<DefinirResponsavel />} />
               <Route path="*" element={<NotFound />} />

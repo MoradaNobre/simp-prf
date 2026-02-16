@@ -5,7 +5,7 @@ import {
   FileText,
   LogOut,
   Shield,
-  
+  Info,
   User,
   FileBarChart,
   DollarSign,
@@ -167,6 +167,23 @@ export function AppSidebar() {
           </div>
         )}
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              isActive={location.pathname === "/app/sobre"}
+              tooltip="Sobre o Sistema"
+            >
+              <NavLink
+                to="/app/sobre"
+                end
+                className="hover:bg-sidebar-accent/50"
+                activeClassName="bg-sidebar-accent text-yellow-400 font-medium"
+              >
+                <Info className="h-4 w-4" />
+                <span>Sobre</span>
+              </NavLink>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
               <button onClick={handleLogout} className="w-full flex items-center gap-2 text-sidebar-foreground/70 hover:text-sidebar-foreground">
