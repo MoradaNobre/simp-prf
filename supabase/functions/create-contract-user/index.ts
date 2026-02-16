@@ -23,7 +23,7 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+    const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY");
 
     // Verify caller using getClaims
     const callerClient = createClient(supabaseUrl, anonKey, {
@@ -197,20 +197,20 @@ Deno.serve(async (req) => {
 
     // Send welcome email with credentials if user was just created
     let emailSent = false;
-    if (userCreated && tempPassword && RESEND_API_KEY) {
+    if (userCreated && tempPassword && BREVO_API_KEY) {
       const loginUrl = app_url ? `${app_url}/login` : "https://simp-prf.lovable.app/login";
       try {
-        const emailRes = await fetch("https://api.resend.com/emails", {
+        const emailRes = await fetch("https://api.brevo.com/v3/smtp/email", {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${RESEND_API_KEY}`,
+            "api-key": BREVO_API_KEY,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            from: "SIMP-PRF <noreply@simp.estudioai.site>",
-            to: [trimmedEmail],
+            sender: { name: "SIMP-PRF", email: "noreply@simp.estudioai.site" },
+            to: [{ email: trimmedEmail }],
             subject: "[SIMP-PRF] Sua conta foi criada — Acesse o sistema",
-            html: `
+            htmlContent: `
               <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                 <h2 style="color: #1e3a5f;">SIMP-PRF — Bem-vindo(a) ao Sistema</h2>
                 <p>Olá, <strong>${trimmedName}</strong>!</p>
@@ -236,7 +236,7 @@ Deno.serve(async (req) => {
         const emailData = await emailRes.json();
         emailSent = emailRes.ok;
         if (!emailRes.ok) {
-          console.error("Resend error:", emailData);
+          console.error("Brevo error:", emailData);
         }
       } catch (emailErr) {
         console.error("Email send error:", emailErr);
