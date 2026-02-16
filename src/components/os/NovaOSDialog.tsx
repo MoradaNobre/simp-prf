@@ -268,7 +268,7 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={handleSubmit} disabled={submitting || !categoria || !descricao.trim()}>
+          <Button onClick={handleSubmit} disabled={submitting || !categoria || !descricao.trim() || !regionalId}>
             {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Criar OS
           </Button>
