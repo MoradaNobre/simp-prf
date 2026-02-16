@@ -8,17 +8,17 @@ const corsHeaders = {
 
 type EmailType = "recovery" | "signup" | "invite";
 
-const emailTemplates: Record<
-  EmailType,
-  {
-    subject: string;
-    title: string;
-    description: string;
-    buttonText: string;
-    footer: string;
-    color: string;
-  }
-> = {
+interface EmailTemplate {
+  subject: string;
+  title: string;
+  description: string;
+  buttonText: string;
+  footer: string;
+  color: string;
+  needsLink: boolean;
+}
+
+const emailTemplates: Record<EmailType, EmailTemplate> = {
   recovery: {
     subject: "Redefinição de senha - SIMP-PRF",
     title: "Redefinição de Senha",
@@ -28,15 +28,17 @@ const emailTemplates: Record<
     footer:
       "Se você não solicitou esta alteração, ignore este e-mail. O link expira em 24 horas.",
     color: "#1a3a5c",
+    needsLink: true,
   },
   signup: {
-    subject: "Confirme seu cadastro no SIMP-PRF",
-    title: "Confirme seu E-mail",
+    subject: "Bem-vindo ao SIMP-PRF!",
+    title: "Bem-vindo ao SIMP-PRF!",
     description:
-      "Olá! Recebemos uma solicitação de cadastro com este endereço de e-mail. Clique no botão abaixo para confirmar sua conta.",
-    buttonText: "Confirmar Cadastro",
+      "Sua conta foi criada com sucesso no Sistema de Manutenção Predial. Clique no botão abaixo para acessar o sistema.",
+    buttonText: "Acessar o Sistema",
     footer: "Se você não solicitou este cadastro, ignore este e-mail.",
     color: "#1a3a5c",
+    needsLink: false,
   },
   invite: {
     subject: "Você foi convidado para o SIMP-PRF",
@@ -46,13 +48,11 @@ const emailTemplates: Record<
     buttonText: "Aceitar Convite",
     footer: "Se você não reconhece este convite, ignore este e-mail.",
     color: "#1a3a5c",
+    needsLink: true,
   },
 };
 
-function buildEmailHtml(
-  template: (typeof emailTemplates)[EmailType],
-  actionUrl: string
-): string {
+function buildEmailHtml(template: EmailTemplate, actionUrl: string): string {
   return `
 <div style="max-width:520px;margin:0 auto;font-family:Arial,sans-serif;background:#f4f6f9;padding:32px 16px">
   <div style="background:#fff;border-radius:12px;padding:32px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.06)">
@@ -87,10 +87,11 @@ Deno.serve(async (req) => {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    const { email, type, redirect_to } = await req.json() as {
+    const { email, type, redirect_to, app_url } = await req.json() as {
       email: string;
       type: EmailType;
       redirect_to?: string;
+      app_url?: string;
     };
 
     if (!email || !type) {
@@ -100,45 +101,52 @@ Deno.serve(async (req) => {
       );
     }
 
-    if (!emailTemplates[type]) {
+    const template = emailTemplates[type];
+    if (!template) {
       return new Response(
         JSON.stringify({ error: `Invalid type: ${type}. Must be recovery, signup, or invite` }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    let actionUrl: string;
 
-    // Generate auth link using admin API (does NOT send the default email)
-    const linkType = type === "recovery" ? "recovery" : type === "signup" ? "signup" : "invite";
+    if (template.needsLink) {
+      // Generate auth link using admin API (recovery, invite)
+      const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+      const linkType = type === "recovery" ? "recovery" : "invite";
 
-    const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
-      type: linkType,
-      email: email.trim().toLowerCase(),
-      options: {
-        redirectTo: redirect_to || undefined,
-      },
-    });
+      const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
+        type: linkType,
+        email: email.trim().toLowerCase(),
+        options: {
+          redirectTo: redirect_to || undefined,
+        },
+      });
 
-    if (linkError) {
-      console.error("Generate link error:", linkError);
-      return new Response(
-        JSON.stringify({ error: linkError.message }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+      if (linkError) {
+        console.error("Generate link error:", linkError);
+        return new Response(
+          JSON.stringify({ error: linkError.message }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
 
-    const actionLink = linkData?.properties?.action_link;
-    if (!actionLink) {
-      return new Response(
-        JSON.stringify({ error: "Failed to generate action link" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      actionUrl = linkData?.properties?.action_link || "";
+      if (!actionUrl) {
+        return new Response(
+          JSON.stringify({ error: "Failed to generate action link" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    } else {
+      // For signup (auto-confirm enabled), just link to the login page
+      const baseUrl = app_url || redirect_to || "https://simp-prf.lovable.app";
+      actionUrl = `${baseUrl}/login`;
     }
 
     // Build branded email
-    const template = emailTemplates[type];
-    const html = buildEmailHtml(template, actionLink);
+    const html = buildEmailHtml(template, actionUrl);
 
     // Send via Resend
     const emailRes = await fetch("https://api.resend.com/emails", {
