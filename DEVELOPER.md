@@ -4,8 +4,6 @@
 
 **Desenvolvedor:** Daniel Nunes de Ávila  
 **E-mail:** daniel.avila@prf.gov.br  
-**Telefone:** (a definir)  
+**Telefone:** (81) 9.9507-3100
 
 ---
-
-*Projeto desenvolvido com Lovable + Lovable Cloud.*
