@@ -81,8 +81,8 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-    if (!RESEND_API_KEY) throw new Error("RESEND_API_KEY not configured");
+    const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY");
+    if (!BREVO_API_KEY) throw new Error("BREVO_API_KEY not configured");
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -112,7 +112,6 @@ Deno.serve(async (req) => {
     let actionUrl: string;
 
     if (template.needsLink) {
-      // Generate auth link using admin API (recovery, invite)
       const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
       const linkType = type === "recovery" ? "recovery" : "invite";
 
@@ -140,41 +139,39 @@ Deno.serve(async (req) => {
         );
       }
     } else {
-      // For signup (auto-confirm enabled), just link to the login page
       const baseUrl = app_url || redirect_to || "https://simp-prf.lovable.app";
       actionUrl = `${baseUrl}/login`;
     }
 
-    // Build branded email
     const html = buildEmailHtml(template, actionUrl);
 
-    // Send via Resend
-    const emailRes = await fetch("https://api.resend.com/emails", {
+    // Send via Brevo
+    const emailRes = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${RESEND_API_KEY}`,
+        "api-key": BREVO_API_KEY,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "SIMP-PRF <noreply@simp.estudioai.site>",
-        to: [email.trim().toLowerCase()],
+        sender: { name: "SIMP-PRF", email: "noreply@simp.estudioai.site" },
+        to: [{ email: email.trim().toLowerCase() }],
         subject: template.subject,
-        html,
+        htmlContent: html,
       }),
     });
 
     const emailData = await emailRes.json();
 
     if (!emailRes.ok) {
-      console.error("Resend error:", emailData);
+      console.error("Brevo error:", emailData);
       return new Response(
-        JSON.stringify({ error: "Falha ao enviar e-mail: " + (emailData.message ?? "erro desconhecido") }),
+        JSON.stringify({ error: "Falha ao enviar e-mail: " + (emailData.message ?? JSON.stringify(emailData)) }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     return new Response(
-      JSON.stringify({ success: true, email_id: emailData.id }),
+      JSON.stringify({ success: true, email_id: emailData.messageId }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: unknown) {

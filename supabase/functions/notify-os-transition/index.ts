@@ -29,8 +29,8 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-    if (!RESEND_API_KEY) throw new Error("RESEND_API_KEY not configured");
+    const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY");
+    if (!BREVO_API_KEY) throw new Error("BREVO_API_KEY not configured");
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -68,7 +68,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Determine regional_id (direct or via uop -> delegacia -> regional)
+    // Determine regional_id
     let regionalId = os.regional_id;
     if (!regionalId && os.uop_id) {
       const { data: uop } = await supabase
@@ -91,14 +91,11 @@ Deno.serve(async (req) => {
     const isRestitution = motivo_restituicao && from_status !== to_status;
 
     if (isRestitution) {
-      // Restitution: notify ONLY whoever needs to redo the step
       switch (to_status) {
         case "orcamento":
-          // Only preposto needs to redo the budget
           await addPrepostoEmails(supabase, os.contrato_id, recipientEmails);
           break;
         case "execucao":
-          // Preposto + specific execution responsible (if set)
           await addPrepostoEmails(supabase, os.contrato_id, recipientEmails);
           if (os.responsavel_execucao_id) {
             const { data: contato } = await supabase
@@ -112,37 +109,27 @@ Deno.serve(async (req) => {
           }
           break;
         case "pagamento":
-          // Only preposto needs to resubmit payment docs
           await addPrepostoEmails(supabase, os.contrato_id, recipientEmails);
           break;
         case "autorizacao":
         case "ateste":
-          // Internal users (gestor regional / fiscal) need to act
           await addRegionalGestorEmails(supabase, regionalId, recipientEmails);
           await addFiscalEmails(supabase, recipientEmails);
           break;
       }
     } else {
-      // Normal transition
       switch (to_status) {
         case "aberta":
-          // Gestor regional needs to know about new OS
           await addRegionalGestorEmails(supabase, regionalId, recipientEmails);
           break;
-
         case "orcamento":
-          // Preposto needs to submit budget
           await addPrepostoEmails(supabase, os.contrato_id, recipientEmails);
           break;
-
         case "autorizacao":
-          // Gestor regional + fiscal need to approve
           await addRegionalGestorEmails(supabase, regionalId, recipientEmails);
           await addFiscalEmails(supabase, recipientEmails);
           break;
-
         case "execucao":
-          // Preposto + specific execution responsible only
           await addPrepostoEmails(supabase, os.contrato_id, recipientEmails);
           if (os.responsavel_execucao_id) {
             const { data: contato } = await supabase
@@ -155,21 +142,14 @@ Deno.serve(async (req) => {
             }
           }
           break;
-
         case "ateste":
-          // Gestor regional + fiscal need to validate execution
           await addRegionalGestorEmails(supabase, regionalId, recipientEmails);
           await addFiscalEmails(supabase, recipientEmails);
           break;
-
         case "pagamento":
-          // Preposto needs to submit payment docs
           await addPrepostoEmails(supabase, os.contrato_id, recipientEmails);
           break;
-
         case "encerrada":
-          // When preposto submits payment docs, notify gestor/fiscal to close
-          // When OS is actually closed, also notify preposto
           await addRegionalGestorEmails(supabase, regionalId, recipientEmails);
           await addFiscalEmails(supabase, recipientEmails);
           await addPrepostoEmails(supabase, os.contrato_id, recipientEmails);
@@ -183,30 +163,30 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Build email
     const { subject, html } = buildEmail(os, from_status, to_status, isRestitution ? motivo_restituicao : undefined);
 
-    const emailRes = await fetch("https://api.resend.com/emails", {
+    // Send via Brevo
+    const emailRes = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${RESEND_API_KEY}`,
+        "api-key": BREVO_API_KEY,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "SIMP-PRF <noreply@simp.estudioai.site>",
-        to: recipientEmails,
+        sender: { name: "SIMP-PRF", email: "noreply@simp.estudioai.site" },
+        to: recipientEmails.map(e => ({ email: e })),
         subject,
-        html,
+        htmlContent: html,
       }),
     });
 
     const emailData = await emailRes.json();
 
     if (!emailRes.ok) {
-      console.error("Resend error:", emailData);
+      console.error("Brevo error:", emailData);
       return new Response(JSON.stringify({
         success: false,
-        warning: "Email não enviado: " + (emailData.message ?? "erro desconhecido"),
+        warning: "Email não enviado: " + (emailData.message ?? JSON.stringify(emailData)),
         recipients: recipientEmails,
       }), {
         status: 200,
@@ -214,7 +194,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    return new Response(JSON.stringify({ success: true, email_id: emailData.id, recipients: recipientEmails }), {
+    return new Response(JSON.stringify({ success: true, email_id: emailData.messageId, recipients: recipientEmails }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error: unknown) {
@@ -241,22 +221,8 @@ async function addPrepostoEmails(supabase: any, contratoId: string | null, email
   }
 }
 
-async function addContratoContatoEmails(supabase: any, contratoId: string | null, emails: string[]) {
-  if (!contratoId) return;
-  const { data: contatos } = await supabase
-    .from("contrato_contatos")
-    .select("email")
-    .eq("contrato_id", contratoId);
-  if (contatos) {
-    contatos.forEach((c: any) => {
-      if (c.email && !emails.includes(c.email)) emails.push(c.email);
-    });
-  }
-}
-
 async function addRegionalGestorEmails(supabase: any, regionalId: string | null, emails: string[]) {
   if (!regionalId) return;
-  // Find users with gestor_regional role who have this regional
   const { data: userRegionais } = await supabase
     .from("user_regionais")
     .select("user_id")
@@ -265,7 +231,6 @@ async function addRegionalGestorEmails(supabase: any, regionalId: string | null,
 
   const userIds = userRegionais.map((ur: any) => ur.user_id);
 
-  // Filter to only gestor_regional
   const { data: roles } = await supabase
     .from("user_roles")
     .select("user_id")
@@ -273,7 +238,6 @@ async function addRegionalGestorEmails(supabase: any, regionalId: string | null,
     .in("user_id", userIds);
   if (!roles?.length) return;
 
-  // Get emails via admin API
   for (const r of roles) {
     const { data: userData } = await supabase.auth.admin.getUserById(r.user_id);
     if (userData?.user?.email && !emails.includes(userData.user.email)) {
@@ -411,7 +375,6 @@ function buildEmail(
         <div style="text-align: center; margin: 25px 0 15px;">
           <a href="${appUrl}" style="display: inline-block; background-color: ${actionColor}; color: white; text-decoration: none; padding: 12px 30px; border-radius: 6px; font-weight: bold; font-size: 14px;">Acessar o Sistema</a>
         </div>
-        
       </div>
       <div style="background-color: #f5f5f5; padding: 15px; text-align: center; font-size: 12px; color: #888;">
         SIMP-PRF — Sistema de Manutenção Predial da PRF

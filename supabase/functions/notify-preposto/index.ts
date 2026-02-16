@@ -12,13 +12,12 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-    if (!RESEND_API_KEY) throw new Error("RESEND_API_KEY not configured");
+    const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY");
+    if (!BREVO_API_KEY) throw new Error("BREVO_API_KEY not configured");
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // Validate auth
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -38,7 +37,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Get contract info (preposto email)
     const { data: contrato, error: cErr } = await supabase
       .from("contratos")
       .select("numero, empresa, preposto_nome, preposto_email")
@@ -59,7 +57,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Get OS info
     const { data: os, error: osErr } = await supabase
       .from("ordens_servico")
       .select("codigo, titulo")
@@ -75,18 +72,18 @@ Deno.serve(async (req) => {
 
     const selectionUrl = `${app_url}/definir-responsavel/${os_id}`;
 
-    // Send email via Resend
-    const emailRes = await fetch("https://api.resend.com/emails", {
+    // Send via Brevo
+    const emailRes = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${RESEND_API_KEY}`,
+        "api-key": BREVO_API_KEY,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "SIMP-PRF <noreply@simp.estudioai.site>",
-        to: [contrato.preposto_email],
+        sender: { name: "SIMP-PRF", email: "noreply@simp.estudioai.site" },
+        to: [{ email: contrato.preposto_email }],
         subject: `[SIMP-PRF] Definir responsável - ${os.codigo}`,
-        html: `
+        htmlContent: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #1e3a5f;">SIMP-PRF — Nova Ordem de Serviço Encaminhada</h2>
             <p>Olá, <strong>${contrato.preposto_nome ?? "Preposto"}</strong>!</p>
@@ -107,11 +104,10 @@ Deno.serve(async (req) => {
 
     const emailData = await emailRes.json();
     if (!emailRes.ok) {
-      console.error("Resend error:", emailData);
-      // Return partial success so the OS flow isn't blocked
+      console.error("Brevo error:", emailData);
       return new Response(JSON.stringify({ 
         success: false, 
-        warning: "Email não enviado: " + (emailData.message ?? "erro desconhecido"),
+        warning: "Email não enviado: " + (emailData.message ?? JSON.stringify(emailData)),
         details: emailData,
       }), {
         status: 200,
@@ -119,7 +115,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    return new Response(JSON.stringify({ success: true, email_id: emailData.id }), {
+    return new Response(JSON.stringify({ success: true, email_id: emailData.messageId }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error: unknown) {
