@@ -42,16 +42,38 @@ export default function Login() {
           },
         });
         if (error) throw error;
+
+        // Send branded confirmation email via custom edge function
+        try {
+          await supabase.functions.invoke("send-auth-email", {
+            body: {
+              email,
+              type: "signup",
+              redirect_to: window.location.origin,
+            },
+          });
+        } catch (emailErr) {
+          console.error("Custom email error:", emailErr);
+        }
+
         toast.success("Conta criada! Verifique seu e-mail para confirmar o cadastro.");
         setEmail("");
         setPassword("");
         setFullName("");
         setMode("login");
       } else if (mode === "forgot") {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/login`,
+        // Use custom edge function instead of default resetPasswordForEmail
+        const { data, error } = await supabase.functions.invoke("send-auth-email", {
+          body: {
+            email,
+            type: "recovery",
+            redirect_to: `${window.location.origin}/login`,
+          },
         });
+
         if (error) throw error;
+        if (data?.error) throw new Error(data.error);
+
         toast.success("E-mail de recuperação enviado! Verifique sua caixa de entrada.");
         setMode("login");
       } else if (mode === "reset") {
