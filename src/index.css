@@ -111,3 +111,8 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* Sidebar active item: yellow text */
+[data-sidebar="menu-button"][data-active="true"] {
+  color: hsl(45, 100%, 51%) !important;
+}
