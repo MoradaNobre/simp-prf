@@ -31,14 +31,14 @@ const emailTemplates: Record<EmailType, EmailTemplate> = {
     needsLink: true,
   },
   signup: {
-    subject: "Bem-vindo ao SIMP-PRF!",
-    title: "Bem-vindo ao SIMP-PRF!",
+    subject: "Confirme seu cadastro - SIMP-PRF",
+    title: "Confirme seu Cadastro",
     description:
-      "Sua conta foi criada com sucesso no Sistema de Manutenção Predial. Clique no botão abaixo para acessar o sistema.",
-    buttonText: "Acessar o Sistema",
-    footer: "Se você não solicitou este cadastro, ignore este e-mail.",
+      "Sua conta foi criada no Sistema de Manutenção Predial. Clique no botão abaixo para confirmar seu e-mail e ativar sua conta.",
+    buttonText: "Confirmar E-mail",
+    footer: "Se você não solicitou este cadastro, ignore este e-mail. O link expira em 24 horas.",
     color: "#1a3a5c",
-    needsLink: false,
+    needsLink: true,
   },
   invite: {
     subject: "Você foi convidado para o SIMP-PRF",
@@ -113,7 +113,7 @@ Deno.serve(async (req) => {
 
     if (template.needsLink) {
       const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-      const linkType = type === "recovery" ? "recovery" : "invite";
+      const linkType = type === "recovery" ? "recovery" : type === "signup" ? "signup" : "invite";
 
       const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
         type: linkType,
