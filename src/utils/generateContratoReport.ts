@@ -131,7 +131,7 @@ export async function generateContratoReport(contrato: ContratoData) {
     doc.setFontSize(9);
     doc.text(label, indent, y);
     doc.setFont("helvetica", "normal");
-    const lw = doc.getTextWidth(label) + 2;
+    const lw = doc.getTextWidth(label) + 4;
     const maxW = pw - indent - lw - 14;
     const lines = doc.splitTextToSize(value || "—", maxW > 20 ? maxW : 60);
     doc.text(lines, indent + lw, y);
