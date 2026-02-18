@@ -1,0 +1,30 @@
+
+-- Update handle_new_user to also link regional from user metadata
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $function$
+DECLARE
+  _regional_id uuid;
+BEGIN
+  INSERT INTO public.profiles (user_id, full_name)
+  VALUES (NEW.id, COALESCE(NEW.raw_user_meta_data->>'full_name', ''));
+  
+  -- Default role: operador
+  INSERT INTO public.user_roles (user_id, role)
+  VALUES (NEW.id, 'operador');
+
+  -- If regional_id was provided in signup metadata, link user to that regional
+  _regional_id := (NEW.raw_user_meta_data->>'regional_id')::uuid;
+  IF _regional_id IS NOT NULL THEN
+    UPDATE public.profiles SET regional_id = _regional_id WHERE user_id = NEW.id;
+    INSERT INTO public.user_regionais (user_id, regional_id)
+    VALUES (NEW.id, _regional_id)
+    ON CONFLICT DO NOTHING;
+  END IF;
+  
+  RETURN NEW;
+END;
+$function$;

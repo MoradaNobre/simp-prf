@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { Shield, Loader2, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -14,10 +17,23 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [regionalId, setRegionalId] = useState("");
+  const [regionais, setRegionais] = useState<{ id: string; nome: string; sigla: string }[]>([]);
   const [mode, setMode] = useState<Mode>("login");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  const isPrfEmail = email.trim().toLowerCase().endsWith("@prf.gov.br");
+
+  // Fetch regionais when user switches to signup mode with @prf.gov.br email
+  useEffect(() => {
+    if (mode === "signup" && isPrfEmail && regionais.length === 0) {
+      supabase.from("regionais").select("id, nome, sigla").order("sigla").then(({ data }) => {
+        if (data) setRegionais(data);
+      });
+    }
+  }, [mode, isPrfEmail]);
 
   // Check if we're on a password reset callback
   useState(() => {
@@ -33,20 +49,28 @@ export default function Login() {
 
     try {
       if (mode === "signup") {
+        const metadata: Record<string, string> = { full_name: fullName };
+        if (isPrfEmail && regionalId) {
+          metadata.regional_id = regionalId;
+        }
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             emailRedirectTo: window.location.origin,
-            data: { full_name: fullName },
+            data: metadata,
           },
         });
         if (error) throw error;
 
+        if (isPrfEmail && !regionalId) {
+          toast.warning("Conta criada, mas sem regional vinculada. Peça a um administrador para vincular.");
+        }
         toast.success("Conta criada! Verifique seu e-mail para confirmar o cadastro.");
         setEmail("");
         setPassword("");
         setFullName("");
+        setRegionalId("");
         setMode("login");
       } else if (mode === "forgot") {
         // Use custom edge function instead of default resetPasswordForEmail
@@ -173,6 +197,26 @@ export default function Login() {
                       onChange={(e) => setFullName(e.target.value)}
                       required
                     />
+                  </div>
+                )}
+                {mode === "signup" && isPrfEmail && (
+                  <div className="space-y-2">
+                    <Label>Regional *</Label>
+                    <Select value={regionalId} onValueChange={setRegionalId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione sua regional..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {regionais.map((r) => (
+                          <SelectItem key={r.id} value={r.id}>
+                            {r.sigla} — {r.nome}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Selecione a regional onde você trabalha para poder criar OS imediatamente.
+                    </p>
                   </div>
                 )}
                 <div className="space-y-2">
