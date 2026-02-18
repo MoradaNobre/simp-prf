@@ -22,17 +22,23 @@ function shortBRL(value: number) {
   return `R$ ${value.toFixed(0)}`;
 }
 
-export default function DashboardOrcamento() {
+interface DashboardOrcamentoProps {
+  regionalId?: string | null;
+}
+
+export default function DashboardOrcamento({ regionalId }: DashboardOrcamentoProps) {
   const [exercicio, setExercicio] = useState(currentYear);
 
   const { data: orcamentos, isLoading: orcLoading } = useQuery({
-    queryKey: ["dash-orcamento-anual", exercicio],
+    queryKey: ["dash-orcamento-anual", exercicio, regionalId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let q = supabase
         .from("orcamento_anual" as any)
         .select("*, regional:regionais(id, nome, sigla)")
         .eq("exercicio", exercicio)
         .order("created_at");
+      if (regionalId) q = q.eq("regional_id", regionalId);
+      const { data, error } = await q;
       if (error) throw error;
       return data as any[];
     },

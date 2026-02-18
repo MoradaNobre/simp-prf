@@ -183,7 +183,7 @@ export default function Dashboard() {
             <DashboardOperacional data={data} isLoading={isLoading} />
           </TabsContent>
           <TabsContent value="orcamento" className="mt-4">
-            <DashboardOrcamento />
+            <DashboardOrcamento regionalId={effectiveRegionalId} />
           </TabsContent>
         </Tabs>
       ) : (
