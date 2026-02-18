@@ -74,7 +74,7 @@ Deno.serve(async (req) => {
     await adminClient.from("ordens_servico").update({ responsavel_id: null }).eq("responsavel_id", user_id);
     await adminClient.from("ordens_servico").update({ responsavel_execucao_id: null }).eq("responsavel_execucao_id", user_id);
     await adminClient.from("ordens_servico").update({ responsavel_encerramento_id: null }).eq("responsavel_encerramento_id", user_id);
-    await adminClient.from("contratos").update({ preposto_user_id: null }).eq("preposto_user_id", user_id);
+    await adminClient.from("contratos").update({ preposto_user_id: null, preposto_nome: null, preposto_email: null, preposto_telefone: null }).eq("preposto_user_id", user_id);
     await adminClient.from("contrato_contatos").update({ user_id: null }).eq("user_id", user_id);
     await adminClient.from("relatorios_execucao").update({ gerado_por_id: callerId }).eq("gerado_por_id", user_id);
     await adminClient.from("relatorios_os").update({ gerado_por_id: callerId }).eq("gerado_por_id", user_id);
