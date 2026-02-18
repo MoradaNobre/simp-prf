@@ -19,6 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useRegionais } from "@/hooks/useHierarchy";
 import { toast } from "sonner";
 import { Search, Loader2, Trash2, Ban, CheckCircle, AlertTriangle } from "lucide-react";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Constants } from "@/integrations/supabase/types";
 
@@ -160,6 +161,7 @@ interface Props {
 
 export default function GestaoUsuarios({ currentUserRole }: Props) {
   const { data: users, isLoading } = useAdminUsers();
+  const { data: profile } = useUserProfile();
   const regionais = useRegionais();
   const updateRole = useUpdateUserRole();
   const updateRegionais = useUpdateUserRegionais();
@@ -187,10 +189,18 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
   const [toggling, setToggling] = useState<string | null>(null);
 
   const isNacional = currentUserRole === "gestor_nacional";
+  const isRegional = currentUserRole === "gestor_regional";
 
-  const filtered = (users || []).filter((u) =>
-    u.full_name.toLowerCase().includes(search.toLowerCase())
-  );
+  // For gestor_regional, only show users that share at least one regional
+  const userRegionalIds: string[] = (profile as any)?.regionais?.map((r: any) => r.id) ?? [];
+
+  const filtered = (users || []).filter((u) => {
+    if (!u.full_name.toLowerCase().includes(search.toLowerCase())) return false;
+    if (isRegional && userRegionalIds.length > 0) {
+      return u.regionais.some((r) => userRegionalIds.includes(r.id));
+    }
+    return true;
+  });
 
   const openEdit = (user: UserWithRole) => {
     if (!isNacional) return;
