@@ -123,7 +123,7 @@ export default function Contratos() {
                 const saldo = s ? Number(s.saldo) : null;
                 const pct = s && c.valor_total > 0 ? Math.round((Number(s.total_custos) / c.valor_total) * 100) : 0;
                 const hoje = new Date();
-                const computedStatus = hoje >= new Date(c.data_inicio) && hoje <= new Date(c.data_fim) ? "vigente" : "encerrado";
+                const computedStatus = hoje >= new Date(c.data_inicio + "T00:00:00") && hoje <= new Date(c.data_fim + "T23:59:59") ? "vigente" : "encerrado";
                 return (
                   <Card key={c.id} className="border">
                     <CardContent className="p-4 space-y-2">
@@ -143,7 +143,7 @@ export default function Contratos() {
                         <span className={`text-right ${saldo !== null && saldo < 0 ? "text-destructive font-medium" : ""}`}>
                           Saldo: {saldo !== null ? saldo.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "—"}
                         </span>
-                        <span>{format(new Date(c.data_inicio), "dd/MM/yy")} — {format(new Date(c.data_fim), "dd/MM/yy")}</span>
+                        <span>{format(new Date(c.data_inicio + "T00:00:00"), "dd/MM/yy")} — {format(new Date(c.data_fim + "T00:00:00"), "dd/MM/yy")}</span>
                         <span className="text-right">{pct}% utilizado</span>
                       </div>
                       {(c as any).preposto_nome && (
@@ -238,7 +238,7 @@ export default function Contratos() {
                       })()}
                     </TableCell>
                     <TableCell className="text-sm">
-                      {format(new Date(c.data_inicio), "dd/MM/yyyy")} — {format(new Date(c.data_fim), "dd/MM/yyyy")}
+                      {format(new Date(c.data_inicio + "T00:00:00"), "dd/MM/yyyy")} — {format(new Date(c.data_fim + "T00:00:00"), "dd/MM/yyyy")}
                     </TableCell>
                     <TableCell className="text-sm">
                       {(c as any).preposto_nome ? (
@@ -262,8 +262,8 @@ export default function Contratos() {
                     <TableCell>
                       {(() => {
                         const hoje = new Date();
-                        const inicio = new Date(c.data_inicio);
-                        const fim = new Date(c.data_fim);
+                        const inicio = new Date(c.data_inicio + "T00:00:00");
+                        const fim = new Date(c.data_fim + "T23:59:59");
                         const computedStatus = hoje >= inicio && hoje <= fim ? "vigente" : "encerrado";
                         return (
                           <Badge variant={computedStatus === "vigente" ? "default" : "secondary"}>{computedStatus}</Badge>
