@@ -40,6 +40,15 @@ const roleLabels: Record<string, string> = {
   terceirizado: "Terceirizado",
 };
 
+const roleColors: Record<string, string> = {
+  gestor_nacional: "destructive",
+  gestor_regional: "default",
+  fiscal_contrato: "warning",
+  operador: "outline",
+  preposto: "success",
+  terceirizado: "secondary",
+};
+
 const allMenuItems = [
   { title: "Dashboard", url: "/app/dashboard", icon: LayoutDashboard, roles: ["gestor_nacional", "gestor_regional", "fiscal_contrato", "operador"] },
   { title: "Ordens de Serviço", url: "/app/ordens", icon: ClipboardList, roles: null }, // all roles
@@ -159,7 +168,7 @@ export function AppSidebar() {
                 {profile.full_name || "Sem nome"}
               </span>
               {role && (
-                <Badge variant="secondary" className="text-[10px] w-fit px-1.5 py-0">
+                <Badge variant={(roleColors[role] || "secondary") as any} className="text-[10px] w-fit px-1.5 py-0">
                   {roleLabels[role] || role}
                 </Badge>
               )}
