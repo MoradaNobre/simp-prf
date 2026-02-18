@@ -26,14 +26,14 @@ export default function Login() {
 
   const isPrfEmail = email.trim().toLowerCase().endsWith("@prf.gov.br");
 
-  // Fetch regionais when user switches to signup mode with @prf.gov.br email
+  // Fetch regionais when entering signup mode
   useEffect(() => {
-    if (mode === "signup" && isPrfEmail && regionais.length === 0) {
+    if (mode === "signup" && regionais.length === 0) {
       supabase.from("regionais").select("id, nome, sigla").order("sigla").then(({ data }) => {
         if (data) setRegionais(data);
       });
     }
-  }, [mode, isPrfEmail]);
+  }, [mode]);
 
   // Check if we're on a password reset callback
   useState(() => {
@@ -199,6 +199,17 @@ export default function Login() {
                     />
                   </div>
                 )}
+                <div className="space-y-2">
+                  <Label htmlFor="email">E-mail</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="seu@email.gov.br"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
                 {mode === "signup" && isPrfEmail && (
                   <div className="space-y-2">
                     <Label>Regional *</Label>
@@ -206,7 +217,7 @@ export default function Login() {
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione sua regional..." />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-popover z-50">
                         {regionais.map((r) => (
                           <SelectItem key={r.id} value={r.id}>
                             {r.sigla} — {r.nome}
@@ -219,17 +230,6 @@ export default function Login() {
                     </p>
                   </div>
                 )}
-                <div className="space-y-2">
-                  <Label htmlFor="email">E-mail</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="seu@email.gov.br"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="password">Senha</Label>
