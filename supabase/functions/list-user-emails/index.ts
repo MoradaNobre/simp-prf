@@ -44,9 +44,9 @@ Deno.serve(async (req) => {
     const { data: usersData, error: listErr } = await adminClient.auth.admin.listUsers({ perPage: 1000 });
     if (listErr) throw listErr;
 
-    const emailMap: Record<string, string> = {};
+    const emailMap: Record<string, { email: string; confirmed: boolean }> = {};
     (usersData?.users || []).forEach((u) => {
-      if (u.email) emailMap[u.id] = u.email;
+      if (u.email) emailMap[u.id] = { email: u.email, confirmed: !!u.email_confirmed_at };
     });
 
     return new Response(JSON.stringify(emailMap), { headers: { ...corsHeaders, "Content-Type": "application/json" } });

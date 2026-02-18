@@ -18,7 +18,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useRegionais } from "@/hooks/useHierarchy";
 import { toast } from "sonner";
-import { Search, Loader2, Trash2, Ban, CheckCircle } from "lucide-react";
+import { Search, Loader2, Trash2, Ban, CheckCircle, AlertTriangle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Constants } from "@/integrations/supabase/types";
 
 type UserRegional = { id: string; nome: string; sigla: string };
@@ -171,7 +172,7 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
       if (!session) return {};
       const res = await supabase.functions.invoke("list-user-emails");
       if (res.error) throw res.error;
-      return (res.data || {}) as Record<string, string>;
+      return (res.data || {}) as Record<string, { email: string; confirmed: boolean }>;
     },
     enabled: currentUserRole === "gestor_nacional",
   });
@@ -286,7 +287,19 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
             <div key={u.id} className={`border rounded-lg p-4 space-y-2 ${!u.ativo ? "opacity-50" : ""}`}>
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="font-medium text-sm">{u.full_name || "Sem nome"}</p>
+                  <p className="font-medium text-sm">
+                    {u.full_name || "Sem nome"}
+                    {emailMap?.[u.user_id] && !emailMap[u.user_id].confirmed && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <AlertTriangle className="inline ml-1 h-3.5 w-3.5 text-yellow-500" />
+                          </TooltipTrigger>
+                          <TooltipContent>E-mail não confirmado</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                  </p>
                   <Badge variant={roleColors[u.role || "operador"] as any} className="text-xs mt-1">
                     {roleLabels[u.role || "operador"]}
                   </Badge>
@@ -327,7 +340,19 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
           <TableBody>
             {filtered.map((u) => (
               <TableRow key={u.id} className={!u.ativo ? "opacity-50" : undefined}>
-                <TableCell className="font-medium">{u.full_name || "Sem nome"}</TableCell>
+                <TableCell className="font-medium">
+                  {u.full_name || "Sem nome"}
+                  {emailMap?.[u.user_id] && !emailMap[u.user_id].confirmed && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <AlertTriangle className="inline ml-1.5 h-4 w-4 text-yellow-500" />
+                        </TooltipTrigger>
+                        <TooltipContent>E-mail não confirmado</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
+                </TableCell>
                 <TableCell>
                   <Badge variant={roleColors[u.role || "operador"] as any}>
                     {roleLabels[u.role || "operador"]}
@@ -399,7 +424,12 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
             </div>
             <div>
               <Label>E-mail</Label>
-              <p className="text-sm text-muted-foreground mt-1">{editUser ? (emailMap?.[editUser.user_id] || "Não disponível") : "—"}</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                {editUser ? (emailMap?.[editUser.user_id]?.email || "Não disponível") : "—"}
+                {editUser && emailMap?.[editUser.user_id] && !emailMap[editUser.user_id].confirmed && (
+                  <span className="ml-2 text-yellow-500 text-xs font-medium">⚠ Não confirmado</span>
+                )}
+              </p>
             </div>
             <div>
               <Label>Telefone</Label>
