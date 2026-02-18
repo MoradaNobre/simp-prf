@@ -541,7 +541,12 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                     {contratosAll
                       .filter((c) => {
                         const hoje = new Date();
-                        return hoje >= new Date(c.data_inicio) && hoje <= new Date(c.data_fim);
+                        const vigente = hoje >= new Date(c.data_inicio + "T00:00:00") && hoje <= new Date(c.data_fim + "T23:59:59");
+                        if (!vigente) return false;
+                        // Filter by OS regional
+                        const osRegionalId = (os as any).regional_id;
+                        if (osRegionalId && c.regional_id) return c.regional_id === osRegionalId;
+                        return true;
                       })
                       .map((c) => (
                       <SelectItem key={c.id} value={c.id}>
