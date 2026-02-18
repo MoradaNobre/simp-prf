@@ -38,7 +38,7 @@ function useDashboardData(regionalId?: string | null) {
     queryKey: ["dashboard-stats", regionalId],
     queryFn: async () => {
       const [osRes, uopsRes, delegaciasRes, custosRes] = await Promise.all([
-        supabase.from("ordens_servico").select("id, status, tipo, prioridade, data_abertura, data_encerramento, uop_id, valor_orcamento, updated_at"),
+        supabase.from("ordens_servico").select("id, status, tipo, prioridade, data_abertura, data_encerramento, uop_id, regional_id, valor_orcamento, updated_at"),
         supabase.from("uops").select("id, area_m2, delegacia_id"),
         regionalId
           ? supabase.from("delegacias").select("id").eq("regional_id", regionalId)
@@ -53,11 +53,12 @@ function useDashboardData(regionalId?: string | null) {
       let os = osRes.data ?? [];
       const custos = custosRes.data ?? [];
 
-      if (regionalId && delegaciasRes.data) {
-        const delegaciaIds = new Set(delegaciasRes.data.map(d => d.id));
+      if (regionalId) {
+        // Filter OS: match by direct regional_id OR by uop in the regional's delegacias
+        const delegaciaIds = delegaciasRes.data ? new Set(delegaciasRes.data.map(d => d.id)) : new Set<string>();
+        const uopIdsInRegional = new Set(uops.filter(u => delegaciaIds.has(u.delegacia_id)).map(u => u.id));
+        os = os.filter(o => o.regional_id === regionalId || (o.uop_id && uopIdsInRegional.has(o.uop_id)));
         uops = uops.filter(u => delegaciaIds.has(u.delegacia_id));
-        const uopIds = new Set(uops.map(u => u.id));
-        os = os.filter(o => o.uop_id && uopIds.has(o.uop_id));
       }
 
       const mesAtual = startOfMonth(new Date());
@@ -154,7 +155,7 @@ function formatBRL(value: number) {
 }
 
 export default function Dashboard() {
-  const { isNacional, effectiveRegionalId, selectedRegionalId, setSelectedRegionalId } = useRegionalFilter();
+  const { isNacional, canFilterRegional, effectiveRegionalId, selectedRegionalId, setSelectedRegionalId } = useRegionalFilter();
   const { data: role } = useUserRole();
   const { data, isLoading } = useDashboardData(effectiveRegionalId);
   const isGestorNacional = role === "gestor_nacional";
@@ -167,7 +168,7 @@ export default function Dashboard() {
           <p className="text-muted-foreground text-sm">Visão geral — dados em tempo real</p>
         </div>
         <div className="flex items-center gap-2">
-          {isNacional && (
+          {canFilterRegional && (
             <RegionalFilterSelect value={selectedRegionalId} onChange={setSelectedRegionalId} />
           )}
         </div>
