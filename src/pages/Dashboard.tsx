@@ -12,6 +12,10 @@ import { useRegionalFilter } from "@/hooks/useRegionalFilter";
 import { RegionalFilterSelect } from "@/components/RegionalFilterSelect";
 import { useUserRole } from "@/hooks/useUserRole";
 import DashboardOrcamento from "@/components/dashboard/DashboardOrcamento";
+import { useContratos } from "@/hooks/useContratos";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 
 const statusLabels: Record<string, string> = {
   aberta: "Aberta", orcamento: "Orçamento", autorizacao: "Aguard. Autorização",
@@ -33,12 +37,12 @@ const statusCardColors: Record<string, string> = {
   encerrada: "text-muted-foreground",
 };
 
-function useDashboardData(regionalId?: string | null) {
+function useDashboardData(regionalId?: string | null, contratoId?: string | null) {
   return useQuery({
-    queryKey: ["dashboard-stats", regionalId],
+    queryKey: ["dashboard-stats", regionalId, contratoId],
     queryFn: async () => {
       const [osRes, uopsRes, delegaciasRes, custosRes] = await Promise.all([
-        supabase.from("ordens_servico").select("id, status, tipo, prioridade, data_abertura, data_encerramento, uop_id, regional_id, valor_orcamento, updated_at"),
+        supabase.from("ordens_servico").select("id, status, tipo, prioridade, data_abertura, data_encerramento, uop_id, regional_id, valor_orcamento, updated_at, contrato_id"),
         supabase.from("uops").select("id, area_m2, delegacia_id"),
         regionalId
           ? supabase.from("delegacias").select("id").eq("regional_id", regionalId)
@@ -54,11 +58,15 @@ function useDashboardData(regionalId?: string | null) {
       const custos = custosRes.data ?? [];
 
       if (regionalId) {
-        // Filter OS: match by direct regional_id OR by uop in the regional's delegacias
         const delegaciaIds = delegaciasRes.data ? new Set(delegaciasRes.data.map(d => d.id)) : new Set<string>();
         const uopIdsInRegional = new Set(uops.filter(u => delegaciaIds.has(u.delegacia_id)).map(u => u.id));
         os = os.filter(o => o.regional_id === regionalId || (o.uop_id && uopIdsInRegional.has(o.uop_id)));
         uops = uops.filter(u => delegaciaIds.has(u.delegacia_id));
+      }
+
+      // Filter by contract
+      if (contratoId) {
+        os = os.filter(o => o.contrato_id === contratoId);
       }
 
       const mesAtual = startOfMonth(new Date());
@@ -83,19 +91,16 @@ function useDashboardData(regionalId?: string | null) {
       const pctCorretiva = Math.round((corretivas / totalOS) * 100);
       const pctPreventiva = Math.round((preventivas / totalOS) * 100);
 
-      // OS count by priority (only open)
       const osPorPrioridade: Record<string, number> = {};
       for (const p of ["baixa", "media", "alta", "urgente"]) {
         osPorPrioridade[p] = abertas.filter((o) => o.prioridade === p).length;
       }
 
-      // OS count by status
       const osPorStatus: Record<string, number> = {};
       for (const s of Object.keys(statusLabels)) {
         osPorStatus[s] = os.filter((o) => o.status === s).length;
       }
 
-      // Financial metrics
       const osIds = new Set(os.map(o => o.id));
       const custosFiltered = custos.filter(c => osIds.has(c.os_id));
 
@@ -106,7 +111,6 @@ function useDashboardData(regionalId?: string | null) {
       const areaTotal = uops.reduce((s, u) => s + (u.area_m2 ?? 0), 0);
       const custoM2 = areaTotal > 0 ? valorTotalCustos / areaTotal : 0;
 
-      // Average time per stage (hours) - based on how long current OS have been in their stage
       const now = new Date();
       const tempoPorEtapa: Record<string, { total: number; count: number }> = {};
       for (const s of Object.keys(statusLabels)) {
@@ -157,7 +161,9 @@ function formatBRL(value: number) {
 export default function Dashboard() {
   const { isNacional, canFilterRegional, effectiveRegionalId, selectedRegionalId, setSelectedRegionalId } = useRegionalFilter();
   const { data: role } = useUserRole();
-  const { data, isLoading } = useDashboardData(effectiveRegionalId);
+  const [selectedContratoId, setSelectedContratoId] = useState<string>("");
+  const { data, isLoading } = useDashboardData(effectiveRegionalId, selectedContratoId || null);
+  const { data: contratos = [] } = useContratos(effectiveRegionalId);
   const isGestorNacional = role === "gestor_nacional";
 
   return (
@@ -167,10 +173,23 @@ export default function Dashboard() {
           <h1 className="text-xl sm:text-2xl font-bold text-foreground">Dashboard</h1>
           <p className="text-muted-foreground text-sm">Visão geral — dados em tempo real</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {canFilterRegional && (
             <RegionalFilterSelect value={selectedRegionalId} onChange={setSelectedRegionalId} />
           )}
+          <Select value={selectedContratoId || "all"} onValueChange={(v) => setSelectedContratoId(v === "all" ? "" : v)}>
+            <SelectTrigger className="w-56">
+              <SelectValue placeholder="Filtrar Contrato" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os Contratos</SelectItem>
+              {contratos.map((c: any) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.numero} — {c.empresa}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
