@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,10 +18,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useRegionais } from "@/hooks/useHierarchy";
 import { toast } from "sonner";
-import { Search, Loader2, Trash2, Ban, CheckCircle, AlertTriangle } from "lucide-react";
+import { Search, Loader2, Trash2, Ban, CheckCircle, AlertTriangle, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Constants } from "@/integrations/supabase/types";
+
+type SortField = "full_name" | "role" | "regionais" | "ativo";
+type SortDir = "asc" | "desc";
 
 type UserRegional = { id: string; nome: string; sigla: string };
 
@@ -180,6 +183,11 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
   });
   const isMobile = useIsMobile();
   const [search, setSearch] = useState("");
+  const [filterRole, setFilterRole] = useState<string>("all");
+  const [filterRegionalId, setFilterRegionalId] = useState<string>("all");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [sortField, setSortField] = useState<SortField>("full_name");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [editUser, setEditUser] = useState<UserWithRole | null>(null);
   const [editRole, setEditRole] = useState("");
   const [editRegionalIds, setEditRegionalIds] = useState<string[]>([]);
@@ -191,16 +199,58 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
   const isNacional = currentUserRole === "gestor_nacional";
   const isRegional = currentUserRole === "gestor_regional";
 
-  // For gestor_regional, only show users that share at least one regional
   const userRegionalIds: string[] = (profile as any)?.regionais?.map((r: any) => r.id) ?? [];
 
-  const filtered = (users || []).filter((u) => {
-    if (!u.full_name.toLowerCase().includes(search.toLowerCase())) return false;
-    if (isRegional && userRegionalIds.length > 0) {
-      return u.regionais.some((r) => userRegionalIds.includes(r.id));
+  const toggleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDir(prev => prev === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDir("asc");
     }
-    return true;
-  });
+  };
+
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) return <ArrowUpDown className="inline ml-1 h-3.5 w-3.5 opacity-40" />;
+    return sortDir === "asc"
+      ? <ArrowUp className="inline ml-1 h-3.5 w-3.5" />
+      : <ArrowDown className="inline ml-1 h-3.5 w-3.5" />;
+  };
+
+  const filtered = useMemo(() => {
+    let list = (users || []).filter((u) => {
+      if (search && !u.full_name.toLowerCase().includes(search.toLowerCase())) return false;
+      if (filterRole !== "all" && u.role !== filterRole) return false;
+      if (filterRegionalId !== "all" && !u.regionais.some(r => r.id === filterRegionalId)) return false;
+      if (filterStatus === "ativo" && !u.ativo) return false;
+      if (filterStatus === "inativo" && u.ativo) return false;
+      if (isRegional && userRegionalIds.length > 0) {
+        return u.regionais.some((r) => userRegionalIds.includes(r.id));
+      }
+      return true;
+    });
+
+    list.sort((a, b) => {
+      let cmp = 0;
+      switch (sortField) {
+        case "full_name":
+          cmp = (a.full_name || "").localeCompare(b.full_name || "");
+          break;
+        case "role":
+          cmp = (roleLabels[a.role || "operador"] || "").localeCompare(roleLabels[b.role || "operador"] || "");
+          break;
+        case "regionais":
+          cmp = (a.regionais.map(r => r.sigla).join(", ") || "").localeCompare(b.regionais.map(r => r.sigla).join(", ") || "");
+          break;
+        case "ativo":
+          cmp = (a.ativo === b.ativo ? 0 : a.ativo ? -1 : 1);
+          break;
+      }
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+
+    return list;
+  }, [users, search, filterRole, filterRegionalId, filterStatus, sortField, sortDir, isRegional, userRegionalIds]);
 
   const openEdit = (user: UserWithRole) => {
     if (!isNacional) return;
@@ -278,11 +328,37 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <div className="relative flex-1 max-w-sm">
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative flex-1 min-w-[180px] max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Buscar por nome..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
+        <Select value={filterRole} onValueChange={setFilterRole}>
+          <SelectTrigger className="w-[160px]"><SelectValue placeholder="Papel" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os papéis</SelectItem>
+            {Constants.public.Enums.app_role.map((r) => (
+              <SelectItem key={r} value={r}>{roleLabels[r] || r}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={filterRegionalId} onValueChange={setFilterRegionalId}>
+          <SelectTrigger className="w-[160px]"><SelectValue placeholder="Regional" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas regionais</SelectItem>
+            {(regionais.data || []).map((r) => (
+              <SelectItem key={r.id} value={r.id}>{r.sigla}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={filterStatus} onValueChange={setFilterStatus}>
+          <SelectTrigger className="w-[130px]"><SelectValue placeholder="Status" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="ativo">Ativo</SelectItem>
+            <SelectItem value="inativo">Inativo</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {isLoading ? (
@@ -340,10 +416,10 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>Papel</TableHead>
-              <TableHead>Regionais</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead className="cursor-pointer select-none" onClick={() => toggleSort("full_name")}>Nome <SortIcon field="full_name" /></TableHead>
+              <TableHead className="cursor-pointer select-none" onClick={() => toggleSort("role")}>Papel <SortIcon field="role" /></TableHead>
+              <TableHead className="cursor-pointer select-none" onClick={() => toggleSort("regionais")}>Regionais <SortIcon field="regionais" /></TableHead>
+              <TableHead className="cursor-pointer select-none" onClick={() => toggleSort("ativo")}>Status <SortIcon field="ativo" /></TableHead>
               <TableHead className="w-32">Ações</TableHead>
             </TableRow>
           </TableHeader>
