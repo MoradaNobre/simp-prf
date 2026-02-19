@@ -910,11 +910,11 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                       <CheckCircle className="h-4 w-4" /> Ateste do Serviço
                     </h4>
                     <p className="text-sm text-muted-foreground">
-                      Aprove a execução do serviço e autorize o pagamento.
+                      Aprove a execução do serviço e autorize a emissão da nota fiscal.
                     </p>
                     <Button onClick={handleAdvanceStatus} disabled={uploading} className="w-full">
                       {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Aprovar e Autorizar Pagamento
+                      Aprovar e Autorizar Emissão da Nota Fiscal
                     </Button>
                   </>
                 )}
