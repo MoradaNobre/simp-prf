@@ -28,7 +28,7 @@ export function EditarOSDialog({ os, open, onOpenChange }: Props) {
   const { data: role } = useUserRole();
   const { data: profile } = useUserProfile();
 
-  const isNacional = role === "gestor_nacional" || role === "fiscal_contrato";
+  const isNacional = role === "gestor_nacional";
   const userRegionais: any[] = (profile as any)?.regionais || [];
   const regionais = isNacional ? allRegionais : userRegionais;
 

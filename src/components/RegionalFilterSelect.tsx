@@ -15,7 +15,7 @@ export function RegionalFilterSelect({ value, onChange }: RegionalFilterSelectPr
   const { data: role } = useUserRole();
   const { data: profile } = useUserProfile();
 
-  const isNacional = role === "gestor_nacional" || role === "fiscal_contrato";
+  const isNacional = role === "gestor_nacional";
   const userRegionais: any[] = (profile as any)?.regionais || [];
 
   // gestor_nacional/fiscal see all; others see only their linked regionais
