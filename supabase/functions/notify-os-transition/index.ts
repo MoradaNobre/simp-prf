@@ -216,8 +216,35 @@ async function addPrepostoEmails(supabase: any, contratoId: string | null, email
     .select("preposto_email, preposto_user_id")
     .eq("id", contratoId)
     .single();
-  if (contrato?.preposto_email && !emails.includes(contrato.preposto_email)) {
-    emails.push(contrato.preposto_email);
+  if (!contrato) return;
+
+  // Try preposto_email first (may be plain string or JSON object)
+  let email: string | null = null;
+  if (contrato.preposto_email) {
+    if (typeof contrato.preposto_email === "string") {
+      // Could be a JSON string like {"email":"...","confirmed":true}
+      try {
+        const parsed = JSON.parse(contrato.preposto_email);
+        email = parsed.email || null;
+      } catch {
+        // Plain email string
+        email = contrato.preposto_email;
+      }
+    } else if (typeof contrato.preposto_email === "object" && contrato.preposto_email.email) {
+      email = contrato.preposto_email.email;
+    }
+  }
+
+  // Fallback: look up email via preposto_user_id from auth
+  if (!email && contrato.preposto_user_id) {
+    const { data: userData } = await supabase.auth.admin.getUserById(contrato.preposto_user_id);
+    if (userData?.user?.email) {
+      email = userData.user.email;
+    }
+  }
+
+  if (email && !emails.includes(email)) {
+    emails.push(email);
   }
 }
 
