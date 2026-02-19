@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
@@ -15,7 +15,8 @@ import { useContratos, useContratosSaldo } from "@/hooks/useContratos";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Camera, DollarSign, User, FileText, Upload, CheckCircle, Download, Undo2 } from "lucide-react";
+import { Loader2, Camera, DollarSign, User, FileText, Upload, CheckCircle, Download, Undo2, AlertTriangle, TrendingDown } from "lucide-react";
+import { useOrcamentoRegional } from "@/hooks/useOrcamentoRegional";
 import { Textarea } from "@/components/ui/textarea";
 import { generateOSReport } from "@/utils/generateOSReport";
 import { generateOSExecucaoReport } from "@/utils/generateOSExecucaoReport";
@@ -629,40 +630,13 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
 
           {/* AUTORIZACAO → EXECUCAO: gestor/fiscal authorizes */}
           {canAdvance && nextStatus === "execucao" && (
-            <>
-              <Separator />
-              <div className="space-y-3">
-                <h4 className="text-sm font-medium flex items-center gap-1">
-                  <CheckCircle className="h-4 w-4" /> Autorização para Execução
-                </h4>
-                {(os as any).arquivo_orcamento && (
-                  <div className="text-sm p-3 bg-muted rounded-md space-y-1">
-                    <p><span className="text-muted-foreground">Orçamento:</span> R$ {Number((os as any).valor_orcamento).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
-                    <a href={(os as any).arquivo_orcamento} target="_blank" rel="noopener noreferrer" className="text-primary underline text-sm">
-                      Ver arquivo do orçamento
-                    </a>
-                  </div>
-                )}
-                {os.contrato_id && (() => {
-                  const s = saldos.find((x: any) => x.id === os.contrato_id);
-                  const c = contratosAll.find(x => x.id === os.contrato_id);
-                  if (!s || !c) return null;
-                  const saldo = Number((s as any).saldo);
-                  const pct = c.valor_total > 0 ? Math.round((Number((s as any).total_custos) / c.valor_total) * 100) : 0;
-                  return (
-                    <div className="text-sm p-2 rounded-md border bg-muted/50 flex items-center gap-3">
-                      <DollarSign className="h-4 w-4 text-muted-foreground" />
-                      <span>Saldo do contrato: <strong className={saldo < 0 ? "text-destructive" : ""}>{saldo.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</strong></span>
-                      <span className="text-muted-foreground">({pct}% utilizado)</span>
-                    </div>
-                  );
-                })()}
-                <Button onClick={handleAdvanceStatus} disabled={uploading} className="w-full">
-                  {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Autorizar Execução
-                </Button>
-              </div>
-            </>
+            <AutorizacaoPanel
+              os={os}
+              contratosAll={contratosAll}
+              saldos={saldos}
+              uploading={uploading}
+              onAdvance={handleAdvanceStatus}
+            />
           )}
 
           {/* (orcamento section now merged into aberta above) */}
@@ -1068,5 +1042,161 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/** Panel for the authorization step with budget alerts */
+function AutorizacaoPanel({
+  os,
+  contratosAll,
+  saldos,
+  uploading,
+  onAdvance,
+}: {
+  os: OrdemServico;
+  contratosAll: any[];
+  saldos: any[];
+  uploading: boolean;
+  onAdvance: () => void;
+}) {
+  const regionalId = (os as any).regional_id as string | null;
+  const { data: orcamento, isLoading: orcLoading } = useOrcamentoRegional(regionalId);
+  const valorOS = Number((os as any).valor_orcamento) || 0;
+
+  // Contract balance
+  const contrato = contratosAll.find(c => c.id === os.contrato_id);
+  const saldoInfo = saldos.find((s: any) => s.id === os.contrato_id);
+  const saldoContrato = saldoInfo ? Number((saldoInfo as any).saldo) : null;
+  const contratoInsuficiente = saldoContrato !== null && valorOS > saldoContrato;
+
+  // Budget balance
+  const saldoOrcamento = orcamento?.saldoDisponivel ?? null;
+  const orcamentoInsuficiente = saldoOrcamento !== null && valorOS > saldoOrcamento;
+  const orcamentoNaoEmpenhado = orcamento?.saldoNaoEmpenhado ?? null;
+
+  const bloqueado = contratoInsuficiente || orcamentoInsuficiente;
+
+  const formatBRL = (v: number) =>
+    v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+  return (
+    <>
+      <Separator />
+      <div className="space-y-3">
+        <h4 className="text-sm font-medium flex items-center gap-1">
+          <CheckCircle className="h-4 w-4" /> Autorização para Execução
+        </h4>
+
+        {/* Budget file */}
+        {(os as any).arquivo_orcamento && (
+          <div className="text-sm p-3 bg-muted rounded-md space-y-1">
+            <p>
+              <span className="text-muted-foreground">Orçamento da OS:</span>{" "}
+              <strong>{formatBRL(valorOS)}</strong>
+            </p>
+            <a href={(os as any).arquivo_orcamento} target="_blank" rel="noopener noreferrer" className="text-primary underline text-sm">
+              Ver arquivo do orçamento
+            </a>
+          </div>
+        )}
+
+        {/* === SALDO DO CONTRATO === */}
+        {os.contrato_id && contrato && (
+          <div className={`text-sm p-3 rounded-md border space-y-1 ${
+            contratoInsuficiente
+              ? "border-destructive/50 bg-destructive/10"
+              : "bg-muted/50"
+          }`}>
+            <p className="font-medium flex items-center gap-1">
+              <DollarSign className="h-4 w-4" /> Saldo do Contrato
+            </p>
+            <div className="flex flex-wrap gap-x-4 gap-y-1">
+              <span className="text-muted-foreground">
+                Valor Global: {formatBRL(contrato.valor_total)}
+              </span>
+              {saldoContrato !== null && (
+                <span className={saldoContrato < 0 ? "text-destructive font-medium" : ""}>
+                  Saldo: {formatBRL(saldoContrato)}
+                </span>
+              )}
+            </div>
+            {contratoInsuficiente && (
+              <p className="text-destructive text-xs flex items-center gap-1 mt-1">
+                <AlertTriangle className="h-3.5 w-3.5" />
+                Valor da OS ({formatBRL(valorOS)}) excede o saldo do contrato
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* === SALDO ORÇAMENTÁRIO DA REGIONAL === */}
+        {regionalId && (
+          <div className={`text-sm p-3 rounded-md border space-y-1 ${
+            orcamentoInsuficiente
+              ? "border-destructive/50 bg-destructive/10"
+              : "bg-muted/50"
+          }`}>
+            <p className="font-medium flex items-center gap-1">
+              <TrendingDown className="h-4 w-4" /> Orçamento da Regional — Exercício {orcamento?.exercicio ?? new Date().getFullYear()}
+            </p>
+            {orcLoading ? (
+              <p className="text-muted-foreground">Carregando...</p>
+            ) : !orcamento?.exists ? (
+              <p className="text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                <AlertTriangle className="h-3.5 w-3.5" />
+                Nenhum orçamento cadastrado para esta regional no exercício atual
+              </p>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                  <span className="text-muted-foreground">Créditos (dotação):</span>
+                  <span>{formatBRL(orcamento.totalCreditos)}</span>
+                  <span className="text-muted-foreground">Consumido (OS aprovadas):</span>
+                  <span>{formatBRL(orcamento.totalConsumidoOS)}</span>
+                  <span className="text-muted-foreground">Empenhos lançados:</span>
+                  <span>{formatBRL(orcamento.totalEmpenhos)}</span>
+                  <span className="text-muted-foreground font-medium">Saldo disponível:</span>
+                  <span className={`font-medium ${orcamento.saldoDisponivel < 0 ? "text-destructive" : ""}`}>
+                    {formatBRL(orcamento.saldoDisponivel)}
+                  </span>
+                  <span className="text-muted-foreground">Não empenhado:</span>
+                  <span>{formatBRL(orcamento.saldoNaoEmpenhado)}</span>
+                </div>
+                {orcamentoInsuficiente && (
+                  <p className="text-destructive text-xs flex items-center gap-1 mt-1">
+                    <AlertTriangle className="h-3.5 w-3.5" />
+                    Valor da OS ({formatBRL(valorOS)}) excede o saldo orçamentário disponível da regional
+                  </p>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Bloqueio */}
+        {bloqueado && (
+          <div className="rounded-md border border-amber-500/50 bg-amber-50 dark:bg-amber-950/30 p-3 space-y-1">
+            <p className="text-sm font-medium text-amber-800 dark:text-amber-300 flex items-center gap-1">
+              <AlertTriangle className="h-4 w-4" /> Autorização bloqueada — Saldo insuficiente
+            </p>
+            <p className="text-xs text-amber-700 dark:text-amber-400">
+              A aprovação desta OS está bloqueada porque o valor do orçamento excede o saldo 
+              {contratoInsuficiente && orcamentoInsuficiente
+                ? " do contrato e do orçamento da regional"
+                : contratoInsuficiente
+                ? " do contrato"
+                : " do orçamento da regional"
+              }.
+              O Gestor Nacional será notificado para avaliar a necessidade de crédito suplementar ou ajuste contratual.
+            </p>
+          </div>
+        )}
+
+        <Button onClick={onAdvance} disabled={uploading || bloqueado} className="w-full">
+          {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {bloqueado ? "Autorização Bloqueada — Saldo Insuficiente" : "Autorizar Execução"}
+        </Button>
+      </div>
+    </>
   );
 }
