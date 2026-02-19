@@ -7,7 +7,7 @@ import {
   ClipboardList, AlertTriangle, CheckCircle, Clock, Building2,
   DollarSign, FileText, ShieldCheck, Hammer, FileCheck, CreditCard,
 } from "lucide-react";
-import { differenceInHours, startOfMonth } from "date-fns";
+import { differenceInMinutes, startOfMonth } from "date-fns";
 import { useRegionalFilter } from "@/hooks/useRegionalFilter";
 import { RegionalFilterSelect } from "@/components/RegionalFilterSelect";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -79,10 +79,10 @@ function useDashboardData(regionalId?: string | null, contratoId?: string | null
       const encerradas = os.filter((o) => o.status === "encerrada" && o.data_encerramento);
       let mttr = 0;
       if (encerradas.length > 0) {
-        const totalHoras = encerradas.reduce((sum, o) => {
-          return sum + differenceInHours(new Date(o.data_encerramento!), new Date(o.data_abertura));
+        const totalMinutos = encerradas.reduce((sum, o) => {
+          return sum + differenceInMinutes(new Date(o.data_encerramento!), new Date(o.data_abertura));
         }, 0);
-        mttr = totalHoras / encerradas.length;
+        mttr = totalMinutos / encerradas.length / 60;
       }
 
       const totalOS = os.length || 1;
@@ -117,10 +117,11 @@ function useDashboardData(regionalId?: string | null, contratoId?: string | null
         tempoPorEtapa[s] = { total: 0, count: 0 };
       }
       for (const o of os) {
-        const horasNaEtapa = differenceInHours(
+        const minutosNaEtapa = differenceInMinutes(
           o.status === "encerrada" && o.data_encerramento ? new Date(o.data_encerramento) : now,
           new Date(o.updated_at)
         );
+        const horasNaEtapa = minutosNaEtapa / 60;
         if (tempoPorEtapa[o.status]) {
           tempoPorEtapa[o.status].total += Math.max(0, horasNaEtapa);
           tempoPorEtapa[o.status].count += 1;
