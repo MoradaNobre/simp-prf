@@ -69,7 +69,7 @@ export function NovoContratoDialog({ open, onOpenChange }: Props) {
         valor_total: parseFloat(form.valor_total) || 0,
         data_inicio: form.data_inicio,
         data_fim: form.data_fim,
-        preposto_user_id: form.preposto_user_id || null,
+      preposto_user_id: (form.preposto_user_id && form.preposto_user_id !== "none") ? form.preposto_user_id : null,
         preposto_nome: selectedPreposto?.full_name || null,
         preposto_email: prepostoEmail,
         preposto_telefone: selectedPreposto?.phone || null,
