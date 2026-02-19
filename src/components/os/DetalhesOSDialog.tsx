@@ -702,12 +702,16 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                       </p>
                     ) : (
                       <>
-                        <div className="mt-1 grid grid-cols-2 gap-2">
+                        <div className="mt-1 grid grid-cols-3 gap-2">
                           <div>
                             <span className="text-muted-foreground text-xs">Disponível</span>
                             <p className={saldoOrc! < valorOS ? "text-destructive font-medium" : ""}>
                               {saldoOrc!.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                             </p>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground text-xs">Empenhado</span>
+                            <p>{(saldoOrcamento?.total_empenhos ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
                           </div>
                           <div>
                             <span className="text-muted-foreground text-xs">Não empenhado</span>
