@@ -274,10 +274,10 @@ export async function generateContratoReport(contrato: ContratoData) {
       doc.setFillColor(230, 230, 230);
       doc.rect(14, y - 3.5, pw - 28, 5, "F");
       doc.text("Código", 16, y);
-      doc.text("Título", 42, y);
-      doc.text("Tipo", 110, y);
-      doc.text("Status", 132, y);
-      doc.text("Valor", 162, y);
+      doc.text("Título", 50, y);
+      doc.text("Tipo", 108, y);
+      doc.text("Status", 124, y);
+      doc.text("Valor", 155, y);
       doc.text("Data", 182, y);
       y += 6;
 
@@ -285,14 +285,16 @@ export async function generateContratoReport(contrato: ContratoData) {
       doc.setFontSize(8);
       list.forEach((os) => {
         checkPage(6);
-        doc.text(os.codigo, 16, y);
+        const codigoTrunc =
+          os.codigo.length > 18 ? os.codigo.substring(0, 18) + "…" : os.codigo;
+        doc.text(codigoTrunc, 16, y);
         const tituloTrunc =
-          os.titulo.length > 35 ? os.titulo.substring(0, 35) + "…" : os.titulo;
-        doc.text(tituloTrunc, 42, y);
-        doc.text(os.tipo === "corretiva" ? "Corr." : "Prev.", 110, y);
-        doc.text(statusLabels[os.status] ?? os.status, 132, y);
+          os.titulo.length > 28 ? os.titulo.substring(0, 28) + "…" : os.titulo;
+        doc.text(tituloTrunc, 50, y);
+        doc.text(os.tipo === "corretiva" ? "Corr." : "Prev.", 108, y);
+        doc.text(statusLabels[os.status] ?? os.status, 124, y);
         const osVal = custosPorOS[(os as any).id] ?? Number(os.valor_orcamento ?? 0);
-        doc.text(osVal > 0 ? fmt(osVal) : "—", 162, y);
+        doc.text(osVal > 0 ? fmt(osVal) : "—", 155, y);
         doc.text(
           new Date(os.data_abertura).toLocaleDateString("pt-BR"),
           182,
