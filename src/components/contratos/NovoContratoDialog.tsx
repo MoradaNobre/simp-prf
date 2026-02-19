@@ -53,7 +53,7 @@ export function NovoContratoDialog({ open, onOpenChange }: Props) {
     try {
       // Fetch preposto email if a preposto is selected
       let prepostoEmail: string | null = null;
-      if (form.preposto_user_id) {
+      if (form.preposto_user_id && form.preposto_user_id !== "none") {
         const { data: emailMap } = await supabase.functions.invoke("list-user-emails");
         if (emailMap && emailMap[form.preposto_user_id]) {
           prepostoEmail = emailMap[form.preposto_user_id];
