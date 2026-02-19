@@ -11,10 +11,12 @@ import {
 import { useUpdateOS, type OrdemServico } from "@/hooks/useOrdensServico";
 import { useRegionais, useDelegacias, useUops, useEquipamentos } from "@/hooks/useHierarchy";
 import { useUserRole } from "@/hooks/useUserRole";
-import { useUserProfile } from "@/hooks/useUserProfile";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { Constants } from "@/integrations/supabase/types";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Props {
   os: OrdemServico | null;
@@ -26,11 +28,24 @@ export function EditarOSDialog({ os, open, onOpenChange }: Props) {
   const updateOS = useUpdateOS();
   const { data: allRegionais = [] } = useRegionais();
   const { data: role } = useUserRole();
-  const { data: profile } = useUserProfile();
+  const { user } = useAuth();
+
+  // Fetch user's linked regionais directly for reliability
+  const { data: userRegionaisData = [] } = useQuery({
+    queryKey: ["user-regionais-edit", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data } = await supabase
+        .from("user_regionais")
+        .select("regional_id, regionais:regional_id(id, nome, sigla)")
+        .eq("user_id", user.id);
+      return (data || []).map((ur: any) => ur.regionais).filter(Boolean);
+    },
+    enabled: !!user,
+  });
 
   const isNacional = role === "gestor_nacional";
-  const userRegionais: any[] = (profile as any)?.regionais || [];
-  const regionais = isNacional ? allRegionais : userRegionais;
+  const regionais = isNacional ? allRegionais : userRegionaisData;
 
   const [form, setForm] = useState({
     descricao: "",
