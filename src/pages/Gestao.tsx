@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Shield, Users, Loader2, Map, Building2, MapPin, Upload, ScrollText } from "lucide-react";
+import { Shield, Users, Loader2, Map, Building2, MapPin, Upload, ScrollText, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
@@ -14,6 +14,7 @@ import GestaoRegionais from "@/components/gestao/GestaoRegionais";
 import GestaoDelegacias from "@/components/gestao/GestaoDelegacias";
 import GestaoUops from "@/components/gestao/GestaoUops";
 import GestaoAuditLogs from "@/components/gestao/GestaoAuditLogs";
+import GestaoSolicitacoesCredito from "@/components/gestao/GestaoSolicitacoesCredito";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Gestao() {
@@ -112,6 +113,12 @@ export default function Gestao() {
             UOPs
           </TabsTrigger>
           {isNacional && (
+            <TabsTrigger value="solicitacoes" className="flex items-center gap-1.5 text-xs sm:text-sm">
+              <AlertTriangle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              Solicitações
+            </TabsTrigger>
+          )}
+          {isNacional && (
             <TabsTrigger value="logs" className="flex items-center gap-1.5 text-xs sm:text-sm">
               <ScrollText className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               Auditoria
@@ -152,6 +159,16 @@ export default function Gestao() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {isNacional && (
+          <TabsContent value="solicitacoes">
+            <Card>
+              <CardContent className="pt-6 px-3 sm:px-6">
+                <GestaoSolicitacoesCredito />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
 
         {isNacional && (
           <TabsContent value="logs">
