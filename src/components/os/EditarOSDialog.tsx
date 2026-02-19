@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/select";
 import { useUpdateOS, type OrdemServico } from "@/hooks/useOrdensServico";
 import { useRegionais, useDelegacias, useUops, useEquipamentos } from "@/hooks/useHierarchy";
+import { useUserRole } from "@/hooks/useUserRole";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { Constants } from "@/integrations/supabase/types";
@@ -22,7 +24,13 @@ interface Props {
 
 export function EditarOSDialog({ os, open, onOpenChange }: Props) {
   const updateOS = useUpdateOS();
-  const { data: regionais = [] } = useRegionais();
+  const { data: allRegionais = [] } = useRegionais();
+  const { data: role } = useUserRole();
+  const { data: profile } = useUserProfile();
+
+  const isNacional = role === "gestor_nacional" || role === "fiscal_contrato";
+  const userRegionais: any[] = (profile as any)?.regionais || [];
+  const regionais = isNacional ? allRegionais : userRegionais;
 
   const [form, setForm] = useState({
     descricao: "",
