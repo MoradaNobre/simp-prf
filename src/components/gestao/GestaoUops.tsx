@@ -44,7 +44,15 @@ export default function GestaoUops() {
   const [search, setSearch] = useState("");
   const [filterRegional, setFilterRegional] = useState("all");
   const [filterDelegacia, setFilterDelegacia] = useState("all");
-  const delegacias = useDelegacias(filterRegional === "all" ? undefined : filterRegional);
+  // For regional users, pass the selected regional or first user regional to limit delegacias
+  const delegaciaRegionalFilter = filterRegional !== "all"
+    ? filterRegional
+    : (isRegional && userRegionalIds.length === 1 ? userRegionalIds[0] : undefined);
+  const { data: allDelegacias } = useDelegacias(delegaciaRegionalFilter);
+  // Further filter delegacias for regional users with multiple regionais and "all" selected
+  const delegaciasList = isRegional && filterRegional === "all" && userRegionalIds.length > 1
+    ? (allDelegacias || []).filter((d: any) => userRegionalIds.includes(d.regional_id))
+    : (allDelegacias || []);
   const [editItem, setEditItem] = useState<Uop | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [formRegional, setFormRegional] = useState("");
@@ -149,7 +157,7 @@ export default function GestaoUops() {
           <SelectTrigger className="w-full sm:w-48"><SelectValue placeholder="Filtrar delegacia" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas as delegacias</SelectItem>
-            {(delegacias.data || []).map((d) => (
+            {delegaciasList.map((d) => (
               <SelectItem key={d.id} value={d.id}>{d.nome}</SelectItem>
             ))}
           </SelectContent>
