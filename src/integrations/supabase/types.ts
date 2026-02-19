@@ -328,6 +328,13 @@ export type Database = {
             referencedRelation: "orcamento_anual"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "orcamento_creditos_orcamento_id_fkey"
+            columns: ["orcamento_id"]
+            isOneToOne: false
+            referencedRelation: "vw_orcamento_regional_saldo"
+            referencedColumns: ["orcamento_id"]
+          },
         ]
       }
       orcamento_empenhos: {
@@ -368,6 +375,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "orcamento_anual"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orcamento_empenhos_orcamento_id_fkey"
+            columns: ["orcamento_id"]
+            isOneToOne: false
+            referencedRelation: "vw_orcamento_regional_saldo"
+            referencedColumns: ["orcamento_id"]
           },
         ]
       }
@@ -807,6 +821,69 @@ export type Database = {
           },
         ]
       }
+      solicitacoes_credito: {
+        Row: {
+          created_at: string
+          id: string
+          motivo: string
+          os_id: string
+          regional_id: string
+          respondido_em: string | null
+          respondido_por: string | null
+          resposta: string | null
+          saldo_contrato: number
+          saldo_orcamento: number
+          solicitante_id: string
+          status: string
+          valor_os: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          motivo: string
+          os_id: string
+          regional_id: string
+          respondido_em?: string | null
+          respondido_por?: string | null
+          resposta?: string | null
+          saldo_contrato?: number
+          saldo_orcamento?: number
+          solicitante_id: string
+          status?: string
+          valor_os?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          motivo?: string
+          os_id?: string
+          regional_id?: string
+          respondido_em?: string | null
+          respondido_por?: string | null
+          resposta?: string | null
+          saldo_contrato?: number
+          saldo_orcamento?: number
+          solicitante_id?: string
+          status?: string
+          valor_os?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "solicitacoes_credito_os_id_fkey"
+            columns: ["os_id"]
+            isOneToOne: false
+            referencedRelation: "ordens_servico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "solicitacoes_credito_regional_id_fkey"
+            columns: ["regional_id"]
+            isOneToOne: false
+            referencedRelation: "regionais"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       uops: {
         Row: {
           area_m2: number | null
@@ -907,6 +984,28 @@ export type Database = {
           valor_total: number | null
         }
         Relationships: []
+      }
+      vw_orcamento_regional_saldo: {
+        Row: {
+          credito_nao_empenhado: number | null
+          exercicio: number | null
+          orcamento_id: string | null
+          regional_id: string | null
+          saldo_disponivel: number | null
+          total_consumo_os: number | null
+          total_creditos: number | null
+          total_empenhos: number | null
+          valor_dotacao: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orcamento_anual_regional_id_fkey"
+            columns: ["regional_id"]
+            isOneToOne: false
+            referencedRelation: "regionais"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {
