@@ -433,7 +433,7 @@ export default function GestaoOrcamento() {
 
       <DotacaoDialog open={dotacaoDialog.open} item={dotacaoDialog.item} regionais={allRegionais} exercicio={exercicio} onClose={() => setDotacaoDialog({ open: false })} onSave={(v: any) => saveDotacao.mutate(v)} saving={saveDotacao.isPending} />
       <CreditoDialog open={creditoDialog.open} orcamentoId={creditoDialog.orcamentoId} onClose={() => setCreditoDialog({ open: false })} onSave={(v: any) => saveCredito.mutate(v)} saving={saveCredito.isPending} />
-      <EmpenhoDialog open={empenhoDialog.open} orcamentoId={empenhoDialog.orcamentoId} onClose={() => setEmpenhoDialog({ open: false })} onSave={(v: any) => saveEmpenho.mutate(v)} saving={saveEmpenho.isPending} />
+      <EmpenhoDialog open={empenhoDialog.open} orcamentoId={empenhoDialog.orcamentoId} consolidado={consolidado} onClose={() => setEmpenhoDialog({ open: false })} onSave={(v: any) => saveEmpenho.mutate(v)} saving={saveEmpenho.isPending} />
     </div>
   );
 }
@@ -579,13 +579,20 @@ function CreditoDialog({ open, orcamentoId, onClose, onSave, saving }: any) {
   );
 }
 
-function EmpenhoDialog({ open, orcamentoId, onClose, onSave, saving }: any) {
+function EmpenhoDialog({ open, orcamentoId, consolidado, onClose, onSave, saving }: any) {
   const [descricao, setDescricao] = useState("");
   const [valor, setValor] = useState("");
   const [data, setData] = useState(new Date().toISOString().slice(0, 10));
   const [numero, setNumero] = useState("");
 
   useEffect(() => { if (open) { setDescricao(""); setValor(""); setData(new Date().toISOString().slice(0, 10)); setNumero(""); } }, [open]);
+
+  const orcItem = (consolidado || []).find((c: any) => c.id === orcamentoId);
+  const dotacaoTotal = orcItem?.dotacaoTotal ?? 0;
+  const empenhosAtuais = orcItem?.totalEmpenhos ?? 0;
+  const limiteDisponivel = dotacaoTotal - empenhosAtuais;
+  const valorNum = Number(valor) || 0;
+  const excedeLimite = valorNum > limiteDisponivel;
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
@@ -597,11 +604,19 @@ function EmpenhoDialog({ open, orcamentoId, onClose, onSave, saving }: any) {
             <div className="space-y-2"><Label>Valor (R$)</Label><Input type="number" step="0.01" value={valor} onChange={(e) => setValor(e.target.value)} /></div>
             <div className="space-y-2"><Label>Data do Empenho</Label><Input type="date" value={data} onChange={(e) => setData(e.target.value)} /></div>
           </div>
+          {orcItem && (
+            <div className="text-xs text-muted-foreground space-y-1">
+              <p>Dotação total: {formatCurrency(dotacaoTotal)} | Empenhado: {formatCurrency(empenhosAtuais)} | Disponível para empenho: <span className={limiteDisponivel <= 0 ? "text-destructive font-medium" : "font-medium"}>{formatCurrency(limiteDisponivel)}</span></p>
+            </div>
+          )}
+          {excedeLimite && (
+            <p className="text-sm text-destructive font-medium">⚠ O valor do empenho excede o saldo disponível para empenho ({formatCurrency(limiteDisponivel)}).</p>
+          )}
           <div className="space-y-2"><Label>Nº do Empenho (opcional)</Label><Input value={numero} onChange={(e) => setNumero(e.target.value)} /></div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancelar</Button>
-          <Button disabled={saving || !descricao || !valor} onClick={() => onSave({ orcamento_id: orcamentoId, descricao, valor: Number(valor), data_empenho: data, numero_empenho: numero })}>
+          <Button disabled={saving || !descricao || !valor || excedeLimite} onClick={() => onSave({ orcamento_id: orcamentoId, descricao, valor: valorNum, data_empenho: data, numero_empenho: numero })}>
             {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Registrar
           </Button>
         </DialogFooter>
