@@ -26,7 +26,7 @@ export function NovoContratoDialog({ open, onOpenChange }: Props) {
   const { data: profile } = useUserProfile();
   const { data: prepostos = [] } = useUsersByRole(["preposto"]);
 
-  const isNacional = role === "gestor_nacional" || role === "fiscal_contrato";
+  const isNacional = role === "gestor_nacional";
   const userRegionais: any[] = (profile as any)?.regionais || [];
   const regionais = isNacional ? allRegionais : userRegionais;
   const [form, setForm] = useState({
