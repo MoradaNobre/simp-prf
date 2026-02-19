@@ -16,7 +16,7 @@ import { useSaldoOrcamentarioRegional, useCreateSolicitacaoCredito } from "@/hoo
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Camera, DollarSign, User, FileText, Upload, CheckCircle, Download, Undo2, AlertTriangle, ShieldAlert } from "lucide-react";
+import { Loader2, Camera, DollarSign, User, FileText, Upload, CheckCircle, Download, Undo2, AlertTriangle, ShieldAlert, FilePlus2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { generateOSReport } from "@/utils/generateOSReport";
 import { generateOSExecucaoReport } from "@/utils/generateOSExecucaoReport";
@@ -668,7 +668,10 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                   {/* Saldo do contrato */}
                   {os.contrato_id && (() => {
                     const c = contratosAll.find(x => x.id === os.contrato_id);
+                    const saldoData = saldos.find((x: any) => x.id === os.contrato_id);
                     if (!c || saldoContrato === null) return null;
+                    const valorTotalComAditivos = saldoData ? Number((saldoData as any).valor_total_com_aditivos ?? c.valor_total) : c.valor_total;
+                    const totalAditivos = saldoData ? Number((saldoData as any).total_aditivos ?? 0) : 0;
                     return (
                       <div className={`text-sm p-3 rounded-md border ${contratoInsuficiente ? "border-destructive bg-destructive/10" : "bg-muted/50"}`}>
                         <div className="flex items-center gap-2">
@@ -679,11 +682,14 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                           <span className={saldoContrato < 0 ? "text-destructive font-medium" : ""}>
                             {saldoContrato.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                           </span>
-                          <span className="text-muted-foreground ml-2">de {c.valor_total.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
+                          <span className="text-muted-foreground ml-2">de {valorTotalComAditivos.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
+                          {totalAditivos > 0 && (
+                            <span className="text-xs text-muted-foreground ml-1">(inclui aditivos: {totalAditivos.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })})</span>
+                          )}
                         </p>
                         {contratoInsuficiente && (
                           <p className="text-xs text-destructive mt-1 font-medium">
-                            ⚠ Saldo do contrato insuficiente para esta OS
+                            ⚠ Saldo do contrato insuficiente para esta OS — considere registrar um aditivo contratual
                           </p>
                         )}
                       </div>
@@ -735,60 +741,81 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                           <AlertTriangle className="h-4 w-4" /> Autorização Bloqueada
                         </p>
                         <p className="text-xs text-foreground mt-1">
-                          Não é possível autorizar esta OS pois o saldo é insuficiente.
-                          Solicite crédito suplementar ao Gestor Nacional para prosseguir.
+                          {contratoInsuficiente && !orcamentoInsuficiente && !semOrcamentoCadastrado
+                            ? "O saldo do contrato é insuficiente para esta OS. Registre um aditivo contratual para aumentar o valor do contrato, caso seja legalmente viável."
+                            : "Não é possível autorizar esta OS pois o saldo é insuficiente. Solicite crédito suplementar ao Gestor Nacional para prosseguir."
+                          }
                         </p>
                       </div>
-                      {!showSolicitacao ? (
+
+                      {/* Aditivo contratual — quando apenas o contrato é insuficiente */}
+                      {contratoInsuficiente && (
                         <Button
                           variant="outline"
-                          onClick={() => setShowSolicitacao(true)}
+                          onClick={() => {
+                            // Navigate to contratos page (user can add aditivo there)
+                            window.open("/app/contratos", "_blank");
+                          }}
                           className="w-full"
                         >
-                          <ShieldAlert className="mr-2 h-4 w-4" />
-                          Solicitar Crédito Suplementar
+                          <FilePlus2 className="mr-2 h-4 w-4" />
+                          Registrar Aditivo Contratual
                         </Button>
-                      ) : (
-                        <div className="space-y-2 border rounded-md p-3">
-                          <Label className="text-sm font-medium">Justificativa da solicitação *</Label>
-                          <Textarea
-                            value={motivoSolicitacao}
-                            onChange={(e) => setMotivoSolicitacao(e.target.value)}
-                            placeholder="Descreva a necessidade e urgência do serviço..."
-                            rows={3}
-                          />
-                          <div className="flex gap-2">
-                            <Button variant="outline" onClick={() => { setShowSolicitacao(false); setMotivoSolicitacao(""); }} className="flex-1">
-                              Cancelar
-                            </Button>
-                            <Button
-                              disabled={!motivoSolicitacao.trim() || createSolicitacao.isPending}
-                              className="flex-1"
-                              onClick={async () => {
-                                try {
-                                  const { data: { user: currentUser } } = await supabase.auth.getUser();
-                                  await createSolicitacao.mutateAsync({
-                                    regional_id: osRegionalId,
-                                    os_id: os.id,
-                                    solicitante_id: currentUser?.id || "",
-                                    valor_os: valorOS,
-                                    saldo_contrato: saldoContrato ?? 0,
-                                    saldo_orcamento: saldoOrc ?? 0,
-                                    motivo: motivoSolicitacao.trim(),
-                                  });
-                                  toast.success("Solicitação de crédito suplementar enviada ao Gestor Nacional!");
-                                  setShowSolicitacao(false);
-                                  setMotivoSolicitacao("");
-                                } catch (err: any) {
-                                  toast.error("Erro: " + err.message);
-                                }
-                              }}
-                            >
-                              {createSolicitacao.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                              Enviar Solicitação
-                            </Button>
+                      )}
+
+                      {/* Crédito suplementar — quando o orçamento é insuficiente */}
+                      {(orcamentoInsuficiente || semOrcamentoCadastrado) && (
+                        !showSolicitacao ? (
+                          <Button
+                            variant="outline"
+                            onClick={() => setShowSolicitacao(true)}
+                            className="w-full"
+                          >
+                            <ShieldAlert className="mr-2 h-4 w-4" />
+                            Solicitar Crédito Suplementar
+                          </Button>
+                        ) : (
+                          <div className="space-y-2 border rounded-md p-3">
+                            <Label className="text-sm font-medium">Justificativa da solicitação *</Label>
+                            <Textarea
+                              value={motivoSolicitacao}
+                              onChange={(e) => setMotivoSolicitacao(e.target.value)}
+                              placeholder="Descreva a necessidade e urgência do serviço..."
+                              rows={3}
+                            />
+                            <div className="flex gap-2">
+                              <Button variant="outline" onClick={() => { setShowSolicitacao(false); setMotivoSolicitacao(""); }} className="flex-1">
+                                Cancelar
+                              </Button>
+                              <Button
+                                disabled={!motivoSolicitacao.trim() || createSolicitacao.isPending}
+                                className="flex-1"
+                                onClick={async () => {
+                                  try {
+                                    const { data: { user: currentUser } } = await supabase.auth.getUser();
+                                    await createSolicitacao.mutateAsync({
+                                      regional_id: osRegionalId,
+                                      os_id: os.id,
+                                      solicitante_id: currentUser?.id || "",
+                                      valor_os: valorOS,
+                                      saldo_contrato: saldoContrato ?? 0,
+                                      saldo_orcamento: saldoOrc ?? 0,
+                                      motivo: motivoSolicitacao.trim(),
+                                    });
+                                    toast.success("Solicitação de crédito suplementar enviada ao Gestor Nacional!");
+                                    setShowSolicitacao(false);
+                                    setMotivoSolicitacao("");
+                                  } catch (err: any) {
+                                    toast.error("Erro: " + err.message);
+                                  }
+                                }}
+                              >
+                                {createSolicitacao.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Enviar Solicitação
+                              </Button>
+                            </div>
                           </div>
-                        </div>
+                        )
                       )}
                     </div>
                   ) : (
