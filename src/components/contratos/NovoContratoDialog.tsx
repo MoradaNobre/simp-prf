@@ -7,9 +7,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCreateContrato } from "@/hooks/useContratos";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useUsersByRole } from "@/hooks/useUsersByRole";
+import { useUserRole } from "@/hooks/useUserRole";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { useRegionais } from "@/hooks/useHierarchy";
 
 interface Props {
   open: boolean;
@@ -19,16 +21,14 @@ interface Props {
 export function NovoContratoDialog({ open, onOpenChange }: Props) {
   const { toast } = useToast();
   const createContrato = useCreateContrato();
-  const { data: regionais = [] } = useQuery({
-    queryKey: ["regionais"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("regionais").select("id, nome, sigla").order("sigla");
-      if (error) throw error;
-      return data;
-    },
-  });
+  const { data: allRegionais = [] } = useRegionais();
+  const { data: role } = useUserRole();
+  const { data: profile } = useUserProfile();
   const { data: prepostos = [] } = useUsersByRole(["preposto"]);
 
+  const isNacional = role === "gestor_nacional" || role === "fiscal_contrato";
+  const userRegionais: any[] = (profile as any)?.regionais || [];
+  const regionais = isNacional ? allRegionais : userRegionais;
   const [form, setForm] = useState({
     numero: "",
     empresa: "",
