@@ -50,6 +50,54 @@ export type Database = {
         }
         Relationships: []
       }
+      contrato_aditivos: {
+        Row: {
+          contrato_id: string
+          created_at: string
+          created_by: string
+          data_aditivo: string
+          descricao: string
+          id: string
+          numero_aditivo: string | null
+          valor: number
+        }
+        Insert: {
+          contrato_id: string
+          created_at?: string
+          created_by: string
+          data_aditivo?: string
+          descricao: string
+          id?: string
+          numero_aditivo?: string | null
+          valor?: number
+        }
+        Update: {
+          contrato_id?: string
+          created_at?: string
+          created_by?: string
+          data_aditivo?: string
+          descricao?: string
+          id?: string
+          numero_aditivo?: string | null
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contrato_aditivos_contrato_id_fkey"
+            columns: ["contrato_id"]
+            isOneToOne: false
+            referencedRelation: "contratos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contrato_aditivos_contrato_id_fkey"
+            columns: ["contrato_id"]
+            isOneToOne: false
+            referencedRelation: "contratos_saldo"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contrato_contatos: {
         Row: {
           contrato_id: string
@@ -980,8 +1028,10 @@ export type Database = {
           id: string | null
           numero: string | null
           saldo: number | null
+          total_aditivos: number | null
           total_custos: number | null
           valor_total: number | null
+          valor_total_com_aditivos: number | null
         }
         Relationships: []
       }

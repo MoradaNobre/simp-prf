@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { FileText, Plus, Users, Phone, Pencil, Trash2, FileDown, Loader2 } from "lucide-react";
+import { FileText, Plus, Users, Phone, Pencil, Trash2, FileDown, Loader2, FilePlus2 } from "lucide-react";
 import { useContratos, useContratosSaldo, useDeleteContrato, type Contrato } from "@/hooks/useContratos";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useRegionalFilter } from "@/hooks/useRegionalFilter";
@@ -12,6 +12,7 @@ import { RegionalFilterSelect } from "@/components/RegionalFilterSelect";
 import { NovoContratoDialog } from "@/components/contratos/NovoContratoDialog";
 import { EditarContratoDialog } from "@/components/contratos/EditarContratoDialog";
 import { ContratoContatosDialog } from "@/components/contratos/ContratoContatosDialog";
+import { ContratoAditivosDialog } from "@/components/contratos/ContratoAditivosDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -43,6 +44,7 @@ export default function Contratos() {
   const [editContrato, setEditContrato] = useState<Contrato | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [contatosContrato, setContatosContrato] = useState<{ id: string; empresa: string } | null>(null);
+  const [aditivosContrato, setAditivosContrato] = useState<{ id: string; empresa: string } | null>(null);
   const [generatingPdf, setGeneratingPdf] = useState<string | null>(null);
 
   const handleGenerateReport = async (c: any) => {
@@ -182,6 +184,11 @@ export default function Contratos() {
                             <Users className="h-3.5 w-3.5" />
                           </Button>
                         )}
+                        {canManage && (
+                          <Button size="icon" variant="ghost" className="h-8 w-8" title="Aditivos" onClick={() => setAditivosContrato({ id: c.id, empresa: c.empresa })}>
+                            <FilePlus2 className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
                         {canDelete && (
                           <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setDeleteId(c.id)}>
                             <Trash2 className="h-3.5 w-3.5 text-destructive" />
@@ -301,6 +308,16 @@ export default function Contratos() {
                             <Users className="h-4 w-4" />
                           </Button>
                         )}
+                        {canManage && (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            title="Aditivos contratuais"
+                            onClick={() => setAditivosContrato({ id: c.id, empresa: c.empresa })}
+                          >
+                            <FilePlus2 className="h-4 w-4" />
+                          </Button>
+                        )}
                         {canDelete && (
                           <Button
                             size="icon"
@@ -335,6 +352,15 @@ export default function Contratos() {
           empresaNome={contatosContrato.empresa}
           open={!!contatosContrato}
           onOpenChange={(open) => !open && setContatosContrato(null)}
+        />
+      )}
+
+      {aditivosContrato && (
+        <ContratoAditivosDialog
+          contratoId={aditivosContrato.id}
+          empresaNome={aditivosContrato.empresa}
+          open={!!aditivosContrato}
+          onOpenChange={(open) => !open && setAditivosContrato(null)}
         />
       )}
 
