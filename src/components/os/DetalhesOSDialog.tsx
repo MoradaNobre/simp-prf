@@ -734,36 +734,43 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                   </div>
 
                   {/* Actions */}
-                  {bloqueado && !isGestorNacional ? (
+                  {/* Contrato insuficiente bloqueia TODOS, inclusive Gestor Nacional */}
+                  {contratoInsuficiente ? (
+                    <div className="space-y-3">
+                      <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3">
+                        <p className="text-sm font-medium text-destructive flex items-center gap-1">
+                          <AlertTriangle className="h-4 w-4" /> Autorização Sobrestada
+                        </p>
+                        <p className="text-xs text-foreground mt-1">
+                          O saldo do contrato é insuficiente para esta OS. A autorização permanecerá sobrestada até que o saldo contratual seja suficiente. Registre um aditivo contratual para prosseguir.
+                        </p>
+                      </div>
+
+                      {/* Link direto para aditivo — visível para gestores e fiscais */}
+                      {isGestorOrFiscal && (
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            window.open("/app/contratos", "_blank");
+                          }}
+                          className="w-full"
+                        >
+                          <FilePlus2 className="mr-2 h-4 w-4" />
+                          Ir para Gestão de Contratos — Registrar Aditivo
+                        </Button>
+                      )}
+                    </div>
+                  ) : (orcamentoInsuficiente || semOrcamentoCadastrado) && !isGestorNacional ? (
                     <div className="space-y-3">
                       <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3">
                         <p className="text-sm font-medium text-destructive flex items-center gap-1">
                           <AlertTriangle className="h-4 w-4" /> Autorização Bloqueada
                         </p>
                         <p className="text-xs text-foreground mt-1">
-                          {contratoInsuficiente && !orcamentoInsuficiente && !semOrcamentoCadastrado
-                            ? "O saldo do contrato é insuficiente para esta OS. Registre um aditivo contratual para aumentar o valor do contrato, caso seja legalmente viável."
-                            : "Não é possível autorizar esta OS pois o saldo é insuficiente. Solicite crédito suplementar ao Gestor Nacional para prosseguir."
-                          }
+                          Não é possível autorizar esta OS pois o saldo orçamentário é insuficiente. Solicite crédito suplementar ao Gestor Nacional para prosseguir.
                         </p>
                       </div>
 
-                      {/* Aditivo contratual — quando apenas o contrato é insuficiente */}
-                      {contratoInsuficiente && (
-                        <Button
-                          variant="outline"
-                          onClick={() => {
-                            // Navigate to contratos page (user can add aditivo there)
-                            window.open("/app/contratos", "_blank");
-                          }}
-                          className="w-full"
-                        >
-                          <FilePlus2 className="mr-2 h-4 w-4" />
-                          Registrar Aditivo Contratual
-                        </Button>
-                      )}
-
-                      {/* Crédito suplementar — quando o orçamento é insuficiente */}
                       {(orcamentoInsuficiente || semOrcamentoCadastrado) && (
                         !showSolicitacao ? (
                           <Button
@@ -820,13 +827,13 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                     </div>
                   ) : (
                     <>
-                      {bloqueado && isGestorNacional && (
+                      {(orcamentoInsuficiente || semOrcamentoCadastrado) && isGestorNacional && (
                         <div className="rounded-md border border-orange-300 dark:border-orange-800 bg-orange-50 dark:bg-orange-950/30 p-3">
                           <p className="text-sm font-medium text-orange-700 dark:text-orange-300 flex items-center gap-1">
-                            <AlertTriangle className="h-4 w-4" /> Atenção: Saldo insuficiente
+                            <AlertTriangle className="h-4 w-4" /> Atenção: Saldo orçamentário insuficiente
                           </p>
                           <p className="text-xs text-foreground mt-1">
-                            Como Gestor Nacional, você pode autorizar mesmo com saldo insuficiente.
+                            Como Gestor Nacional, você pode autorizar mesmo com saldo orçamentário insuficiente.
                           </p>
                         </div>
                       )}
