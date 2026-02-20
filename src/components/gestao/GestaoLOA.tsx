@@ -37,7 +37,7 @@ export default function GestaoLOA({ exercicio }: { exercicio: number }) {
     return sortDir === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />;
   };
 
-  // Fetch LOA for current year
+  // Fetch Portaria Orçamentária for current year
   const { data: loa, isLoading: loaLoading } = useQuery({
     queryKey: ["orcamento-loa", exercicio],
     queryFn: async () => {
@@ -51,7 +51,7 @@ export default function GestaoLOA({ exercicio }: { exercicio: number }) {
     },
   });
 
-  // Fetch all regional dotações for this year
+  // Fetch all regional cotas for this year
   const { data: dotacoes = [] } = useQuery({
     queryKey: ["orcamento-anual", exercicio],
     queryFn: async () => {
@@ -122,7 +122,7 @@ export default function GestaoLOA({ exercicio }: { exercicio: number }) {
       }
     },
     onSuccess: () => {
-      toast.success("Orçamento LOA salvo!");
+      toast.success("Portaria Orçamentária salva!");
       queryClient.invalidateQueries({ queryKey: ["orcamento-loa"] });
       setShowDialog(false);
     },
@@ -135,11 +135,11 @@ export default function GestaoLOA({ exercicio }: { exercicio: number }) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          Valor total previsto na LOA para manutenção predial e controle de distribuição às regionais.
+          Valor total previsto na Portaria Orçamentária para manutenção predial e controle de distribuição às regionais.
         </p>
         <Button size="sm" onClick={() => setShowDialog(true)}>
           {loa ? <Pencil className="mr-1 h-3 w-3" /> : <Plus className="mr-1 h-3 w-3" />}
-          {loa ? "Editar LOA" : "Definir LOA"}
+          {loa ? "Editar Portaria" : "Definir Portaria"}
         </Button>
       </div>
 
@@ -147,7 +147,7 @@ export default function GestaoLOA({ exercicio }: { exercicio: number }) {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
           <CardContent className="pt-6">
-            <p className="text-xs text-muted-foreground">Orçamento LOA {exercicio}</p>
+            <p className="text-xs text-muted-foreground">Portaria Orçamentária {exercicio}</p>
             <p className="text-2xl font-bold">{formatCurrency(resumo.valorLOA)}</p>
           </CardContent>
         </Card>
@@ -272,11 +272,11 @@ function LOADialog({ open, loa, onClose, onSave, saving }: {
     <Dialog open={open} onOpenChange={handleOpen}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{loa ? "Editar Orçamento LOA" : "Definir Orçamento LOA"}</DialogTitle>
+          <DialogTitle>{loa ? "Editar Portaria Orçamentária" : "Definir Portaria Orçamentária"}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>Valor Total LOA (R$)</Label>
+            <Label>Valor Total da Portaria (R$)</Label>
             <Input
               type="number"
               step="0.01"
@@ -291,7 +291,7 @@ function LOADialog({ open, loa, onClose, onSave, saving }: {
               value={obs}
               onChange={(e) => setObs(e.target.value)}
               rows={3}
-              placeholder="Informações adicionais sobre a LOA..."
+              placeholder="Informações adicionais sobre a Portaria Orçamentária..."
             />
           </div>
         </div>

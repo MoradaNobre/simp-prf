@@ -842,7 +842,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                     </div>
                     {semOrcamentoCadastrado ? (
                       <p className="text-xs text-orange-700 dark:text-orange-300 mt-1 font-medium">
-                        ⚠ Nenhum orçamento cadastrado para esta regional no exercício atual
+                        ⚠ Nenhuma cota orçamentária cadastrada para esta regional no exercício atual
                       </p>
                     ) : (
                       <>
