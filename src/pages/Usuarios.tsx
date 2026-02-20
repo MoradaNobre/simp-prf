@@ -118,7 +118,7 @@ const roleColors: Record<string, string> = {
   gestor_nacional: "destructive",
   gestor_regional: "default",
   fiscal_contrato: "secondary",
-  operador: "outline",
+  operador: "secondary",
 };
 
 export default function Usuarios() {
