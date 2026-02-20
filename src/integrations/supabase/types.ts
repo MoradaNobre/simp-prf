@@ -433,6 +433,36 @@ export type Database = {
           },
         ]
       }
+      orcamento_loa: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          exercicio: number
+          id: string
+          observacoes: string | null
+          updated_at: string
+          valor_total: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          exercicio: number
+          id?: string
+          observacoes?: string | null
+          updated_at?: string
+          valor_total?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          exercicio?: number
+          id?: string
+          observacoes?: string | null
+          updated_at?: string
+          valor_total?: number
+        }
+        Relationships: []
+      }
       ordens_servico: {
         Row: {
           arquivo_orcamento: string | null
@@ -883,6 +913,7 @@ export type Database = {
           saldo_orcamento: number
           solicitante_id: string
           status: string
+          valor_aprovado: number | null
           valor_os: number
           valor_solicitado: number
         }
@@ -899,6 +930,7 @@ export type Database = {
           saldo_orcamento?: number
           solicitante_id: string
           status?: string
+          valor_aprovado?: number | null
           valor_os?: number
           valor_solicitado?: number
         }
@@ -915,6 +947,7 @@ export type Database = {
           saldo_orcamento?: number
           solicitante_id?: string
           status?: string
+          valor_aprovado?: number | null
           valor_os?: number
           valor_solicitado?: number
         }

@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, DollarSign, Plus, Pencil, Trash2, TrendingUp, TrendingDown, CircleDot, FileSpreadsheet, AlertTriangle } from "lucide-react";
+import { Loader2, DollarSign, Plus, Pencil, Trash2, TrendingUp, TrendingDown, CircleDot, FileSpreadsheet, AlertTriangle, Landmark } from "lucide-react";
 import * as XLSX from "xlsx";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import GestaoSolicitacoesCredito from "@/components/gestao/GestaoSolicitacoesCredito";
+import GestaoLOA from "@/components/gestao/GestaoLOA";
 
 const currentYear = new Date().getFullYear();
 const yearRange = Array.from({ length: 10 }, (_, i) => currentYear - 7 + i);
@@ -318,10 +319,16 @@ export default function GestaoOrcamento() {
             <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             Dotações
           </TabsTrigger>
-          {(isNacional || isRegional) && (
+          {(isNacional || isRegional || isFiscal) && (
             <TabsTrigger value="solicitacoes" className="flex items-center gap-1.5 text-xs sm:text-sm">
               <AlertTriangle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               Solicitações de Crédito
+            </TabsTrigger>
+          )}
+          {isNacional && (
+            <TabsTrigger value="loa" className="flex items-center gap-1.5 text-xs sm:text-sm">
+              <Landmark className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              LOA
             </TabsTrigger>
           )}
         </TabsList>
@@ -477,6 +484,16 @@ export default function GestaoOrcamento() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {isNacional && (
+          <TabsContent value="loa">
+            <Card>
+              <CardContent className="pt-6 px-3 sm:px-6">
+                <GestaoLOA exercicio={exercicio} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
       </Tabs>
 
       <DotacaoDialog open={dotacaoDialog.open} item={dotacaoDialog.item} regionais={allRegionais} exercicio={exercicio} onClose={() => setDotacaoDialog({ open: false })} onSave={(v: any) => saveDotacao.mutate(v)} saving={saveDotacao.isPending} />

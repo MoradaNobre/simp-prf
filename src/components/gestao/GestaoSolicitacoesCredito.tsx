@@ -30,6 +30,7 @@ export default function GestaoSolicitacoesCredito({ filtroRegional }: { filtroRe
   const createSolicitacao = useCreateSolicitacaoCredito();
   const [respondingId, setRespondingId] = useState<string | null>(null);
   const [resposta, setResposta] = useState("");
+  const [valorAprovado, setValorAprovado] = useState("");
   const [showNovaDialog, setShowNovaDialog] = useState(false);
 
   const isNacional = role === "gestor_nacional";
@@ -81,19 +82,34 @@ export default function GestaoSolicitacoesCredito({ filtroRegional }: { filtroRe
       toast.error("Informe uma resposta");
       return;
     }
+    const vAprovado = status === "aprovada" && valorAprovado ? Number(valorAprovado) : undefined;
     try {
       await respond.mutateAsync({
         id,
         status,
         resposta: resposta.trim(),
         respondido_por: user?.id || "",
+        valor_aprovado: vAprovado,
       });
-      toast.success(status === "aprovada" ? "Solicitação aprovada!" : "Solicitação recusada.");
+      const msg = status === "recusada"
+        ? "Solicitação recusada."
+        : vAprovado !== undefined
+          ? "Solicitação aprovada com valor definido!"
+          : "Solicitação aprovada!";
+      toast.success(msg);
       setRespondingId(null);
       setResposta("");
+      setValorAprovado("");
     } catch (err: any) {
       toast.error("Erro: " + err.message);
     }
+  };
+
+  const startResponding = (sol: any) => {
+    setRespondingId(sol.id);
+    setResposta("");
+    // Pre-fill valor_aprovado with the requested amount
+    setValorAprovado(sol.valor_solicitado > 0 ? String(sol.valor_solicitado) : sol.valor_os > 0 ? String(sol.valor_os) : "");
   };
 
   if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
@@ -166,6 +182,19 @@ export default function GestaoSolicitacoesCredito({ filtroRegional }: { filtroRe
                 </div>
               </div>
 
+              {/* Show approved amount if different from requested */}
+              {sol.status === "aprovada" && sol.valor_aprovado != null && sol.valor_aprovado > 0 && (
+                <div className="rounded-md bg-secondary/50 p-2">
+                  <span className="text-xs text-muted-foreground">Valor Aprovado:</span>
+                  <p className="text-sm font-semibold mt-0.5">
+                    {fmt(sol.valor_aprovado)}
+                    {sol.valor_solicitado > 0 && sol.valor_aprovado < sol.valor_solicitado && (
+                      <span className="text-xs text-muted-foreground ml-2">(aprovação parcial)</span>
+                    )}
+                  </p>
+                </div>
+              )}
+
               <div>
                 <span className="text-xs text-muted-foreground">Justificativa:</span>
                 <p className="text-sm mt-0.5">{sol.motivo}</p>
@@ -180,16 +209,32 @@ export default function GestaoSolicitacoesCredito({ filtroRegional }: { filtroRe
 
               {sol.status === "pendente" && isNacional && (
                 respondingId === sol.id ? (
-                  <div className="space-y-2">
-                    <Label className="text-xs">Resposta</Label>
-                    <Textarea
-                      value={resposta}
-                      onChange={(e) => setResposta(e.target.value)}
-                      placeholder="Informe a decisão e orientações..."
-                      rows={2}
-                    />
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline" onClick={() => { setRespondingId(null); setResposta(""); }}>Cancelar</Button>
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Valor a Aprovar (R$)</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={valorAprovado}
+                        onChange={(e) => setValorAprovado(e.target.value)}
+                        placeholder="Deixe vazio para aprovar o valor total solicitado"
+                        className="max-w-xs"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Altere para aprovar parcialmente com valor diferente do solicitado.
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Resposta / Justificativa</Label>
+                      <Textarea
+                        value={resposta}
+                        onChange={(e) => setResposta(e.target.value)}
+                        placeholder="Informe a decisão e orientações..."
+                        rows={2}
+                      />
+                    </div>
+                    <div className="flex gap-2 flex-wrap">
+                      <Button size="sm" variant="outline" onClick={() => { setRespondingId(null); setResposta(""); setValorAprovado(""); }}>Cancelar</Button>
                       <Button size="sm" onClick={() => handleRespond(sol.id, "aprovada")} disabled={respond.isPending}>
                         {respond.isPending ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <CheckCircle className="mr-1 h-3 w-3" />}
                         Aprovar
@@ -201,7 +246,7 @@ export default function GestaoSolicitacoesCredito({ filtroRegional }: { filtroRe
                     </div>
                   </div>
                 ) : (
-                  <Button size="sm" variant="outline" onClick={() => setRespondingId(sol.id)}>Responder</Button>
+                  <Button size="sm" variant="outline" onClick={() => startResponding(sol)}>Responder</Button>
                 )
               )}
             </div>
