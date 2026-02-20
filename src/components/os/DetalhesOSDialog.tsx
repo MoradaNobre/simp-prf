@@ -781,7 +781,10 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
             const contratoInsuficiente = saldoContrato !== null && saldoContrato < valorOS;
             const orcamentoInsuficiente = saldoOrc !== null && saldoOrc < valorOS;
             const semOrcamentoCadastrado = saldoOrc === null;
-            const bloqueado = contratoInsuficiente || orcamentoInsuficiente || semOrcamentoCadastrado;
+            const totalEmpenhado = saldoOrcamento?.total_empenhos ?? 0;
+            const creditoNaoEmpenhado = saldoOrcamento?.credito_nao_empenhado ?? 0;
+            const empenhoInsuficiente = !semOrcamentoCadastrado && totalEmpenhado < valorOS;
+            const bloqueado = contratoInsuficiente || orcamentoInsuficiente || semOrcamentoCadastrado || empenhoInsuficiente;
             const isGestorNacional = role === "gestor_nacional";
 
             return (
@@ -868,28 +871,6 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                     )}
                   </div>
 
-                  {/* Alerta de empenho insuficiente */}
-                  {(() => {
-                    const totalEmpenhado = saldoOrcamento?.total_empenhos ?? 0;
-                    const creditoNaoEmpenhado = saldoOrcamento?.credito_nao_empenhado ?? 0;
-                    const empenhoInsuficiente = !semOrcamentoCadastrado && totalEmpenhado < valorOS;
-                    if (!empenhoInsuficiente) return null;
-                    return (
-                      <div className="rounded-md border border-orange-300 dark:border-orange-800 bg-orange-50 dark:bg-orange-950/30 p-3 space-y-1">
-                        <p className="text-sm font-medium text-orange-700 dark:text-orange-300 flex items-center gap-1">
-                          <AlertTriangle className="h-4 w-4" /> Empenho insuficiente para esta OS
-                        </p>
-                        <p className="text-xs text-foreground mt-1">
-                          O valor empenhado ({totalEmpenhado.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}) é inferior ao orçamento desta OS ({valorOS.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}).
-                        </p>
-                        {creditoNaoEmpenhado > 0 && (
-                          <p className="text-xs text-orange-700 dark:text-orange-300 font-medium">
-                            Há crédito orçamentário não empenhado de {creditoNaoEmpenhado.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} disponível. Solicite o reforço do empenho antes de autorizar a execução.
-                          </p>
-                        )}
-                      </div>
-                    );
-                  })()}
 
                   {/* Actions */}
                   {/* Contrato insuficiente bloqueia TODOS, inclusive Gestor Nacional */}
@@ -915,6 +896,33 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                         >
                           <FilePlus2 className="mr-2 h-4 w-4" />
                           Ir para Gestão de Contratos — Registrar Aditivo
+                        </Button>
+                      )}
+                    </div>
+                  ) : empenhoInsuficiente ? (
+                    <div className="space-y-3">
+                      <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3">
+                        <p className="text-sm font-medium text-destructive flex items-center gap-1">
+                          <AlertTriangle className="h-4 w-4" /> Autorização Bloqueada — Empenho Insuficiente
+                        </p>
+                        <p className="text-xs text-foreground mt-1">
+                          O valor empenhado ({totalEmpenhado.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}) é inferior ao orçamento desta OS ({valorOS.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}).
+                          {creditoNaoEmpenhado > 0 
+                            ? ` Há crédito não empenhado de ${creditoNaoEmpenhado.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} disponível. Solicite o reforço do empenho junto à área financeira antes de autorizar.`
+                            : " Solicite crédito suplementar e o respectivo empenho para prosseguir."
+                          }
+                        </p>
+                      </div>
+                      {isGestorOrFiscal && (
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            window.open("/app/orcamento", "_blank");
+                          }}
+                          className="w-full"
+                        >
+                          <DollarSign className="mr-2 h-4 w-4" />
+                          Ir para Gestão Orçamentária — Registrar Empenho
                         </Button>
                       )}
                     </div>
