@@ -179,7 +179,7 @@ export default function Contratos() {
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
                         )}
-                        {!isPreposto && (
+                        {(canManage || isPreposto) && (
                           <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setContatosContrato({ id: c.id, empresa: c.empresa })}>
                             <Users className="h-3.5 w-3.5" />
                           </Button>
@@ -298,7 +298,7 @@ export default function Contratos() {
                             <Pencil className="h-4 w-4" />
                           </Button>
                         )}
-                        {!isPreposto && (
+                        {(canManage || isPreposto) && (
                           <Button
                             size="icon"
                             variant="ghost"
