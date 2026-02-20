@@ -39,6 +39,7 @@ export interface SolicitacaoCredito {
   solicitante_id: string;
   valor_os: number;
   valor_solicitado: number;
+  valor_aprovado: number | null;
   saldo_contrato: number;
   saldo_orcamento: number;
   motivo: string;
@@ -93,20 +94,25 @@ export function useCreateSolicitacaoCredito() {
 export function useRespondSolicitacaoCredito() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, status, resposta, respondido_por }: {
+    mutationFn: async ({ id, status, resposta, respondido_por, valor_aprovado }: {
       id: string;
       status: "aprovada" | "recusada";
       resposta: string;
       respondido_por: string;
+      valor_aprovado?: number;
     }) => {
+      const updateData: any = {
+        status,
+        resposta,
+        respondido_por,
+        respondido_em: new Date().toISOString(),
+      };
+      if (valor_aprovado !== undefined) {
+        updateData.valor_aprovado = valor_aprovado;
+      }
       const { data, error } = await supabase
         .from("solicitacoes_credito" as any)
-        .update({
-          status,
-          resposta,
-          respondido_por,
-          respondido_em: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq("id", id)
         .select()
         .single();
