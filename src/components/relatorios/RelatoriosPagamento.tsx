@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { isAdminRole } from "@/utils/roles";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,7 +29,7 @@ export function RelatoriosPagamento() {
   const [downloading, setDownloading] = useState<string | null>(null);
   const { canFilterRegional, effectiveRegionalId, selectedRegionalId, setSelectedRegionalId } = useRegionalFilter();
   const { data: role } = useUserRole();
-  const isGestorNacional = role === "gestor_nacional";
+  const isGestorNacional = isAdminRole(role);
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
 

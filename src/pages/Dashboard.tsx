@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { isAdminRole } from "@/utils/roles";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -165,7 +166,7 @@ export default function Dashboard() {
   const [selectedContratoId, setSelectedContratoId] = useState<string>("");
   const { data, isLoading } = useDashboardData(effectiveRegionalId, selectedContratoId || null);
   const { data: contratos = [] } = useContratos(effectiveRegionalId);
-  const isGestorNacional = role === "gestor_nacional";
+  const isGestorNacional = isAdminRole(role);
 
   return (
     <div className="space-y-6">

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { isAdminRole } from "@/utils/roles";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,7 +27,7 @@ export function NovoContratoDialog({ open, onOpenChange }: Props) {
   const { data: profile } = useUserProfile();
   const { data: prepostos = [] } = useUsersByRole(["preposto"]);
 
-  const isNacional = role === "gestor_nacional";
+  const isNacional = isAdminRole(role);
   const userRegionais: any[] = (profile as any)?.regionais || [];
   const regionais = isNacional ? allRegionais : userRegionais;
   const [form, setForm] = useState({

@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { isAdminRole } from "@/utils/roles";
 import { Loader2, DollarSign, Plus, Pencil, Trash2, TrendingUp, TrendingDown, CircleDot, FileSpreadsheet, AlertTriangle, Landmark } from "lucide-react";
 import * as XLSX from "xlsx";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,7 +43,7 @@ export default function GestaoOrcamento() {
   const [creditoDialog, setCreditoDialog] = useState<{ open: boolean; orcamentoId?: string }>({ open: false });
   const [empenhoDialog, setEmpenhoDialog] = useState<{ open: boolean; orcamentoId?: string }>({ open: false });
 
-  const isNacional = role === "gestor_nacional";
+  const isNacional = isAdminRole(role);
   const isRegional = role === "gestor_regional";
   const isFiscal = role === "fiscal_contrato";
   const canAccessPage = isNacional || isRegional || isFiscal;

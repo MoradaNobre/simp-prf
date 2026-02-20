@@ -16,6 +16,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { isAdminRole } from "@/utils/roles";
 import {
   Sidebar,
   SidebarContent,
@@ -32,6 +33,7 @@ import {
 const BUILD_DATE = new Date().toLocaleDateString("pt-BR");
 
 const roleLabels: Record<string, string> = {
+  gestor_master: "Gestor Master",
   gestor_nacional: "Gestor Nacional",
   gestor_regional: "Gestor Regional",
   fiscal_contrato: "Fiscal de Contrato",
@@ -41,6 +43,7 @@ const roleLabels: Record<string, string> = {
 };
 
 const roleColors: Record<string, string> = {
+  gestor_master: "warning",
   gestor_nacional: "destructive",
   gestor_regional: "default",
   fiscal_contrato: "warning",
@@ -50,11 +53,11 @@ const roleColors: Record<string, string> = {
 };
 
 const allMenuItems = [
-  { title: "Dashboard", url: "/app/dashboard", icon: LayoutDashboard, roles: ["gestor_nacional", "gestor_regional", "fiscal_contrato", "operador"] },
+  { title: "Dashboard", url: "/app/dashboard", icon: LayoutDashboard, roles: ["gestor_master", "gestor_nacional", "gestor_regional", "fiscal_contrato", "operador"] },
   { title: "Ordens de Serviço", url: "/app/ordens", icon: ClipboardList, roles: null }, // all roles
   // { title: "Manutenção Preventiva", url: "/app/preventiva", icon: CalendarClock }, // TODO: implementar futuramente
-  { title: "Relatórios OS", url: "/app/relatorios", icon: FileBarChart, roles: ["gestor_nacional", "gestor_regional", "fiscal_contrato", "preposto", "terceirizado"] },
-  { title: "Contratos", url: "/app/contratos", icon: FileText, roles: ["gestor_nacional", "gestor_regional", "fiscal_contrato", "operador", "preposto"] },
+  { title: "Relatórios OS", url: "/app/relatorios", icon: FileBarChart, roles: ["gestor_master", "gestor_nacional", "gestor_regional", "fiscal_contrato", "preposto", "terceirizado"] },
+  { title: "Contratos", url: "/app/contratos", icon: FileText, roles: ["gestor_master", "gestor_nacional", "gestor_regional", "fiscal_contrato", "operador", "preposto"] },
 ];
 
 export function AppSidebar() {
@@ -62,7 +65,7 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const { data: role } = useUserRole();
   const { data: profile } = useUserProfile();
-  const isAdmin = role === "gestor_nacional";
+  const isAdmin = isAdminRole(role);
   const isRegional = role === "gestor_regional";
   const canManage = isAdmin || isRegional;
 

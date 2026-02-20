@@ -13,7 +13,7 @@ export function AppRedirect() {
     );
   }
 
-  if (role === "gestor_nacional") {
+  if (role === "gestor_nacional" || role === "gestor_master") {
     return <Navigate to="/app/orcamento" replace />;
   }
 

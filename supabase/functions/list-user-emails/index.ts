@@ -30,9 +30,9 @@ Deno.serve(async (req) => {
 
     const userId = data.claims.sub;
 
-    // Check if user is gestor_nacional
+    // Check if user is gestor_nacional or gestor_master
     const { data: roleData } = await supabase.from("user_roles").select("role").eq("user_id", userId).single();
-    if (roleData?.role !== "gestor_nacional") {
+    if (!roleData || (roleData.role !== "gestor_nacional" && roleData.role !== "gestor_master")) {
       return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 

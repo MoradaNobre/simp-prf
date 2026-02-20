@@ -48,7 +48,7 @@ Deno.serve(async (req) => {
       .eq("user_id", callerId)
       .maybeSingle();
 
-    const allowedRoles = ["gestor_nacional", "gestor_regional", "fiscal_contrato", "preposto"];
+    const allowedRoles = ["gestor_master", "gestor_nacional", "gestor_regional", "fiscal_contrato", "preposto"];
     if (!callerRole || !allowedRoles.includes(callerRole.role)) {
       return new Response(JSON.stringify({ error: "Sem permissão" }), {
         status: 403,

@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { Navigate } from "react-router-dom";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useQueryClient } from "@tanstack/react-query";
+import { isAdminRole } from "@/utils/roles";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -61,7 +62,7 @@ export default function Gestao() {
     );
   }
 
-  const isNacional = role === "gestor_nacional";
+  const isNacional = isAdminRole(role);
   const isRegional = role === "gestor_regional";
 
   if (!isNacional && !isRegional) {

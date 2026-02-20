@@ -22,6 +22,7 @@ import { Search, Loader2, Trash2, Ban, CheckCircle, AlertTriangle, ArrowUpDown, 
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Constants } from "@/integrations/supabase/types";
+import { isAdminRole } from "@/utils/roles";
 
 type SortField = "full_name" | "role" | "regionais" | "ativo";
 type SortDir = "asc" | "desc";
@@ -141,6 +142,7 @@ function useUpdateUserRegionais() {
 }
 
 const roleLabels: Record<string, string> = {
+  gestor_master: "Gestor Master",
   gestor_nacional: "Gestor Nacional",
   gestor_regional: "Gestor Regional",
   fiscal_contrato: "Fiscal de Contrato",
@@ -150,6 +152,7 @@ const roleLabels: Record<string, string> = {
 };
 
 const roleColors: Record<string, string> = {
+  gestor_master: "warning",
   gestor_nacional: "destructive",
   gestor_regional: "default",
   fiscal_contrato: "warning",
@@ -179,7 +182,7 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
       if (res.error) throw res.error;
       return (res.data || {}) as Record<string, { email: string; confirmed: boolean }>;
     },
-    enabled: currentUserRole === "gestor_nacional",
+    enabled: isAdminRole(currentUserRole),
   });
   const isMobile = useIsMobile();
   const [search, setSearch] = useState("");
@@ -196,7 +199,7 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
   const [deleting, setDeleting] = useState(false);
   const [toggling, setToggling] = useState<string | null>(null);
 
-  const isNacional = currentUserRole === "gestor_nacional";
+  const isNacional = isAdminRole(currentUserRole);
   const isRegional = currentUserRole === "gestor_regional";
 
   const userRegionalIds: string[] = (profile as any)?.regionais?.map((r: any) => r.id) ?? [];
