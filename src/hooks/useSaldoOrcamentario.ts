@@ -117,9 +117,45 @@ export function useRespondSolicitacaoCredito() {
         .select()
         .single();
       if (error) throw error;
+
+      // When approved, create a credit entry in orcamento_creditos
+      if (status === "aprovada") {
+        const sol = data as any;
+        const valorCredito = valor_aprovado ?? sol.valor_solicitado ?? 0;
+        if (valorCredito > 0) {
+          const currentYear = new Date().getFullYear();
+          // Find the orcamento_anual for this regional + year
+          const { data: orcamento, error: orcError } = await supabase
+            .from("orcamento_anual" as any)
+            .select("id")
+            .eq("regional_id", sol.regional_id)
+            .eq("exercicio", currentYear)
+            .maybeSingle();
+          if (orcError) throw orcError;
+          if (orcamento) {
+            const { error: credError } = await supabase
+              .from("orcamento_creditos" as any)
+              .insert({
+                orcamento_id: (orcamento as any).id,
+                valor: valorCredito,
+                tipo: "suplementar",
+                descricao: `Crédito suplementar aprovado - Solicitação ${sol.os_id ? "vinculada a OS" : "avulsa"}`,
+                created_by: respondido_por,
+                data_credito: new Date().toISOString().split("T")[0],
+              });
+            if (credError) throw credError;
+          }
+        }
+      }
+
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["solicitacoes-credito"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["solicitacoes-credito"] });
+      qc.invalidateQueries({ queryKey: ["saldo-orcamentario"] });
+      qc.invalidateQueries({ queryKey: ["orcamento-creditos"] });
+      qc.invalidateQueries({ queryKey: ["orcamento-anual"] });
+    },
   });
 }
 
