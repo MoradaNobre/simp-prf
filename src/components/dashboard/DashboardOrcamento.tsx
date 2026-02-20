@@ -8,6 +8,8 @@ import { Loader2 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell,
 } from "recharts";
+import { ArrowUpDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const currentYear = new Date().getFullYear();
 const yearRange = Array.from({ length: 10 }, (_, i) => currentYear - 7 + i);
@@ -28,6 +30,7 @@ interface DashboardOrcamentoProps {
 
 export default function DashboardOrcamento({ regionalId }: DashboardOrcamentoProps) {
   const [exercicio, setExercicio] = useState(currentYear);
+  const [sortChart1, setSortChart1] = useState<"sigla" | "dotacaoTotal" | "totalConsumido">("sigla");
 
   const { data: orcamentos, isLoading: orcLoading } = useQuery({
     queryKey: ["dash-orcamento-anual", exercicio, regionalId],
@@ -168,11 +171,38 @@ export default function DashboardOrcamento({ regionalId }: DashboardOrcamentoPro
         <>
           {/* Gráfico 1: Dotação vs Consumido */}
           <Card>
-            <CardHeader><CardTitle className="text-lg">Dotação vs Consumido por Regional</CardTitle></CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-lg">Dotação vs Consumido por Regional</CardTitle>
+              <div className="flex items-center gap-1">
+                <span className="text-xs text-muted-foreground mr-1">Ordenar:</span>
+                {([
+                  { key: "sigla", label: "A-Z" },
+                  { key: "dotacaoTotal", label: "Dotação" },
+                  { key: "totalConsumido", label: "Consumido" },
+                ] as const).map((opt) => (
+                  <Button
+                    key={opt.key}
+                    size="sm"
+                    variant={sortChart1 === opt.key ? "default" : "outline"}
+                    className="h-7 text-xs px-2"
+                    onClick={() => setSortChart1(opt.key)}
+                  >
+                    {opt.label}
+                  </Button>
+                ))}
+              </div>
+            </CardHeader>
             <CardContent>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={consolidado} margin={{ top: 5, right: 20, left: 10, bottom: 60 }}>
+                  <BarChart
+                    data={[...consolidado].sort((a, b) =>
+                      sortChart1 === "sigla"
+                        ? a.sigla.localeCompare(b.sigla)
+                        : b[sortChart1] - a[sortChart1]
+                    )}
+                    margin={{ top: 5, right: 20, left: 10, bottom: 60 }}
+                  >
                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                     <XAxis dataKey="sigla" angle={-45} textAnchor="end" tick={{ fontSize: 10 }} interval={0} />
                     <YAxis tickFormatter={shortBRL} tick={{ fontSize: 11 }} />
