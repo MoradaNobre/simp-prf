@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useSolicitacoesCredito, useRespondSolicitacaoCredito, useCreateSolicitacaoCredito } from "@/hooks/useSaldoOrcamentario";
+import { useSolicitacoesCredito, useRespondSolicitacaoCredito, useCreateSolicitacaoCredito, useDeleteSolicitacaoCredito } from "@/hooks/useSaldoOrcamentario";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useUserProfile } from "@/hooks/useUserProfile";
@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Loader2, AlertTriangle, CheckCircle, XCircle, Plus, Landmark } from "lucide-react";
+import { Loader2, AlertTriangle, CheckCircle, XCircle, Plus, Landmark, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,7 +28,9 @@ export default function GestaoSolicitacoesCredito({ filtroRegional }: { filtroRe
   const solicitacoes = filtroRegional ? allSolicitacoes.filter(s => s.regional_id === filtroRegional) : allSolicitacoes;
   const respond = useRespondSolicitacaoCredito();
   const createSolicitacao = useCreateSolicitacaoCredito();
+  const deleteSolicitacao = useDeleteSolicitacaoCredito();
   const [respondingId, setRespondingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [resposta, setResposta] = useState("");
   const [valorAprovado, setValorAprovado] = useState("");
   const [showNovaDialog, setShowNovaDialog] = useState(false);
@@ -166,8 +168,19 @@ export default function GestaoSolicitacoesCredito({ filtroRegional }: { filtroRe
     }
   };
 
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteSolicitacao.mutateAsync(id);
+      toast.success("Solicitação excluída.");
+      setDeletingId(null);
+    } catch (err: any) {
+      toast.error("Erro ao excluir: " + err.message);
+    }
+  };
+
   const startResponding = (sol: any) => {
     setRespondingId(sol.id);
+    setDeletingId(null);
     setResposta("");
     // Pre-fill valor_aprovado with the requested amount
     setValorAprovado(sol.valor_solicitado > 0 ? String(sol.valor_solicitado) : sol.valor_os > 0 ? String(sol.valor_os) : "");
@@ -268,7 +281,7 @@ export default function GestaoSolicitacoesCredito({ filtroRegional }: { filtroRe
                 </div>
               )}
 
-              {sol.status === "pendente" && isNacional && (
+              {isNacional && (
                 respondingId === sol.id ? (
                   <div className="space-y-3">
                     {/* LOA balance info */}
@@ -319,8 +332,26 @@ export default function GestaoSolicitacoesCredito({ filtroRegional }: { filtroRe
                       </Button>
                     </div>
                   </div>
+                ) : deletingId === sol.id ? (
+                  <div className="rounded-md border border-destructive/50 bg-destructive/5 p-3 space-y-2">
+                    <p className="text-sm font-medium text-destructive">Confirmar exclusão desta solicitação?</p>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" onClick={() => setDeletingId(null)}>Cancelar</Button>
+                      <Button size="sm" variant="destructive" onClick={() => handleDelete(sol.id)} disabled={deleteSolicitacao.isPending}>
+                        {deleteSolicitacao.isPending ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Trash2 className="mr-1 h-3 w-3" />}
+                        Confirmar Exclusão
+                      </Button>
+                    </div>
+                  </div>
                 ) : (
-                  <Button size="sm" variant="outline" onClick={() => startResponding(sol)}>Responder</Button>
+                  <div className="flex gap-2">
+                    {sol.status === "pendente" && (
+                      <Button size="sm" variant="outline" onClick={() => startResponding(sol)}>Responder</Button>
+                    )}
+                    <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => { setDeletingId(sol.id); setRespondingId(null); }}>
+                      <Trash2 className="mr-1 h-3 w-3" /> Excluir
+                    </Button>
+                  </div>
                 )
               )}
             </div>
