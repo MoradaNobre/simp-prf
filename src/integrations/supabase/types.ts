@@ -1100,6 +1100,7 @@ export type Database = {
         | "autorizacao"
         | "execucao"
         | "ateste"
+        | "faturamento"
         | "pagamento"
         | "encerrada"
       os_tipo: "corretiva" | "preventiva"
@@ -1255,6 +1256,7 @@ export const Constants = {
         "autorizacao",
         "execucao",
         "ateste",
+        "faturamento",
         "pagamento",
         "encerrada",
       ],

@@ -24,9 +24,9 @@ import { useQuery } from "@tanstack/react-query";
 
 const statusLabels: Record<string, string> = {
   aberta: "Aberta", orcamento: "Orçamento", autorizacao: "Aguardando Autorização",
-  execucao: "Execução", ateste: "Ateste", pagamento: "Pagamento", encerrada: "Encerrada",
+  execucao: "Execução", ateste: "Ateste", faturamento: "Faturamento", pagamento: "Pagamento", encerrada: "Encerrada",
 };
-const statusFlow = ["aberta", "orcamento", "autorizacao", "execucao", "ateste", "pagamento", "encerrada"];
+const statusFlow = ["aberta", "orcamento", "autorizacao", "execucao", "ateste", "faturamento", "pagamento", "encerrada"];
 const prioridadeLabels: Record<string, string> = {
   baixa: "Baixa", media: "Média", alta: "Alta", urgente: "Urgente",
 };
@@ -40,6 +40,7 @@ const statusColors: Record<string, string> = {
   autorizacao: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
   execucao: "bg-accent text-accent-foreground",
   ateste: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  faturamento: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
   pagamento: "bg-success text-success-foreground",
   encerrada: "bg-muted text-muted-foreground",
 };
@@ -118,13 +119,14 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
       case "autorizacao": return isPreposto || isTerceirizado; // upload budget
       case "execucao": return isGestorOrFiscal; // authorize execution
       case "ateste": return isPreposto || isTerceirizado; // submit execution evidence
-      case "pagamento": return isGestorOrFiscal || isOperador || ((isPreposto || isTerceirizado) && !!(os as any).motivo_restituicao); // approve (ateste) or resubmit after restitution
+      case "faturamento": return isGestorOrFiscal || isOperador; // approve ateste → authorize NF emission
+      case "pagamento": return isPreposto || isTerceirizado; // preposto uploads NF and certidões
       default: return false;
     }
   })();
 
-  // Can submit payment docs (final step action, not advancing)
-  const canSubmitPayment = os.status === "pagamento" && (isPreposto || isTerceirizado);
+  // Can submit payment docs (encerramento step)
+  const canSubmitPayment = os.status === "pagamento" && isGestorOrFiscal;
 
   const uploadFile = async (file: File, folder: string) => {
     const ext = file.name.split(".").pop();
@@ -869,103 +871,35 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
             </>
           )}
 
-          {/* ATESTE → PAGAMENTO: gestor/fiscal/operador approves OR preposto/terceirizado resubmits after restitution */}
-          {canAdvance && nextStatus === "pagamento" && (
-            <>
-              <Separator />
-              <div className="space-y-3">
-                {(isPreposto || isTerceirizado) && !!(os as any).motivo_restituicao ? (
-                  <>
-                    <h4 className="text-sm font-medium flex items-center gap-1">
-                      <Upload className="h-4 w-4" /> Reenviar Documentos de Pagamento
-                    </h4>
-                    <p className="text-sm text-muted-foreground">
-                      Anexe os documentos corrigidos e encaminhe novamente para pagamento.
-                    </p>
-                    {(os as any).valor_orcamento > 0 && (
-                      <div className="p-3 bg-muted rounded-md">
-                        <p className="text-sm font-medium">
-                          <span className="text-muted-foreground">Valor da OS (Orçamento):</span>{" "}
-                          <span className="text-foreground font-semibold">
-                            R$ {Number((os as any).valor_orcamento).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                          </span>
-                        </p>
-                      </div>
-                    )}
-                    <Input
-                      type="file"
-                      accept=".pdf,.xlsx,.xls,.jpg,.jpeg,.png"
-                      multiple
-                      onChange={(e) => setDocumentosPagamento(e.target.files)}
-                    />
-                    <Button
-                      onClick={async () => {
-                        if (documentosPagamento && documentosPagamento.length > 0) {
-                          setUploading(true);
-                          try {
-                            const urls: string[] = [];
-                            for (const file of Array.from(documentosPagamento)) {
-                              const url = await uploadFile(file, "pagamento");
-                              urls.push(url);
-                            }
-                            const existing = (os as any).documentos_pagamento || [];
-                            await updateOS.mutateAsync({
-                              id: os.id,
-                              status: "pagamento" as any,
-                              documentos_pagamento: [...existing, ...urls],
-                              motivo_restituicao: null,
-                            } as any);
-                            toast.success("Documentos reenviados e OS encaminhada para pagamento!");
-                            // Notify gestor/fiscal about resubmission (they need to review)
-                            const emailOk3 = await sendTransitionNotification(os.status, "ateste");
-                            if (!emailOk3) toast.warning("A notificação por e-mail pode não ter sido enviada.", { duration: 8000 });
-                            setDocumentosPagamento(null);
-                            onOpenChange(false);
-                          } catch (err: any) {
-                            toast.error("Erro: " + err.message);
-                          } finally {
-                            setUploading(false);
-                          }
-                        } else {
-                          // Advance without new docs
-                          await handleAdvanceStatus();
-                        }
-                      }}
-                      disabled={uploading}
-                      className="w-full"
-                    >
-                      {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Enviar e Encaminhar para Pagamento
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <h4 className="text-sm font-medium flex items-center gap-1">
-                      <CheckCircle className="h-4 w-4" /> Ateste do Serviço
-                    </h4>
-                    <p className="text-sm text-muted-foreground">
-                      Aprove a execução do serviço e autorize a emissão da nota fiscal.
-                    </p>
-                    <Button onClick={handleAdvanceStatus} disabled={uploading} className="w-full">
-                      {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Aprovar e Autorizar Emissão da Nota Fiscal
-                    </Button>
-                  </>
-                )}
-              </div>
-            </>
-          )}
-
-          {/* PAGAMENTO: upload payment documents */}
-          {canSubmitPayment && (
+          {/* ATESTE → FATURAMENTO: gestor/fiscal/operador approves ateste */}
+          {canAdvance && nextStatus === "faturamento" && (
             <>
               <Separator />
               <div className="space-y-3">
                 <h4 className="text-sm font-medium flex items-center gap-1">
-                  <Upload className="h-4 w-4" /> Pagamento — Documentos
+                  <CheckCircle className="h-4 w-4" /> Ateste do Serviço
                 </h4>
                 <p className="text-sm text-muted-foreground">
-                  Carregue a nota fiscal, certidões e demais documentos necessários.
+                  Aprove a execução do serviço e autorize a emissão da nota fiscal e juntada das certidões.
+                </p>
+                <Button onClick={handleAdvanceStatus} disabled={uploading} className="w-full">
+                  {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Aprovar e Autorizar Emissão da Nota Fiscal
+                </Button>
+              </div>
+            </>
+          )}
+
+          {/* FATURAMENTO → PAGAMENTO: preposto/terceirizado uploads NF and certidões */}
+          {canAdvance && nextStatus === "pagamento" && (
+            <>
+              <Separator />
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium flex items-center gap-1">
+                  <Upload className="h-4 w-4" /> Faturamento — Nota Fiscal e Certidões
+                </h4>
+                <p className="text-sm text-muted-foreground">
+                  Carregue a nota fiscal emitida e as certidões exigidas para prosseguir com o pagamento.
                 </p>
                 {(os as any).valor_orcamento > 0 && (
                   <div className="p-3 bg-muted rounded-md">
@@ -983,13 +917,48 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                   multiple
                   onChange={(e) => setDocumentosPagamento(e.target.files)}
                 />
-                <Button onClick={handleSubmitPaymentDocs} disabled={uploading} className="w-full">
+                <Button
+                  onClick={async () => {
+                    if (!documentosPagamento || documentosPagamento.length === 0) {
+                      toast.error("Carregue a nota fiscal e certidões antes de avançar");
+                      return;
+                    }
+                    setUploading(true);
+                    try {
+                      const urls: string[] = [];
+                      for (const file of Array.from(documentosPagamento)) {
+                        const url = await uploadFile(file, "pagamento");
+                        urls.push(url);
+                      }
+                      const existing = (os as any).documentos_pagamento || [];
+                      await updateOS.mutateAsync({
+                        id: os.id,
+                        status: "pagamento" as any,
+                        documentos_pagamento: [...existing, ...urls],
+                        motivo_restituicao: null,
+                      } as any);
+                      toast.success("Documentos enviados! OS encaminhada para pagamento.");
+                      const emailOk3 = await sendTransitionNotification("faturamento", "pagamento");
+                      if (!emailOk3) toast.warning("A notificação por e-mail pode não ter sido enviada.", { duration: 8000 });
+                      setDocumentosPagamento(null);
+                      onOpenChange(false);
+                    } catch (err: any) {
+                      toast.error("Erro: " + err.message);
+                    } finally {
+                      setUploading(false);
+                    }
+                  }}
+                  disabled={uploading}
+                  className="w-full"
+                >
                   {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Enviar Documentos de Pagamento
+                  Enviar NF/Certidões e Encaminhar para Pagamento
                 </Button>
               </div>
             </>
           )}
+
+          {/* PAGAMENTO: gestor/fiscal reviews and can proceed to close */}
 
           {/* PAGAMENTO: gestor/fiscal generates report and encerras OS */}
           {os.status === "pagamento" && paymentDocs.length > 0 && isGestorOrFiscal && (
