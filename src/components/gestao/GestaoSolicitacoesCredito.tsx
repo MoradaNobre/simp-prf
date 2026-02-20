@@ -34,6 +34,8 @@ export default function GestaoSolicitacoesCredito({ filtroRegional }: { filtroRe
 
   const isNacional = role === "gestor_nacional";
   const isRegional = role === "gestor_regional";
+  const isFiscal = role === "fiscal_contrato";
+  const canSolicitar = isRegional || isFiscal;
 
   // Fetch regional names
   const { data: regionais = [] } = useQuery({
@@ -102,7 +104,7 @@ export default function GestaoSolicitacoesCredito({ filtroRegional }: { filtroRe
         <p className="text-sm text-muted-foreground">
           Solicitações de crédito suplementar enviadas por Gestores Regionais e Fiscais.
         </p>
-        {isRegional && (
+        {canSolicitar && (
           <Button size="sm" onClick={() => setShowNovaDialog(true)}>
             <Plus className="mr-1 h-3 w-3" /> Solicitar Crédito
           </Button>

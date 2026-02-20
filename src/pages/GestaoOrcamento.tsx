@@ -43,6 +43,8 @@ export default function GestaoOrcamento() {
 
   const isNacional = role === "gestor_nacional";
   const isRegional = role === "gestor_regional";
+  const isFiscal = role === "fiscal_contrato";
+  const canAccessPage = isNacional || isRegional || isFiscal;
 
   const { data: regionais } = useQuery({
     queryKey: ["regionais"],
@@ -277,7 +279,7 @@ export default function GestaoOrcamento() {
   if (roleLoading) {
     return <div className="flex items-center justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
   }
-  if (!isNacional && !isRegional) return <Navigate to="/dashboard" replace />;
+  if (!canAccessPage) return <Navigate to="/dashboard" replace />;
 
   const regionaisSemDotacao = (regionais || []).filter(r => !orcamentos?.some((o: any) => o.regional_id === r.id));
   const allRegionais = regionais || [];
