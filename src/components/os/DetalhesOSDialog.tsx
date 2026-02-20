@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
@@ -16,11 +16,12 @@ import { useSaldoOrcamentarioRegional, useCreateSolicitacaoCredito } from "@/hoo
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Camera, DollarSign, User, FileText, Upload, CheckCircle, Download, Undo2, AlertTriangle, ShieldAlert, FilePlus2 } from "lucide-react";
+import { Loader2, Camera, DollarSign, User, FileText, Upload, CheckCircle, Download, Undo2, AlertTriangle, ShieldAlert, FilePlus2, Archive } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { generateOSReport } from "@/utils/generateOSReport";
 import { generateOSExecucaoReport } from "@/utils/generateOSExecucaoReport";
 import { useQuery } from "@tanstack/react-query";
+import JSZip from "jszip";
 
 const statusLabels: Record<string, string> = {
   aberta: "Aberta", orcamento: "Orçamento", autorizacao: "Aguardando Autorização",
@@ -75,6 +76,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   const [selectedPrioridade, setSelectedPrioridade] = useState("");
   const [motivoSolicitacao, setMotivoSolicitacao] = useState("");
   const [showSolicitacao, setShowSolicitacao] = useState(false);
+  const [downloadingZip, setDownloadingZip] = useState(false);
 
   const { data: contratosAll = [] } = useContratos();
   const { data: saldos = [] } = useContratosSaldo();
@@ -373,6 +375,113 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
     }
   };
 
+  const handleDownloadZip = async () => {
+    if (!os) return;
+    setDownloadingZip(true);
+    try {
+      const zip = new JSZip();
+      const fetchFile = async (url: string, name: string) => {
+        try {
+          const res = await fetch(url);
+          if (!res.ok) return;
+          const blob = await res.blob();
+          zip.file(name, blob);
+        } catch { /* skip files that fail */ }
+      };
+
+      // Collect all attachments
+      const promises: Promise<void>[] = [];
+
+      if (os.foto_antes) {
+        const ext = os.foto_antes.split(".").pop()?.split("?")[0] || "jpg";
+        promises.push(fetchFile(os.foto_antes, `foto_antes.${ext}`));
+      }
+      if (os.foto_depois) {
+        const ext = os.foto_depois.split(".").pop()?.split("?")[0] || "jpg";
+        promises.push(fetchFile(os.foto_depois, `foto_depois.${ext}`));
+      }
+      if ((os as any).arquivo_orcamento) {
+        const url = (os as any).arquivo_orcamento;
+        const ext = url.split(".").pop()?.split("?")[0] || "pdf";
+        promises.push(fetchFile(url, `orcamento.${ext}`));
+      }
+
+      // Payment documents
+      const docs: string[] = (os as any).documentos_pagamento || [];
+      docs.forEach((url, i) => {
+        const ext = url.split(".").pop()?.split("?")[0] || "pdf";
+        promises.push(fetchFile(url, `pagamento/documento_${i + 1}.${ext}`));
+      });
+
+      // Fetch and add reports as PDFs
+      // Relatório de Pagamento (relatorios_os)
+      const { data: relatoriosOs } = await supabase
+        .from("relatorios_os")
+        .select("*")
+        .eq("os_id", os.id);
+
+      if (relatoriosOs?.length) {
+        for (const rel of relatoriosOs) {
+          try {
+            const dados = rel.dados_json as any;
+            const { data: osData } = await supabase
+              .from("ordens_servico")
+              .select("*, uops(nome, delegacia_id, delegacias(nome, regional_id, regionais(sigla, nome))), regionais(sigla, nome)")
+              .eq("id", rel.os_id)
+              .single();
+            const { data: custosData } = await supabase
+              .from("os_custos")
+              .select("descricao, tipo, valor")
+              .eq("os_id", rel.os_id);
+
+            const pdfDoc = generateOSReport({
+              os: osData as any,
+              contrato: dados.contrato || null,
+              custos: (custosData || []).map((c: any) => ({ descricao: c.descricao, tipo: c.tipo, valor: Number(c.valor) })),
+              responsaveis: dados.responsaveis || [],
+              valorAtestado: rel.valor_atestado,
+              geradoPor: dados.gerado_por_nome || "",
+              historicoFluxo: dados.historicoFluxo || [],
+            }, { skipSave: true });
+            const pdfBlob = pdfDoc.output("blob");
+            zip.file(`relatorio_pagamento_${rel.codigo_os}.pdf`, pdfBlob);
+          } catch { /* skip */ }
+        }
+      }
+
+      // Relatório de Execução (relatorios_execucao)
+      const { data: relatoriosExec } = await supabase
+        .from("relatorios_execucao")
+        .select("*")
+        .eq("os_id", os.id);
+
+      if (relatoriosExec?.length) {
+        for (const rel of relatoriosExec) {
+          try {
+            const reportData = rel.dados_json as any;
+            const pdfDoc = generateOSExecucaoReport(reportData);
+            const pdfBlob = pdfDoc.output("blob");
+            zip.file(`relatorio_execucao_${rel.codigo_os}.pdf`, pdfBlob);
+          } catch { /* skip */ }
+        }
+      }
+
+      await Promise.all(promises);
+
+      const content = await zip.generateAsync({ type: "blob" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(content);
+      link.download = `OS_${os.codigo}_documentos.zip`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+      toast.success("Download concluído!");
+    } catch (err: any) {
+      toast.error("Erro ao gerar ZIP: " + err.message);
+    } finally {
+      setDownloadingZip(false);
+    }
+  };
+
   const totalCustos = (custos.data || []).reduce((sum, c) => sum + Number(c.valor), 0);
   const paymentDocs: string[] = (os as any).documentos_pagamento || [];
 
@@ -534,6 +643,30 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                 ))}
               </div>
             </div>
+          )}
+
+          {/* Download ZIP: encerrada OS for gestores/fiscais */}
+          {os.status === "encerrada" && isGestorOrFiscal && (
+            <>
+              <Separator />
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium flex items-center gap-1">
+                  <Archive className="h-4 w-4" /> Download Completo
+                </h4>
+                <p className="text-sm text-muted-foreground">
+                  Baixe todos os arquivos anexados e relatórios gerados desta OS em um único arquivo compactado.
+                </p>
+                <Button
+                  onClick={handleDownloadZip}
+                  disabled={downloadingZip}
+                  variant="outline"
+                  className="w-full"
+                >
+                  {downloadingZip ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Archive className="mr-2 h-4 w-4" />}
+                  {downloadingZip ? "Gerando arquivo..." : "Baixar Todos os Documentos (.zip)"}
+                </Button>
+              </div>
+            </>
           )}
 
           {/* === STEP-SPECIFIC ACTIONS === */}
