@@ -313,7 +313,7 @@ export default function GestaoOrcamento() {
         </div>
       </div>
 
-      <Tabs defaultValue={isNacional ? "loa" : "dotacoes"} className="w-full">
+      <Tabs defaultValue={isNacional ? "solicitacoes" : "dotacoes"} className="w-full">
         <TabsList className="w-full sm:w-auto flex-wrap h-auto gap-1 p-1">
           {isNacional && (
             <TabsTrigger value="loa" className="flex items-center gap-1.5 text-xs sm:text-sm">
