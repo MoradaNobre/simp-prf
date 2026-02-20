@@ -11,16 +11,31 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Pencil, Plus } from "lucide-react";
+import { Loader2, Pencil, Plus, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 }
 
+type SortKey = "sigla" | "dotacao" | "pct";
+type SortDir = "asc" | "desc";
+
 export default function GestaoLOA({ exercicio }: { exercicio: number }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [showDialog, setShowDialog] = useState(false);
+  const [sortKey, setSortKey] = useState<SortKey>("sigla");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) setSortDir(d => d === "asc" ? "desc" : "asc");
+    else { setSortKey(key); setSortDir("asc"); }
+  };
+
+  const SortIcon = ({ col }: { col: SortKey }) => {
+    if (sortKey !== col) return <ArrowUpDown className="h-3 w-3 opacity-40" />;
+    return sortDir === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />;
+  };
 
   // Fetch LOA for current year
   const { data: loa, isLoading: loaLoading } = useQuery({
@@ -167,35 +182,55 @@ export default function GestaoLOA({ exercicio }: { exercicio: number }) {
       )}
 
       {/* Regional breakdown */}
-      {resumo.regionaisData.length > 0 && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Distribuição por Regional</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {resumo.regionaisData.map((r) => {
-                const pct = resumo.valorLOA > 0 ? (r.dotacaoTotal / resumo.valorLOA) * 100 : 0;
-                return (
+      {resumo.regionaisData.length > 0 && (() => {
+        const sorted = [...resumo.regionaisData]
+          .map(r => ({ ...r, pct: resumo.valorLOA > 0 ? (r.dotacaoTotal / resumo.valorLOA) * 100 : 0 }))
+          .sort((a, b) => {
+            let cmp = 0;
+            if (sortKey === "sigla") cmp = (a.regional?.sigla || "").localeCompare(b.regional?.sigla || "");
+            else if (sortKey === "dotacao") cmp = a.dotacaoTotal - b.dotacaoTotal;
+            else cmp = a.pct - b.pct;
+            return sortDir === "desc" ? -cmp : cmp;
+          });
+        return (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Distribuição por Regional</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-4 mb-2 text-xs text-muted-foreground">
+                <button onClick={() => toggleSort("sigla")} className="w-32 sm:w-48 shrink-0 flex items-center gap-1 hover:text-foreground transition-colors cursor-pointer font-medium">
+                  Regional <SortIcon col="sigla" />
+                </button>
+                <div className="flex-1" />
+                <button onClick={() => toggleSort("dotacao")} className="w-20 text-right flex items-center justify-end gap-1 hover:text-foreground transition-colors cursor-pointer font-medium">
+                  Valor <SortIcon col="dotacao" />
+                </button>
+                <button onClick={() => toggleSort("pct")} className="w-12 text-right flex items-center justify-end gap-1 hover:text-foreground transition-colors cursor-pointer font-medium">
+                  % <SortIcon col="pct" />
+                </button>
+              </div>
+              <div className="space-y-3">
+                {sorted.map((r) => (
                   <div key={r.id} className="flex items-center gap-4">
                     <div className="w-32 sm:w-48 shrink-0">
                       <p className="text-sm font-medium">{r.regional?.sigla}</p>
                       <p className="text-xs text-muted-foreground truncate">{r.regional?.nome}</p>
                     </div>
                     <div className="flex-1">
-                      <Progress value={Math.min(pct, 100)} className="h-2" />
+                      <Progress value={Math.min(r.pct, 100)} className="h-2" />
                     </div>
                     <div className="w-32 text-right shrink-0">
                       <p className="text-sm font-medium">{formatCurrency(r.dotacaoTotal)}</p>
-                      <p className="text-xs text-muted-foreground">{pct.toFixed(1)}%</p>
+                      <p className="text-xs text-muted-foreground">{r.pct.toFixed(1)}%</p>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })()}
 
       {loa?.observacoes && (
         <p className="text-sm text-muted-foreground italic">{loa.observacoes}</p>
