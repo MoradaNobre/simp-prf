@@ -874,7 +874,7 @@ export type Database = {
           created_at: string
           id: string
           motivo: string
-          os_id: string
+          os_id: string | null
           regional_id: string
           respondido_em: string | null
           respondido_por: string | null
@@ -884,12 +884,13 @@ export type Database = {
           solicitante_id: string
           status: string
           valor_os: number
+          valor_solicitado: number
         }
         Insert: {
           created_at?: string
           id?: string
           motivo: string
-          os_id: string
+          os_id?: string | null
           regional_id: string
           respondido_em?: string | null
           respondido_por?: string | null
@@ -899,12 +900,13 @@ export type Database = {
           solicitante_id: string
           status?: string
           valor_os?: number
+          valor_solicitado?: number
         }
         Update: {
           created_at?: string
           id?: string
           motivo?: string
-          os_id?: string
+          os_id?: string | null
           regional_id?: string
           respondido_em?: string | null
           respondido_por?: string | null
@@ -914,6 +916,7 @@ export type Database = {
           solicitante_id?: string
           status?: string
           valor_os?: number
+          valor_solicitado?: number
         }
         Relationships: [
           {
