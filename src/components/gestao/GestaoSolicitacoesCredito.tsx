@@ -42,7 +42,7 @@ export default function GestaoSolicitacoesCredito({ filtroRegional }: { filtroRe
 
   const currentYear = new Date().getFullYear();
 
-  // Fetch LOA for current year (nacional only)
+  // Fetch Portaria Orçamentária for current year (nacional only)
   const { data: loa } = useQuery({
     queryKey: ["orcamento-loa", currentYear],
     queryFn: async () => {
@@ -57,7 +57,7 @@ export default function GestaoSolicitacoesCredito({ filtroRegional }: { filtroRe
     enabled: isNacional,
   });
 
-  // Fetch dotações to compute total distributed
+  // Fetch cotas to compute total distributed
   const { data: dotacoes = [] } = useQuery({
     queryKey: ["orcamento-anual", currentYear],
     queryFn: async () => {
@@ -284,16 +284,16 @@ export default function GestaoSolicitacoesCredito({ filtroRegional }: { filtroRe
               {isNacional && (
                 respondingId === sol.id ? (
                   <div className="space-y-3">
-                    {/* LOA balance info */}
-                    {loaResumo && (
-                      <div className="rounded-md border border-border bg-muted/50 p-3 flex items-center gap-3 flex-wrap text-xs">
-                        <Landmark className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <div className="flex gap-4 flex-wrap">
-                          <span>LOA {currentYear}: <strong>{fmt(loaResumo.valorLOA)}</strong></span>
-                          <span>Distribuído: <strong>{fmt(loaResumo.totalDistribuido)}</strong></span>
-                          <span className={loaResumo.saldoNaoDistribuido < 0 ? "text-destructive font-semibold" : ""}>
-                            Saldo LOA: <strong>{fmt(loaResumo.saldoNaoDistribuido)}</strong>
-                          </span>
+                     {/* Portaria Orçamentária balance info */}
+                     {loaResumo && (
+                       <div className="rounded-md border border-border bg-muted/50 p-3 flex items-center gap-3 flex-wrap text-xs">
+                         <Landmark className="h-4 w-4 text-muted-foreground shrink-0" />
+                         <div className="flex gap-4 flex-wrap">
+                           <span>Portaria {currentYear}: <strong>{fmt(loaResumo.valorLOA)}</strong></span>
+                           <span>Distribuído: <strong>{fmt(loaResumo.totalDistribuido)}</strong></span>
+                           <span className={loaResumo.saldoNaoDistribuido < 0 ? "text-destructive font-semibold" : ""}>
+                             Saldo Portaria: <strong>{fmt(loaResumo.saldoNaoDistribuido)}</strong>
+                           </span>
                         </div>
                       </div>
                     )}

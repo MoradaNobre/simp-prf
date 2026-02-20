@@ -28,7 +28,7 @@ function formatCurrency(value: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 }
 
-const tipoLabels: Record<string, string> = { inicial: "Dotação Inicial", suplementacao: "Suplementação", reducao: "Redução" };
+const tipoLabels: Record<string, string> = { inicial: "Cota Inicial", suplementacao: "Suplementação", reducao: "Redução" };
 const tipoIcons: Record<string, typeof CircleDot> = { inicial: CircleDot, suplementacao: TrendingUp, reducao: TrendingDown };
 const tipoBadge: Record<string, string> = { inicial: "default", suplementacao: "secondary", reducao: "destructive" };
 
@@ -122,8 +122,8 @@ export default function GestaoOrcamento() {
         const v = Number(c.valor);
         return c.tipo === "reducao" ? s - v : s + v;
       }, 0);
-      // Dotação total = valor base + créditos (suplementações - reduções)
-      const dotacaoTotal = Number(orc.valor_dotacao) + totalCreditos;
+       // Cota total = valor base + créditos (suplementações - reduções)
+       const dotacaoTotal = Number(orc.valor_dotacao) + totalCreditos;
 
       const emps = (empenhos || []).filter((e: any) => e.orcamento_id === orc.id);
       const totalEmpenhos = emps.reduce((s: number, e: any) => s + Number(e.valor), 0);
@@ -150,8 +150,8 @@ export default function GestaoOrcamento() {
       "Regional": item.regional?.sigla || "—",
       
       "Exercício": exercicio,
-      "Dotação Base": Number(item.valor_dotacao),
-      "Dotação Total": item.dotacaoTotal,
+      "Cota Base": Number(item.valor_dotacao),
+      "Cota Total": item.dotacaoTotal,
       "Custos OS": item.totalCustosOS,
       "Empenhos Manuais": item.totalEmpenhos,
       "Total Consumido": item.totalConsumido,
@@ -292,7 +292,7 @@ export default function GestaoOrcamento() {
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <DollarSign className="h-6 w-6" /> Gestão do Orçamento
           </h1>
-          <p className="text-muted-foreground">Dotação orçamentária anual por regional</p>
+          <p className="text-muted-foreground">Cota orçamentária anual por regional</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <Select value={filtroRegional} onValueChange={setFiltroRegional}>
@@ -318,12 +318,12 @@ export default function GestaoOrcamento() {
           {isNacional && (
             <TabsTrigger value="loa" className="flex items-center gap-1.5 text-xs sm:text-sm">
               <Landmark className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              LOA
+              Portaria Orçamentária
             </TabsTrigger>
           )}
           <TabsTrigger value="dotacoes" className="flex items-center gap-1.5 text-xs sm:text-sm">
             <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            Dotações
+            Cotas
           </TabsTrigger>
           {(isNacional || isRegional || isFiscal) && (
             <TabsTrigger value="solicitacoes" className="flex items-center gap-1.5 text-xs sm:text-sm">
@@ -368,7 +368,7 @@ export default function GestaoOrcamento() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                  <div><p className="text-xs text-muted-foreground">Dotação Total</p><p className="text-lg font-semibold">{formatCurrency(item.dotacaoTotal)}</p></div>
+                  <div><p className="text-xs text-muted-foreground">Cota Total</p><p className="text-lg font-semibold">{formatCurrency(item.dotacaoTotal)}</p></div>
                   <div><p className="text-xs text-muted-foreground">Custos OS</p><p className="text-lg font-semibold">{formatCurrency(item.totalCustosOS)}</p></div>
                   <div><p className="text-xs text-muted-foreground">Empenhos Manuais</p><p className="text-lg font-semibold">{formatCurrency(item.totalEmpenhos)}</p></div>
                   <div><p className="text-xs text-muted-foreground">Total Consumido</p><p className="text-lg font-semibold">{formatCurrency(item.totalConsumido)}</p></div>
@@ -570,7 +570,7 @@ function DotacaoDialog({ open, item, regionais, exercicio, onClose, onSave, savi
             </>
           )}
           <div className="space-y-2">
-            <Label>Valor da Dotação Inicial (R$)</Label>
+            <Label>Valor da Cota Inicial (R$)</Label>
             <Input type="number" step="0.01" value={valor} onChange={(e) => setValor(e.target.value)} placeholder="0,00" />
           </div>
           <div className="space-y-2">
@@ -608,7 +608,7 @@ function CreditoDialog({ open, orcamentoId, onClose, onSave, saving }: any) {
             <Select value={tipo} onValueChange={setTipo}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="inicial">Dotação Inicial</SelectItem>
+                <SelectItem value="inicial">Cota Inicial</SelectItem>
                 <SelectItem value="suplementacao">Suplementação</SelectItem>
                 <SelectItem value="reducao">Redução / Contingenciamento</SelectItem>
               </SelectContent>
@@ -671,7 +671,7 @@ function EmpenhoDialog({ open, orcamentoId, consolidado, onClose, onSave, saving
           </div>
           {orcItem && (
             <div className="text-xs text-muted-foreground space-y-1">
-              <p>Dotação total: {formatCurrency(dotacaoTotal)} | Empenhado: {formatCurrency(empenhosAtuais)} | Disponível para empenho: <span className={limiteDisponivel <= 0 ? "text-destructive font-medium" : "font-medium"}>{formatCurrency(limiteDisponivel)}</span></p>
+              <p>Cota total: {formatCurrency(dotacaoTotal)} | Empenhado: {formatCurrency(empenhosAtuais)} | Disponível para empenho: <span className={limiteDisponivel <= 0 ? "text-destructive font-medium" : "font-medium"}>{formatCurrency(limiteDisponivel)}</span></p>
             </div>
           )}
           {excedeLimite && (

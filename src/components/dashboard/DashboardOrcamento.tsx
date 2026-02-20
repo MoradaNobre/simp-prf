@@ -145,7 +145,7 @@ export default function DashboardOrcamento({ regionalId }: DashboardOrcamentoPro
       {/* KPIs globais */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Dotação Total</CardTitle></CardHeader>
+          <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Cota Total</CardTitle></CardHeader>
           <CardContent><div className="text-xl font-bold">{formatBRL(totalGeral.dotacao)}</div></CardContent>
         </Card>
         <Card>
@@ -166,19 +166,19 @@ export default function DashboardOrcamento({ regionalId }: DashboardOrcamentoPro
       </div>
 
       {consolidado.length === 0 ? (
-        <Card><CardContent className="py-8 text-center text-muted-foreground">Nenhum orçamento cadastrado para {exercicio}.</CardContent></Card>
+        <Card><CardContent className="py-8 text-center text-muted-foreground">Nenhuma cota orçamentária cadastrada para {exercicio}.</CardContent></Card>
       ) : (
         <>
           {/* Gráfico 1: Dotação vs Consumido */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-lg">Dotação vs Consumido por Regional</CardTitle>
+              <CardTitle className="text-lg">Cota vs Consumido por Regional</CardTitle>
               <div className="flex items-center gap-1">
                 <span className="text-xs text-muted-foreground mr-1">Ordenar:</span>
                 {([
                   { key: "sigla", label: "A-Z" },
-                  { key: "dotacaoTotal", label: "Dotação" },
-                  { key: "totalConsumido", label: "Consumido" },
+                   { key: "dotacaoTotal", label: "Cota" },
+                   { key: "totalConsumido", label: "Consumido" },
                 ] as const).map((opt) => (
                   <Button
                     key={opt.key}
@@ -208,7 +208,7 @@ export default function DashboardOrcamento({ regionalId }: DashboardOrcamentoPro
                     <YAxis tickFormatter={shortBRL} tick={{ fontSize: 11 }} />
                     <Tooltip formatter={(v: number) => formatBRL(v)} />
                     <Legend verticalAlign="top" />
-                    <Bar dataKey="dotacaoTotal" name="Dotação" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="dotacaoTotal" name="Cota" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                     <Bar dataKey="totalConsumido" name="Consumido" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
@@ -238,7 +238,7 @@ export default function DashboardOrcamento({ regionalId }: DashboardOrcamentoPro
 
           {/* Gráfico 3: Progresso por Regional */}
           <Card>
-            <CardHeader><CardTitle className="text-lg">Utilização do Orçamento por Regional</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-lg">Utilização da Cota por Regional</CardTitle></CardHeader>
             <CardContent>
               <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
                 {consolidado.map((item) => (
