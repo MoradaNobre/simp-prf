@@ -36,6 +36,7 @@ export default function GestaoOrcamento() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [exercicio, setExercicio] = useState(currentYear);
+  const [filtroRegional, setFiltroRegional] = useState<string>("todas");
   const [dotacaoDialog, setDotacaoDialog] = useState<{ open: boolean; item?: any }>({ open: false });
   const [creditoDialog, setCreditoDialog] = useState<{ open: boolean; orcamentoId?: string }>({ open: false });
   const [empenhoDialog, setEmpenhoDialog] = useState<{ open: boolean; orcamentoId?: string }>({ open: false });
@@ -131,6 +132,11 @@ export default function GestaoOrcamento() {
       return { ...orc, creditosList: creds, dotacaoTotal, totalEmpenhos, totalCustosOS, totalConsumido, saldo, percentual, empenhosList: emps };
     });
   }, [orcamentos, creditos, empenhos, custosOS]);
+
+  const consolidadoFiltrado = useMemo(() => {
+    if (filtroRegional === "todas") return consolidado;
+    return consolidado.filter((item: any) => item.regional_id === filtroRegional);
+  }, [consolidado, filtroRegional]);
 
   const exportToXLS = () => {
     if (!consolidado.length) { toast.error("Nenhum dado para exportar."); return; }
@@ -285,6 +291,23 @@ export default function GestaoOrcamento() {
           </h1>
           <p className="text-muted-foreground">Dotação orçamentária anual por regional</p>
         </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Select value={filtroRegional} onValueChange={setFiltroRegional}>
+            <SelectTrigger className="w-[180px]"><SelectValue placeholder="Regional" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todas">Todas as Regionais</SelectItem>
+              {(regionais || []).map((r: any) => (
+                <SelectItem key={r.id} value={r.id}>{r.sigla} — {r.nome}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={String(exercicio)} onValueChange={(v) => setExercicio(Number(v))}>
+            <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {yearRange.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <Tabs defaultValue="dotacoes" className="w-full">
@@ -303,13 +326,7 @@ export default function GestaoOrcamento() {
 
         <TabsContent value="dotacoes">
       <div className="flex items-center justify-end gap-2 mb-4">
-          <Select value={String(exercicio)} onValueChange={(v) => setExercicio(Number(v))}>
-            <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {yearRange.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Button variant="outline" onClick={exportToXLS} disabled={!consolidado.length}>
+          <Button variant="outline" onClick={exportToXLS} disabled={!consolidadoFiltrado.length}>
             <FileSpreadsheet className="mr-2 h-4 w-4" /> Exportar XLS
           </Button>
           {isNacional && (
@@ -321,11 +338,11 @@ export default function GestaoOrcamento() {
 
       {orcLoading ? (
         <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
-      ) : consolidado.length === 0 ? (
-        <Card><CardContent className="py-8 text-center text-muted-foreground">Nenhum orçamento cadastrado para {exercicio}.</CardContent></Card>
+      ) : consolidadoFiltrado.length === 0 ? (
+        <Card><CardContent className="py-8 text-center text-muted-foreground">Nenhum orçamento encontrado para os filtros selecionados.</CardContent></Card>
       ) : (
         <div className="grid gap-4">
-          {consolidado.map((item: any) => (
+          {consolidadoFiltrado.map((item: any) => (
             <Card key={item.id}>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
@@ -454,7 +471,7 @@ export default function GestaoOrcamento() {
         <TabsContent value="solicitacoes">
           <Card>
             <CardContent className="pt-6 px-3 sm:px-6">
-              <GestaoSolicitacoesCredito />
+              <GestaoSolicitacoesCredito filtroRegional={filtroRegional === "todas" ? undefined : filtroRegional} />
             </CardContent>
           </Card>
         </TabsContent>
