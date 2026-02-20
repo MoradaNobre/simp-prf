@@ -20,11 +20,12 @@ const statusBadge: Record<string, { label: string; variant: "default" | "seconda
   recusada: { label: "Recusada", variant: "destructive" },
 };
 
-export default function GestaoSolicitacoesCredito() {
+export default function GestaoSolicitacoesCredito({ filtroRegional }: { filtroRegional?: string }) {
   const { user } = useAuth();
   const { data: role } = useUserRole();
   const { data: profile } = useUserProfile();
-  const { data: solicitacoes = [], isLoading } = useSolicitacoesCredito();
+  const { data: allSolicitacoes = [], isLoading } = useSolicitacoesCredito();
+  const solicitacoes = filtroRegional ? allSolicitacoes.filter(s => s.regional_id === filtroRegional) : allSolicitacoes;
   const respond = useRespondSolicitacaoCredito();
   const createSolicitacao = useCreateSolicitacaoCredito();
   const [respondingId, setRespondingId] = useState<string | null>(null);
