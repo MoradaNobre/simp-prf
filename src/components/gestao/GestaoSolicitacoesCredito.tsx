@@ -59,7 +59,7 @@ export default function GestaoSolicitacoesCredito({ filtroRegional }: { filtroRe
 
   // Fetch cotas to compute total distributed
   const { data: dotacoes = [] } = useQuery({
-    queryKey: ["orcamento-anual", currentYear],
+    queryKey: ["orcamento-anual-loa-calc", currentYear],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("orcamento_anual" as any)
