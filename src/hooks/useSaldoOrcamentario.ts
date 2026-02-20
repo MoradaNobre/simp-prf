@@ -35,9 +35,10 @@ export function useSaldoOrcamentarioRegional(regionalId?: string | null, exercic
 export interface SolicitacaoCredito {
   id: string;
   regional_id: string;
-  os_id: string;
+  os_id: string | null;
   solicitante_id: string;
   valor_os: number;
+  valor_solicitado: number;
   saldo_contrato: number;
   saldo_orcamento: number;
   motivo: string;
@@ -69,11 +70,12 @@ export function useCreateSolicitacaoCredito() {
   return useMutation({
     mutationFn: async (sol: {
       regional_id: string;
-      os_id: string;
+      os_id: string | null;
       solicitante_id: string;
       valor_os: number;
       saldo_contrato: number;
       saldo_orcamento: number;
+      valor_solicitado?: number;
       motivo: string;
     }) => {
       const { data, error } = await supabase
