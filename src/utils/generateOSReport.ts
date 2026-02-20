@@ -42,7 +42,7 @@ interface ReportData {
   historicoFluxo?: HistoricoFluxoItem[];
 }
 
-export function generateOSReport({ os, contrato, custos = [], responsaveis = [], valorAtestado, geradoPor, historicoFluxo = [] }: ReportData) {
+export function generateOSReport({ os, contrato, custos = [], responsaveis = [], valorAtestado, geradoPor, historicoFluxo = [] }: ReportData, { skipSave = false } = {}): jsPDF {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   let y = 20;
@@ -231,5 +231,6 @@ export function generateOSReport({ os, contrato, custos = [], responsaveis = [],
   y += 4;
   doc.text("Este relatório deve ser juntado ao processo de pagamento no sistema competente.", pageWidth / 2, y, { align: "center" });
 
-  doc.save(`Relatorio_${os.codigo}.pdf`);
+  if (!skipSave) doc.save(`Relatorio_${os.codigo}.pdf`);
+  return doc;
 }
