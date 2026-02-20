@@ -20,9 +20,9 @@ export function RegionalFilterSelect({ value, onChange }: RegionalFilterSelectPr
   const userRegionais: any[] = (profile as any)?.regionais || [];
 
   // admin roles see all; others see only their linked regionais
-  const regionais = isNacional
-    ? allRegionais
-    : userRegionais;
+  const regionais = (isNacional ? allRegionais : userRegionais)
+    .slice()
+    .sort((a: any, b: any) => (a.sigla ?? "").localeCompare(b.sigla ?? ""));
 
   return (
     <Select value={value || "all"} onValueChange={(v) => onChange(v === "all" ? "" : v)}>
