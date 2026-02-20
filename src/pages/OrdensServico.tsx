@@ -36,12 +36,13 @@ const statusColors: Record<string, string> = {
   autorizacao: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
   execucao: "bg-accent text-accent-foreground",
   ateste: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  faturamento: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
   pagamento: "bg-success text-success-foreground",
   encerrada: "bg-muted text-muted-foreground",
 };
 const statusLabels: Record<string, string> = {
   aberta: "Aberta", orcamento: "Orçamento", autorizacao: "Aguardando Autorização",
-  execucao: "Execução", ateste: "Ateste", pagamento: "Pagamento", encerrada: "Encerrada",
+  execucao: "Execução", ateste: "Ateste", faturamento: "Faturamento", pagamento: "Pagamento", encerrada: "Encerrada",
 };
 const prioridadeColors: Record<string, string> = {
   baixa: "outline", media: "secondary", alta: "default", urgente: "destructive",
@@ -49,7 +50,7 @@ const prioridadeColors: Record<string, string> = {
 
 const prioridadeOrder: Record<string, number> = { baixa: 0, media: 1, alta: 2, urgente: 3 };
 const statusOrder: Record<string, number> = {
-  aberta: 0, orcamento: 1, autorizacao: 2, execucao: 3, ateste: 4, pagamento: 5, encerrada: 6,
+  aberta: 0, orcamento: 1, autorizacao: 2, execucao: 3, ateste: 4, faturamento: 5, pagamento: 6, encerrada: 7,
 };
 
 type SortKey = "codigo" | "titulo" | "regional" | "delegacia" | "unidade" | "valor" | "status" | "prioridade" | "data";
@@ -264,7 +265,13 @@ export default function OrdensServico() {
                   <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors["ateste"]}`}>
                     Ateste
                   </span>
-                  <span className="text-xs text-muted-foreground">— Validar a execução do serviço realizado</span>
+                  <span className="text-xs text-muted-foreground">— Validar a execução e autorizar emissão da NF</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors["pagamento"]}`}>
+                    Pagamento
+                  </span>
+                  <span className="text-xs text-muted-foreground">— Verificar NF/certidões e encerrar a OS</span>
                 </div>
               </div>
             </div>
@@ -292,10 +299,10 @@ export default function OrdensServico() {
                   <span className="text-xs text-muted-foreground">— Realizar o serviço e registrar evidências (fotos antes/depois)</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors["pagamento"]}`}>
-                    Pagamento
+                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors["faturamento"]}`}>
+                    Faturamento
                   </span>
-                  <span className="text-xs text-muted-foreground">— Enviar documentos fiscais (nota fiscal, boleto)</span>
+                  <span className="text-xs text-muted-foreground">— Enviar nota fiscal emitida e certidões exigidas</span>
                 </div>
               </div>
             </div>

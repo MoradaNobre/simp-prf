@@ -192,8 +192,10 @@ Todos os dados coletados têm como finalidade exclusiva:
 ### 4.2. Fluxo de Status das Ordens de Serviço
 
 ```
-Aberta → Orçamento → Autorização → Execução → Ateste → Pagamento → Encerrada
+Aberta → Orçamento → Autorização → Execução → Ateste → Faturamento → Pagamento → Encerrada
 ```
+
+- **Faturamento (nova etapa):** Após o ateste do serviço, a OS aguarda a emissão da nota fiscal e a juntada das certidões exigidas pelo preposto/terceirizado antes de avançar para pagamento.
 
 Cada transição de status é registrada com timestamp e identificação do responsável.
 

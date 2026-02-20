@@ -7,6 +7,7 @@ const statusLabels: Record<string, string> = {
   autorizacao: "Aguardando Autorização",
   execucao: "Execução",
   ateste: "Ateste",
+  faturamento: "Faturamento",
   pagamento: "Pagamento",
   encerrada: "Encerrada",
 };

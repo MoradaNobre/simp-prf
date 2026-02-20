@@ -9,13 +9,14 @@ const statusColors: Record<string, string> = {
   autorizacao: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
   execucao: "bg-accent text-accent-foreground",
   ateste: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  faturamento: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
   pagamento: "bg-success text-success-foreground",
   encerrada: "bg-muted text-muted-foreground",
 };
 
 const statusLabels: Record<string, string> = {
   aberta: "Aberta", orcamento: "Orçamento", autorizacao: "Aguard. Autorização",
-  execucao: "Execução", ateste: "Ateste", pagamento: "Pagamento", encerrada: "Encerrada",
+  execucao: "Execução", ateste: "Ateste", faturamento: "Faturamento", pagamento: "Pagamento", encerrada: "Encerrada",
 };
 
 const prioridadeColors: Record<string, string> = {

@@ -12,6 +12,7 @@ const statusLabels: Record<string, string> = {
   autorizacao: "Aguardando Autorização",
   execucao: "Execução",
   ateste: "Ateste",
+  faturamento: "Faturamento",
   pagamento: "Pagamento",
   encerrada: "Encerrada",
 };
@@ -108,6 +109,9 @@ Deno.serve(async (req) => {
             }
           }
           break;
+        case "faturamento":
+          await addPrepostoEmails(supabase, os.contrato_id, recipientEmails);
+          break;
         case "pagamento":
           await addPrepostoEmails(supabase, os.contrato_id, recipientEmails);
           break;
@@ -146,8 +150,12 @@ Deno.serve(async (req) => {
           await addRegionalGestorEmails(supabase, regionalId, recipientEmails);
           await addFiscalEmails(supabase, recipientEmails);
           break;
-        case "pagamento":
+        case "faturamento":
           await addPrepostoEmails(supabase, os.contrato_id, recipientEmails);
+          break;
+        case "pagamento":
+          await addRegionalGestorEmails(supabase, regionalId, recipientEmails);
+          await addFiscalEmails(supabase, recipientEmails);
           break;
         case "encerrada":
           await addRegionalGestorEmails(supabase, regionalId, recipientEmails);
@@ -340,10 +348,16 @@ function buildEmail(
         actionTitle = "OS Aguardando Ateste";
         actionDescription = `A Ordem de Serviço <strong>${os.codigo} — ${os.titulo}</strong> teve a execução concluída e aguarda sua validação (ateste do serviço).`;
         break;
+      case "faturamento":
+        subject = `[SIMP-PRF] OS para Faturamento - ${os.codigo}`;
+        actionTitle = "OS Aguardando Nota Fiscal e Certidões";
+        actionDescription = `A Ordem de Serviço <strong>${os.codigo} — ${os.titulo}</strong> foi atestada. Emita a nota fiscal e junte as certidões exigidas para prosseguir com o pagamento. Valor: ${valorFormatado}.`;
+        actionColor = "#ca8a04";
+        break;
       case "pagamento":
         subject = `[SIMP-PRF] OS para Pagamento - ${os.codigo}`;
-        actionTitle = "OS Aguardando Documentos de Pagamento";
-        actionDescription = `A Ordem de Serviço <strong>${os.codigo} — ${os.titulo}</strong> foi atestada e aguarda o envio dos documentos fiscais para pagamento. Valor: ${valorFormatado}.`;
+        actionTitle = "OS Aguardando Pagamento";
+        actionDescription = `A Ordem de Serviço <strong>${os.codigo} — ${os.titulo}</strong> teve a nota fiscal e certidões anexadas e aguarda o processamento do pagamento. Valor: ${valorFormatado}.`;
         break;
       case "encerrada":
         subject = `[SIMP-PRF] OS Encerrada - ${os.codigo}`;
