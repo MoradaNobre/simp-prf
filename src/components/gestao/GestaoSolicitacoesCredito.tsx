@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { isAdminRole } from "@/utils/roles";
 import { useSolicitacoesCredito, useRespondSolicitacaoCredito, useCreateSolicitacaoCredito, useDeleteSolicitacaoCredito } from "@/hooks/useSaldoOrcamentario";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -35,7 +36,7 @@ export default function GestaoSolicitacoesCredito({ filtroRegional }: { filtroRe
   const [valorAprovado, setValorAprovado] = useState("");
   const [showNovaDialog, setShowNovaDialog] = useState(false);
 
-  const isNacional = role === "gestor_nacional";
+  const isNacional = isAdminRole(role);
   const isRegional = role === "gestor_regional";
   const isFiscal = role === "fiscal_contrato";
   const canSolicitar = isRegional || isFiscal;

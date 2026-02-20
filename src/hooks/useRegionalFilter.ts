@@ -1,10 +1,11 @@
 import { useState, useMemo } from "react";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useUserProfile } from "@/hooks/useUserProfile";
+import { isAdminRole } from "@/utils/roles";
 
 /**
  * Provides regional filtering based on user role:
- * - gestor_nacional: can filter by any regional (optional)
+ * - gestor_nacional/gestor_master: can filter by any regional (optional)
  * - others: locked to their own regionais (first one used as default)
  */
 export function useRegionalFilter() {
@@ -12,7 +13,7 @@ export function useRegionalFilter() {
   const { data: profile } = useUserProfile();
   const [selectedRegionalId, setSelectedRegionalId] = useState<string>("");
 
-  const isNacional = role === "gestor_nacional";
+  const isNacional = isAdminRole(role);
   const userRegionalIds: string[] = (profile as any)?.regionais?.map((r: any) => r.id) ?? [];
   const hasMultipleRegionais = userRegionalIds.length > 1;
   const canFilterRegional = isNacional || hasMultipleRegionais;

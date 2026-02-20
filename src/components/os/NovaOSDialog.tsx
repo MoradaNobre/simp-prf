@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { isAdminRole } from "@/utils/roles";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
@@ -44,7 +45,7 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
   const [contratoId, setContratoId] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const isGestorNacional = role === "gestor_nacional";
+  const isGestorNacional = isAdminRole(role);
   const userRegionais: any[] = (profile.data as any)?.regionais || [];
   const hasMultipleRegionais = isGestorNacional && userRegionais.length > 1;
 

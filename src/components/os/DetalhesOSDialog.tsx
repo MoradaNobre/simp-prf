@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { isAdminRole } from "@/utils/roles";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
@@ -58,7 +59,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   const addCusto = useAddCusto();
   const { data: role } = useUserRole();
   
-  const isGestorOrFiscal = role === "gestor_nacional" || role === "gestor_regional" || role === "fiscal_contrato";
+  const isGestorOrFiscal = isAdminRole(role) || role === "gestor_regional" || role === "fiscal_contrato";
   const isPreposto = role === "preposto";
   const isTerceirizado = role === "terceirizado";
   const isOperador = role === "operador";
@@ -785,7 +786,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
             const creditoNaoEmpenhado = saldoOrcamento?.credito_nao_empenhado ?? 0;
             const empenhoInsuficiente = !semOrcamentoCadastrado && totalEmpenhado < valorOS;
             const bloqueado = contratoInsuficiente || orcamentoInsuficiente || semOrcamentoCadastrado || empenhoInsuficiente;
-            const isGestorNacional = role === "gestor_nacional";
+            const isGestorNacional = isAdminRole(role);
 
             return (
               <>

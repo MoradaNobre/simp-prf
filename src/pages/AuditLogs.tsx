@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useUserRole } from "@/hooks/useUserRole";
+import { isAdminRole } from "@/utils/roles";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -96,7 +97,7 @@ export default function AuditLogs() {
     );
   }
 
-  if (role !== "gestor_nacional") {
+  if (!isAdminRole(role)) {
     return <Navigate to="/dashboard" replace />;
   }
 

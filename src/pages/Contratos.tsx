@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { isAdminRole } from "@/utils/roles";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -30,7 +31,7 @@ export default function Contratos() {
   const { data: role } = useUserRole();
   const isMobile = useIsMobile();
   const canManage = role && !["operador", "preposto", "terceirizado"].includes(role);
-  const canDelete = role && ["gestor_nacional", "gestor_regional"].includes(role);
+  const canDelete = role && (isAdminRole(role) || role === "gestor_regional");
   const isPreposto = role === "preposto";
   const { isNacional, effectiveRegionalId, selectedRegionalId, setSelectedRegionalId } = useRegionalFilter();
   const { data: contratos = [], isLoading } = useContratos(

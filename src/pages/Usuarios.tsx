@@ -108,6 +108,7 @@ function useUpdateUserRegional() {
 }
 
 const roleLabels: Record<string, string> = {
+  gestor_master: "Gestor Master",
   gestor_nacional: "Gestor Nacional",
   gestor_regional: "Gestor Regional",
   fiscal_contrato: "Fiscal de Contrato",
@@ -115,6 +116,7 @@ const roleLabels: Record<string, string> = {
 };
 
 const roleColors: Record<string, string> = {
+  gestor_master: "warning",
   gestor_nacional: "destructive",
   gestor_regional: "default",
   fiscal_contrato: "secondary",

@@ -39,14 +39,14 @@ Deno.serve(async (req) => {
     const callerId = claimsData.claims.sub;
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-    // Only gestor_nacional can delete users
+    // Only gestor_nacional or gestor_master can delete users
     const { data: callerRole } = await adminClient
       .from("user_roles")
       .select("role")
       .eq("user_id", callerId)
       .maybeSingle();
 
-    if (!callerRole || callerRole.role !== "gestor_nacional") {
+    if (!callerRole || (callerRole.role !== "gestor_nacional" && callerRole.role !== "gestor_master")) {
       return new Response(JSON.stringify({ error: "Sem permissão" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

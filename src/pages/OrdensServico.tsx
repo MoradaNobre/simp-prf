@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { isAdminRole } from "@/utils/roles";
 import { format } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -242,7 +243,7 @@ export default function OrdensServico() {
         </div>
       </div>
 
-      {(role === "gestor_regional" || role === "gestor_nacional" || role === "fiscal_contrato") && (
+      {(role === "gestor_regional" || isAdminRole(role) || role === "fiscal_contrato") && (
         <Card className="border-primary/30 bg-primary/5">
           <CardContent className="py-3 px-4">
             <div className="flex items-start gap-2">
