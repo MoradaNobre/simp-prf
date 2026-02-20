@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, DollarSign, Plus, Pencil, Trash2, TrendingUp, TrendingDown, CircleDot, FileSpreadsheet } from "lucide-react";
+import { Loader2, DollarSign, Plus, Pencil, Trash2, TrendingUp, TrendingDown, CircleDot, FileSpreadsheet, AlertTriangle } from "lucide-react";
 import * as XLSX from "xlsx";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import GestaoSolicitacoesCredito from "@/components/gestao/GestaoSolicitacoesCredito";
 
 const currentYear = new Date().getFullYear();
 const yearRange = Array.from({ length: 10 }, (_, i) => currentYear - 7 + i);
@@ -283,7 +285,24 @@ export default function GestaoOrcamento() {
           </h1>
           <p className="text-muted-foreground">Dotação orçamentária anual por regional</p>
         </div>
-        <div className="flex items-center gap-2">
+      </div>
+
+      <Tabs defaultValue="dotacoes" className="w-full">
+        <TabsList className="w-full sm:w-auto flex-wrap h-auto gap-1 p-1">
+          <TabsTrigger value="dotacoes" className="flex items-center gap-1.5 text-xs sm:text-sm">
+            <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            Dotações
+          </TabsTrigger>
+          {(isNacional || isRegional) && (
+            <TabsTrigger value="solicitacoes" className="flex items-center gap-1.5 text-xs sm:text-sm">
+              <AlertTriangle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              Solicitações de Crédito
+            </TabsTrigger>
+          )}
+        </TabsList>
+
+        <TabsContent value="dotacoes">
+      <div className="flex items-center justify-end gap-2 mb-4">
           <Select value={String(exercicio)} onValueChange={(v) => setExercicio(Number(v))}>
             <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -299,7 +318,6 @@ export default function GestaoOrcamento() {
             </Button>
           )}
         </div>
-      </div>
 
       {orcLoading ? (
         <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
@@ -430,6 +448,17 @@ export default function GestaoOrcamento() {
           ))}
         </div>
       )}
+
+        </TabsContent>
+
+        <TabsContent value="solicitacoes">
+          <Card>
+            <CardContent className="pt-6 px-3 sm:px-6">
+              <GestaoSolicitacoesCredito />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       <DotacaoDialog open={dotacaoDialog.open} item={dotacaoDialog.item} regionais={allRegionais} exercicio={exercicio} onClose={() => setDotacaoDialog({ open: false })} onSave={(v: any) => saveDotacao.mutate(v)} saving={saveDotacao.isPending} />
       <CreditoDialog open={creditoDialog.open} orcamentoId={creditoDialog.orcamentoId} onClose={() => setCreditoDialog({ open: false })} onSave={(v: any) => saveCredito.mutate(v)} saving={saveCredito.isPending} />
