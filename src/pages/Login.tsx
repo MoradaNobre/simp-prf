@@ -92,11 +92,11 @@ export default function Login() {
         if (error) throw error;
         toast.success("Senha atualizada com sucesso!");
         setMode("login");
-        navigate("/app/ordens");
+        navigate("/app");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        navigate("/app/ordens");
+        navigate("/app");
       }
     } catch (err: any) {
       toast.error(err.message || "Erro na autenticação");
