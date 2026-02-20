@@ -1120,6 +1120,7 @@ export type Database = {
         | "operador"
         | "preposto"
         | "terceirizado"
+        | "gestor_master"
       equipment_category:
         | "ar_condicionado"
         | "gerador"
@@ -1274,6 +1275,7 @@ export const Constants = {
         "operador",
         "preposto",
         "terceirizado",
+        "gestor_master",
       ],
       equipment_category: [
         "ar_condicionado",
