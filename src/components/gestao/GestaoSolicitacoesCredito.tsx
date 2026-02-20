@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useSolicitacoesCredito, useRespondSolicitacaoCredito, useCreateSolicitacaoCredito } from "@/hooks/useSaldoOrcamentario";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Loader2, AlertTriangle, CheckCircle, XCircle, Plus } from "lucide-react";
+import { Loader2, AlertTriangle, CheckCircle, XCircle, Plus, Landmark } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,6 +37,67 @@ export default function GestaoSolicitacoesCredito({ filtroRegional }: { filtroRe
   const isRegional = role === "gestor_regional";
   const isFiscal = role === "fiscal_contrato";
   const canSolicitar = isRegional || isFiscal;
+
+  const currentYear = new Date().getFullYear();
+
+  // Fetch LOA for current year (nacional only)
+  const { data: loa } = useQuery({
+    queryKey: ["orcamento-loa", currentYear],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("orcamento_loa" as any)
+        .select("*")
+        .eq("exercicio", currentYear)
+        .maybeSingle();
+      if (error) throw error;
+      return data as any;
+    },
+    enabled: isNacional,
+  });
+
+  // Fetch dotações to compute total distributed
+  const { data: dotacoes = [] } = useQuery({
+    queryKey: ["orcamento-anual", currentYear],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("orcamento_anual" as any)
+        .select("id, valor_dotacao, regional_id")
+        .eq("exercicio", currentYear);
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: isNacional,
+  });
+
+  const { data: creditosLoa = [] } = useQuery({
+    queryKey: ["orcamento-creditos", currentYear],
+    queryFn: async () => {
+      const orcIds = dotacoes.map((o: any) => o.id);
+      if (orcIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from("orcamento_creditos" as any)
+        .select("*")
+        .in("orcamento_id", orcIds);
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: isNacional && dotacoes.length > 0,
+  });
+
+  const loaResumo = useMemo(() => {
+    if (!isNacional) return null;
+    const valorLOA = loa ? Number(loa.valor_total) : 0;
+    const totalDistribuido = dotacoes.reduce((s: number, orc: any) => {
+      const creds = creditosLoa.filter((c: any) => c.orcamento_id === orc.id);
+      const totalCreds = creds.reduce((sc: number, c: any) => {
+        const v = Number(c.valor);
+        return c.tipo === "reducao" ? sc - v : sc + v;
+      }, 0);
+      return s + Number(orc.valor_dotacao) + totalCreds;
+    }, 0);
+    const saldoNaoDistribuido = valorLOA - totalDistribuido;
+    return { valorLOA, totalDistribuido, saldoNaoDistribuido };
+  }, [isNacional, loa, dotacoes, creditosLoa]);
 
   // Fetch regional names
   const { data: regionais = [] } = useQuery({
@@ -210,6 +271,19 @@ export default function GestaoSolicitacoesCredito({ filtroRegional }: { filtroRe
               {sol.status === "pendente" && isNacional && (
                 respondingId === sol.id ? (
                   <div className="space-y-3">
+                    {/* LOA balance info */}
+                    {loaResumo && (
+                      <div className="rounded-md border border-border bg-muted/50 p-3 flex items-center gap-3 flex-wrap text-xs">
+                        <Landmark className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <div className="flex gap-4 flex-wrap">
+                          <span>LOA {currentYear}: <strong>{fmt(loaResumo.valorLOA)}</strong></span>
+                          <span>Distribuído: <strong>{fmt(loaResumo.totalDistribuido)}</strong></span>
+                          <span className={loaResumo.saldoNaoDistribuido < 0 ? "text-destructive font-semibold" : ""}>
+                            Saldo LOA: <strong>{fmt(loaResumo.saldoNaoDistribuido)}</strong>
+                          </span>
+                        </div>
+                      </div>
+                    )}
                     <div className="space-y-1">
                       <Label className="text-xs">Valor a Aprovar (R$)</Label>
                       <Input
