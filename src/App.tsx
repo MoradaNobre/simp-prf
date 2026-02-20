@@ -15,7 +15,7 @@ import Login from "@/pages/Login";
 import AlterarSenha from "@/pages/AlterarSenha";
 import Gestao from "@/pages/Gestao";
 import Sobre from "@/pages/Sobre";
-
+import { AppRedirect } from "@/components/AppRedirect";
 import Relatorios from "@/pages/Relatorios";
 import GestaoOrcamento from "@/pages/GestaoOrcamento";
 import NotFound from "@/pages/NotFound";
@@ -36,7 +36,7 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/alterar-senha" element={<AlterarSenha />} />
               <Route path="/app" element={<AppLayout />}>
-                <Route index element={<Navigate to="/app/ordens" replace />} />
+                <Route index element={<AppRedirect />} />
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="ordens" element={<OrdensServico />} />
                 <Route path="preventiva" element={<Preventiva />} />
