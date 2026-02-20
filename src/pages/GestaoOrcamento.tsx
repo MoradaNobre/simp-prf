@@ -313,8 +313,14 @@ export default function GestaoOrcamento() {
         </div>
       </div>
 
-      <Tabs defaultValue="dotacoes" className="w-full">
+      <Tabs defaultValue={isNacional ? "loa" : "dotacoes"} className="w-full">
         <TabsList className="w-full sm:w-auto flex-wrap h-auto gap-1 p-1">
+          {isNacional && (
+            <TabsTrigger value="loa" className="flex items-center gap-1.5 text-xs sm:text-sm">
+              <Landmark className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              LOA
+            </TabsTrigger>
+          )}
           <TabsTrigger value="dotacoes" className="flex items-center gap-1.5 text-xs sm:text-sm">
             <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             Dotações
@@ -323,12 +329,6 @@ export default function GestaoOrcamento() {
             <TabsTrigger value="solicitacoes" className="flex items-center gap-1.5 text-xs sm:text-sm">
               <AlertTriangle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               Solicitações de Crédito
-            </TabsTrigger>
-          )}
-          {isNacional && (
-            <TabsTrigger value="loa" className="flex items-center gap-1.5 text-xs sm:text-sm">
-              <Landmark className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              LOA
             </TabsTrigger>
           )}
         </TabsList>
