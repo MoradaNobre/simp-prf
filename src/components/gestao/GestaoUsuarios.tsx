@@ -153,9 +153,9 @@ const roleColors: Record<string, string> = {
   gestor_nacional: "destructive",
   gestor_regional: "default",
   fiscal_contrato: "warning",
-  operador: "outline",
+  operador: "secondary",
   preposto: "success",
-  terceirizado: "outline",
+  terceirizado: "secondary",
 };
 
 interface Props {
