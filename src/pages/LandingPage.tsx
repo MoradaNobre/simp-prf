@@ -15,7 +15,7 @@ import {
 import { ThemeToggle } from "@/components/ThemeToggle";
 import logoImg from "@/assets/logo.jpg";
 import heroBg from "@/assets/hero-bg.jpg";
-import featureManutencao from "@/assets/feature-manutencao.jpg";
+import featureManutencao from "@/assets/feature-manutencao.png";
 import featureDashboard from "@/assets/feature-dashboard.png";
 import demoVideo from "@/assets/demo-video.mp4";
 import { useRef, useState } from "react";
