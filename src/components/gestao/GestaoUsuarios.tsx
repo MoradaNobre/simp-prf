@@ -227,6 +227,12 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
 
   const userRegionalIds: string[] = (profile as any)?.regionais?.map((r: any) => r.id) ?? [];
 
+  const availableRegionais = useMemo(() => {
+    const all = regionais.data || [];
+    const filtered = isGlobalRole(currentUserRole) ? all : all.filter(r => userRegionalIds.includes(r.id));
+    return [...filtered].sort((a, b) => (a.sigla ?? "").localeCompare(b.sigla ?? ""));
+  }, [regionais.data, currentUserRole, userRegionalIds]);
+
   const toggleSort = (field: SortField) => {
     if (sortField === field) {
       setSortDir(prev => prev === "asc" ? "desc" : "asc");
@@ -376,7 +382,7 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
           <SelectTrigger className="w-[160px]"><SelectValue placeholder="Regional" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas regionais</SelectItem>
-            {(regionais.data || []).map((r) => (
+            {availableRegionais.map((r) => (
               <SelectItem key={r.id} value={r.id}>{r.sigla}</SelectItem>
             ))}
           </SelectContent>
@@ -573,7 +579,7 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
             <div>
               <Label>Regionais</Label>
               <div className="mt-2 max-h-48 overflow-y-auto space-y-2 border rounded-md p-3">
-                {(regionais.data || []).map((r) => (
+                {availableRegionais.map((r) => (
                   <div key={r.id} className="flex items-center gap-2">
                     <Checkbox
                       id={`regional-${r.id}`}
