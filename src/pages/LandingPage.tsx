@@ -241,7 +241,7 @@ export default function LandingPage() {
             ref={videoRef}
             src={demoVideo}
             controls={isPlaying}
-            className="w-full aspect-video object-cover"
+            className="w-full aspect-video object-contain bg-black"
             poster={heroBg}
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
