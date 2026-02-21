@@ -32,7 +32,7 @@ interface DashboardOrcamentoProps {
 
 export default function DashboardOrcamento({ regionalId, userRole }: DashboardOrcamentoProps) {
   const [exercicio, setExercicio] = useState(currentYear);
-  const [sortChart1, setSortChart1] = useState<"sigla" | "dotacaoTotal" | "totalConsumido">("sigla");
+  const [sortChart1, setSortChart1] = useState<"sigla" | "dotacaoTotal" | "totalConsumido">("dotacaoTotal");
 
   const isAdmin = isAdminRole(userRole) || userRole === "gestor_master";
   const isGestorNacional = userRole === "gestor_nacional";
