@@ -18,6 +18,7 @@ import heroBg from "@/assets/hero-bg.jpg";
 import featureManutencao from "@/assets/feature-manutencao.png";
 import featureDashboard from "@/assets/feature-dashboard.png";
 import demoVideo from "@/assets/demo-video.mp4";
+import videoPoster from "@/assets/video-poster.jpg";
 import { useRef, useState } from "react";
 
 const features = [
@@ -242,7 +243,7 @@ export default function LandingPage() {
             src={demoVideo}
             controls={isPlaying}
             className="w-full aspect-video object-contain bg-black"
-            poster={heroBg}
+            poster={videoPoster}
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
           />
