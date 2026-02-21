@@ -362,24 +362,6 @@ export default function DashboardOrcamento({ regionalId, userRole }: DashboardOr
       {/* Gráficos adicionais — apenas para admin/nacional */}
       {showFullDashboard && consolidado.length > 0 && (
         <>
-          <Card>
-            <CardHeader><CardTitle className="text-lg">Composição do Consumo por Regional</CardTitle></CardHeader>
-            <CardContent>
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={consolidado} margin={{ top: 5, right: 20, left: 10, bottom: 60 }}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                    <XAxis dataKey="sigla" angle={-45} textAnchor="end" tick={{ fontSize: 10 }} interval={0} />
-                    <YAxis tickFormatter={shortBRL} tick={{ fontSize: 11 }} />
-                    <Tooltip formatter={(v: number) => formatBRL(v)} />
-                    <Legend verticalAlign="top" />
-                    <Bar dataKey="totalCustosOS" name="Custos OS" stackId="consumo" fill="hsl(var(--chart-1, 220 70% 50%))" radius={[0, 0, 0, 0]} />
-                    <Bar dataKey="totalEmpenhos" name="Empenhos Manuais" stackId="consumo" fill="hsl(var(--chart-2, 340 75% 55%))" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
 
           <Card>
             <CardHeader><CardTitle className="text-lg">Utilização da Cota por Regional</CardTitle></CardHeader>
