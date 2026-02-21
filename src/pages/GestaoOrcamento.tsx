@@ -5,7 +5,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { isAdminRole } from "@/utils/roles";
+import { isAdminRole, isGlobalRole } from "@/utils/roles";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { Loader2, DollarSign, Plus, Pencil, Trash2, TrendingUp, TrendingDown, CircleDot, FileSpreadsheet, AlertTriangle, Landmark } from "lucide-react";
 import * as XLSX from "xlsx";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,9 +45,13 @@ export default function GestaoOrcamento() {
   const [empenhoDialog, setEmpenhoDialog] = useState<{ open: boolean; orcamentoId?: string }>({ open: false });
 
   const isNacional = isAdminRole(role);
+  const isGlobal = isGlobalRole(role);
   const isRegional = role === "gestor_regional";
   const isFiscal = role === "fiscal_contrato";
   const canAccessPage = isNacional || isRegional || isFiscal;
+
+  const { data: profile } = useUserProfile();
+  const userRegionalIds: string[] = (profile as any)?.regionais?.map((r: any) => r.id) ?? [];
 
   const { data: regionais } = useQuery({
     queryKey: ["regionais"],
@@ -299,10 +304,20 @@ export default function GestaoOrcamento() {
           <Select value={filtroRegional} onValueChange={setFiltroRegional}>
             <SelectTrigger className="w-[180px]"><SelectValue placeholder="Regional" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="todas">Todas as Regionais</SelectItem>
-              {(regionais || []).map((r: any) => (
-                <SelectItem key={r.id} value={r.id}>{r.sigla} — {r.nome}</SelectItem>
-              ))}
+              {(() => {
+                const available = isGlobal
+                  ? (regionais || [])
+                  : (regionais || []).filter((r: any) => userRegionalIds.includes(r.id));
+                const sorted = [...available].sort((a: any, b: any) => (a.sigla ?? "").localeCompare(b.sigla ?? ""));
+                return (
+                  <>
+                    {sorted.length > 1 && <SelectItem value="todas">Todas as Regionais</SelectItem>}
+                    {sorted.map((r: any) => (
+                      <SelectItem key={r.id} value={r.id}>{r.sigla} — {r.nome}</SelectItem>
+                    ))}
+                  </>
+                );
+              })()}
             </SelectContent>
           </Select>
           <Select value={String(exercicio)} onValueChange={(v) => setExercicio(Number(v))}>
