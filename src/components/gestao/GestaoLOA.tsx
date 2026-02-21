@@ -24,8 +24,8 @@ export default function GestaoLOA({ exercicio }: { exercicio: number }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [showDialog, setShowDialog] = useState(false);
-  const [sortKey, setSortKey] = useState<SortKey>("sigla");
-  const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [sortKey, setSortKey] = useState<SortKey>("dotacao");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) setSortDir(d => d === "asc" ? "desc" : "asc");
