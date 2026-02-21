@@ -228,7 +228,7 @@ export default function Usuarios() {
               <Select value={editRole} onValueChange={setEditRole}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {Constants.public.Enums.app_role.map((r) => (
+                  {[...Constants.public.Enums.app_role].sort((a, b) => (roleLabels[a] || a).localeCompare(roleLabels[b] || b)).map((r) => (
                     <SelectItem key={r} value={r}>{roleLabels[r]}</SelectItem>
                   ))}
                 </SelectContent>
