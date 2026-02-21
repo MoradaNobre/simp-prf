@@ -136,11 +136,13 @@ export default function Usuarios() {
   const [editRegionalId, setEditRegionalId] = useState("");
 
   const isCurrentUserMaster = currentRole === "gestor_master";
+  const canSeeNacional = isCurrentUserMaster || currentRole === "gestor_nacional";
 
   const filtered = useMemo(() => (users || []).filter((u) => {
     if (!isCurrentUserMaster && u.role === "gestor_master") return false;
+    if (!canSeeNacional && u.role === "gestor_nacional") return false;
     return u.full_name.toLowerCase().includes(search.toLowerCase());
-  }), [users, search, isCurrentUserMaster]);
+  }), [users, search, isCurrentUserMaster, canSeeNacional]);
 
   const openEdit = (user: UserWithRole) => {
     setEditUser(user);
