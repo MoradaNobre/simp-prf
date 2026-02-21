@@ -251,7 +251,60 @@ export default function DashboardOrcamento({ regionalId, userRole }: DashboardOr
         </Card>
       </div>
 
-      {/* Gráfico de consumo por delegacia — visível para todos */}
+      {/* Gráfico: Cota vs Consumido por Regional — visível para admin/nacional */}
+      {showFullDashboard && consolidado.length === 0 && (
+        <Card><CardContent className="py-8 text-center text-muted-foreground">Nenhuma cota orçamentária cadastrada para {exercicio}.</CardContent></Card>
+      )}
+
+      {showFullDashboard && consolidado.length > 0 && (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-lg">Cota vs Consumido por Regional</CardTitle>
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-muted-foreground mr-1">Ordenar:</span>
+              {([
+                { key: "sigla", label: "A-Z" },
+                 { key: "dotacaoTotal", label: "Cota" },
+                 { key: "totalConsumido", label: "Consumido" },
+              ] as const).map((opt) => (
+                <Button
+                  key={opt.key}
+                  size="sm"
+                  variant={sortChart1 === opt.key ? "default" : "outline"}
+                  className="h-7 text-xs px-2"
+                  onClick={() => setSortChart1(opt.key)}
+                >
+                  {opt.label}
+                </Button>
+              ))}
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={[...consolidado].sort((a, b) =>
+                    sortChart1 === "sigla"
+                      ? a.sigla.localeCompare(b.sigla)
+                      : b[sortChart1] - a[sortChart1]
+                  )}
+                  margin={{ top: 5, right: 20, left: 10, bottom: 60 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis dataKey="sigla" angle={-45} textAnchor="end" tick={{ fontSize: 10 }} interval={0} />
+                  <YAxis tickFormatter={shortBRL} tick={{ fontSize: 11 }} />
+                  <Tooltip formatter={(v: number) => formatBRL(v)} />
+                  <Legend verticalAlign="top" />
+                  <Bar dataKey="dotacaoTotal" name="Cota" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="totalConsumido" name="Consumido" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Gráfico de consumo por delegacia */}
       <Card>
         <CardHeader><CardTitle className="text-lg">Cota vs Consumido por Delegacia</CardTitle></CardHeader>
         <CardContent>
@@ -306,61 +359,9 @@ export default function DashboardOrcamento({ regionalId, userRole }: DashboardOr
         </CardContent>
       </Card>
 
-      {/* Seções adicionais — apenas para admin/nacional */}
-      {showFullDashboard && consolidado.length === 0 && (
-        <Card><CardContent className="py-8 text-center text-muted-foreground">Nenhuma cota orçamentária cadastrada para {exercicio}.</CardContent></Card>
-      )}
-
+      {/* Gráficos adicionais — apenas para admin/nacional */}
       {showFullDashboard && consolidado.length > 0 && (
         <>
-          {/* Gráfico 1: Dotação vs Consumido */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-lg">Cota vs Consumido por Regional</CardTitle>
-              <div className="flex items-center gap-1">
-                <span className="text-xs text-muted-foreground mr-1">Ordenar:</span>
-                {([
-                  { key: "sigla", label: "A-Z" },
-                   { key: "dotacaoTotal", label: "Cota" },
-                   { key: "totalConsumido", label: "Consumido" },
-                ] as const).map((opt) => (
-                  <Button
-                    key={opt.key}
-                    size="sm"
-                    variant={sortChart1 === opt.key ? "default" : "outline"}
-                    className="h-7 text-xs px-2"
-                    onClick={() => setSortChart1(opt.key)}
-                  >
-                    {opt.label}
-                  </Button>
-                ))}
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={[...consolidado].sort((a, b) =>
-                      sortChart1 === "sigla"
-                        ? a.sigla.localeCompare(b.sigla)
-                        : b[sortChart1] - a[sortChart1]
-                    )}
-                    margin={{ top: 5, right: 20, left: 10, bottom: 60 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                    <XAxis dataKey="sigla" angle={-45} textAnchor="end" tick={{ fontSize: 10 }} interval={0} />
-                    <YAxis tickFormatter={shortBRL} tick={{ fontSize: 11 }} />
-                    <Tooltip formatter={(v: number) => formatBRL(v)} />
-                    <Legend verticalAlign="top" />
-                    <Bar dataKey="dotacaoTotal" name="Cota" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="totalConsumido" name="Consumido" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Gráfico 2: Barras empilhadas - Custos OS + Empenhos */}
           <Card>
             <CardHeader><CardTitle className="text-lg">Composição do Consumo por Regional</CardTitle></CardHeader>
             <CardContent>
@@ -380,7 +381,6 @@ export default function DashboardOrcamento({ regionalId, userRole }: DashboardOr
             </CardContent>
           </Card>
 
-          {/* Gráfico 3: Progresso por Regional */}
           <Card>
             <CardHeader><CardTitle className="text-lg">Utilização da Cota por Regional</CardTitle></CardHeader>
             <CardContent>
