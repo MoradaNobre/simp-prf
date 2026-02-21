@@ -166,7 +166,7 @@ export default function Dashboard() {
   const [selectedContratoId, setSelectedContratoId] = useState<string>("");
   const { data, isLoading } = useDashboardData(effectiveRegionalId, selectedContratoId || null);
   const { data: contratos = [] } = useContratos(effectiveRegionalId);
-  const isGestorNacional = isAdminRole(role);
+  const canSeeOrcamento = isAdminRole(role) || role === "gestor_regional" || role === "fiscal_contrato";
 
   return (
     <div className="space-y-6">
@@ -195,7 +195,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {isGestorNacional ? (
+      {canSeeOrcamento ? (
         <Tabs defaultValue="operacional">
           <TabsList>
             <TabsTrigger value="operacional">Operacional</TabsTrigger>
