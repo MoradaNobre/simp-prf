@@ -249,8 +249,12 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
       : <ArrowDown className="inline ml-1 h-3.5 w-3.5" />;
   };
 
+  const isCurrentUserMaster = currentUserRole === "gestor_master";
+
   const filtered = useMemo(() => {
     let list = (users || []).filter((u) => {
+      // Hide gestor_master users from non-gestor_master users
+      if (!isCurrentUserMaster && u.role === "gestor_master") return false;
       if (search && !u.full_name.toLowerCase().includes(search.toLowerCase())) return false;
       if (filterRole !== "all" && u.role !== filterRole) return false;
       if (filterRegionalId !== "all" && !u.regionais.some(r => r.id === filterRegionalId)) return false;
@@ -373,7 +377,7 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
           <SelectTrigger className="w-[160px]"><SelectValue placeholder="Papel" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos os papéis</SelectItem>
-            {[...Constants.public.Enums.app_role].sort((a, b) => (roleLabels[a] || a).localeCompare(roleLabels[b] || b)).map((r) => (
+            {[...Constants.public.Enums.app_role].filter(r => isCurrentUserMaster || r !== "gestor_master").sort((a, b) => (roleLabels[a] || a).localeCompare(roleLabels[b] || b)).map((r) => (
               <SelectItem key={r} value={r}>{roleLabels[r] || r}</SelectItem>
             ))}
           </SelectContent>
