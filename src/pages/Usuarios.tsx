@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +19,7 @@ import { useRegionais } from "@/hooks/useHierarchy";
 import { toast } from "sonner";
 import { Users, Search, Loader2, Shield } from "lucide-react";
 import { Constants } from "@/integrations/supabase/types";
+import { useUserRole } from "@/hooks/useUserRole";
 
 type UserWithRole = {
   id: string;
@@ -126,6 +127,7 @@ const roleColors: Record<string, string> = {
 export default function Usuarios() {
   const { data: users, isLoading } = useAdminUsers();
   const regionais = useRegionais();
+  const { data: currentRole } = useUserRole();
   const updateRole = useUpdateUserRole();
   const updateRegional = useUpdateUserRegional();
   const [search, setSearch] = useState("");
@@ -133,9 +135,12 @@ export default function Usuarios() {
   const [editRole, setEditRole] = useState("");
   const [editRegionalId, setEditRegionalId] = useState("");
 
-  const filtered = (users || []).filter((u) =>
-    u.full_name.toLowerCase().includes(search.toLowerCase())
-  );
+  const isCurrentUserMaster = currentRole === "gestor_master";
+
+  const filtered = useMemo(() => (users || []).filter((u) => {
+    if (!isCurrentUserMaster && u.role === "gestor_master") return false;
+    return u.full_name.toLowerCase().includes(search.toLowerCase());
+  }), [users, search, isCurrentUserMaster]);
 
   const openEdit = (user: UserWithRole) => {
     setEditUser(user);
