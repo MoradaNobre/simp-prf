@@ -1,7 +1,7 @@
 import { useRegionais } from "@/hooks/useHierarchy";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useUserRole } from "@/hooks/useUserRole";
-import { isAdminRole } from "@/utils/roles";
+import { isGlobalRole } from "@/utils/roles";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -16,7 +16,7 @@ export function RegionalFilterSelect({ value, onChange }: RegionalFilterSelectPr
   const { data: role } = useUserRole();
   const { data: profile } = useUserProfile();
 
-  const isNacional = isAdminRole(role);
+  const isNacional = isGlobalRole(role);
   const userRegionais: any[] = (profile as any)?.regionais || [];
 
   // admin roles see all; others see only their linked regionais

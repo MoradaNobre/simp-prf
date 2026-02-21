@@ -7,6 +7,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUpdateContrato, type Contrato } from "@/hooks/useContratos";
 import { useToast } from "@/hooks/use-toast";
+import { useUserRole } from "@/hooks/useUserRole";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { isGlobalRole } from "@/utils/roles";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useUsersByRole } from "@/hooks/useUsersByRole";
@@ -20,7 +23,11 @@ interface Props {
 export function EditarContratoDialog({ contrato, open, onOpenChange }: Props) {
   const { toast } = useToast();
   const updateContrato = useUpdateContrato();
-  const { data: regionais = [] } = useQuery({
+  const { data: role } = useUserRole();
+  const { data: profile } = useUserProfile();
+  const isGlobal = isGlobalRole(role);
+  const userRegionais: any[] = (profile as any)?.regionais || [];
+  const { data: allRegionais = [] } = useQuery({
     queryKey: ["regionais"],
     queryFn: async () => {
       const { data, error } = await supabase.from("regionais").select("id, nome, sigla").order("sigla");
@@ -28,6 +35,7 @@ export function EditarContratoDialog({ contrato, open, onOpenChange }: Props) {
       return data;
     },
   });
+  const regionais = isGlobal ? allRegionais : userRegionais;
   const { data: prepostos = [] } = useUsersByRole(["preposto"]);
 
   const [form, setForm] = useState({

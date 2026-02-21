@@ -18,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useRegionais, useDelegacias } from "@/hooks/useHierarchy";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useUserProfile } from "@/hooks/useUserProfile";
+import { isGlobalRole } from "@/utils/roles";
 import { toast } from "sonner";
 import { Search, Loader2, Plus, Pencil, Trash2 } from "lucide-react";
 
@@ -40,17 +41,18 @@ export default function GestaoUops() {
   const { data: role } = useUserRole();
   const { data: profile } = useUserProfile();
   const userRegionalIds: string[] = (profile as any)?.regionais?.map((r: any) => r.id) ?? [];
-  const isRegional = role === "gestor_regional";
+  const isGlobal = isGlobalRole(role);
+  const isRegionalScoped = !isGlobal && userRegionalIds.length > 0;
   const [search, setSearch] = useState("");
   const [filterRegional, setFilterRegional] = useState("all");
   const [filterDelegacia, setFilterDelegacia] = useState("all");
-  // For regional users, pass the selected regional or first user regional to limit delegacias
+  // For regional-scoped users, pass the selected regional or first user regional to limit delegacias
   const delegaciaRegionalFilter = filterRegional !== "all"
     ? filterRegional
-    : (isRegional && userRegionalIds.length === 1 ? userRegionalIds[0] : undefined);
+    : (isRegionalScoped && userRegionalIds.length === 1 ? userRegionalIds[0] : undefined);
   const { data: allDelegacias } = useDelegacias(delegaciaRegionalFilter);
-  // Further filter delegacias for regional users with multiple regionais and "all" selected
-  const delegaciasList = isRegional && filterRegional === "all" && userRegionalIds.length > 1
+  // Further filter delegacias for regional-scoped users with multiple regionais and "all" selected
+  const delegaciasList = isRegionalScoped && filterRegional === "all" && userRegionalIds.length > 1
     ? (allDelegacias || []).filter((d: any) => userRegionalIds.includes(d.regional_id))
     : (allDelegacias || []);
   const [editItem, setEditItem] = useState<Uop | null>(null);
@@ -68,7 +70,7 @@ export default function GestaoUops() {
       const { data, error } = await supabase.from("uops").select("*, delegacia:delegacias(nome, regional_id, regional:regionais(sigla))").order("nome");
       if (error) throw error;
       let result = data as (Uop & { delegacia: { regional_id?: string } })[];
-      if (isRegional && userRegionalIds.length > 0) {
+      if (isRegionalScoped && userRegionalIds.length > 0) {
         result = result.filter(u => u.delegacia?.regional_id && userRegionalIds.includes(u.delegacia.regional_id));
       }
       return result as Uop[];
@@ -148,7 +150,7 @@ export default function GestaoUops() {
           <SelectTrigger className="w-full sm:w-48"><SelectValue placeholder="Filtrar regional" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas as regionais</SelectItem>
-            {(isRegional ? (profile as any)?.regionais || [] : regionais.data || []).map((r: any) => (
+            {(isRegionalScoped ? (profile as any)?.regionais || [] : regionais.data || []).map((r: any) => (
               <SelectItem key={r.id} value={r.id}>{r.sigla}</SelectItem>
             ))}
           </SelectContent>
@@ -244,7 +246,7 @@ export default function GestaoUops() {
               <Select value={formRegional} onValueChange={(v) => { setFormRegional(v); setForm({ ...form, delegacia_id: "" }); }}>
                 <SelectTrigger><SelectValue placeholder="Selecione a regional..." /></SelectTrigger>
                 <SelectContent>
-                  {(isRegional ? (profile as any)?.regionais || [] : regionais.data || []).map((r: any) => (
+                  {(isRegionalScoped ? (profile as any)?.regionais || [] : regionais.data || []).map((r: any) => (
                     <SelectItem key={r.id} value={r.id}>{r.sigla} — {r.nome}</SelectItem>
                   ))}
                 </SelectContent>

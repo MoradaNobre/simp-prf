@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { isAdminRole } from "@/utils/roles";
+import { isGlobalRole } from "@/utils/roles";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
@@ -45,7 +45,7 @@ export function EditarOSDialog({ os, open, onOpenChange }: Props) {
     enabled: !!user,
   });
 
-  const isNacional = isAdminRole(role);
+  const isNacional = isGlobalRole(role);
   const regionais = isNacional ? allRegionais : userRegionaisData;
 
   const [form, setForm] = useState({
