@@ -198,7 +198,7 @@ export default function Dashboard() {
       {canSeeOrcamento ? (
         <Tabs defaultValue="operacional">
           <TabsList>
-            <TabsTrigger value="operacional">Operacional</TabsTrigger>
+            <TabsTrigger value="operacional">Ordens de Serviço</TabsTrigger>
             <TabsTrigger value="orcamento">Orçamento</TabsTrigger>
           </TabsList>
           <TabsContent value="operacional" className="space-y-6 mt-4">
