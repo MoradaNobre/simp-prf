@@ -306,7 +306,7 @@ export default function DashboardOrcamento({ regionalId, userRole }: DashboardOr
 
       {/* Gráfico de consumo por delegacia */}
       <Card>
-        <CardHeader><CardTitle className="text-lg">Cota vs Consumido por Delegacia</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-lg">Consumido por Delegacia</CardTitle></CardHeader>
         <CardContent>
           {consumoPorDelegacia.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">Nenhum consumo registrado por delegacia em {exercicio}.</p>
@@ -332,7 +332,7 @@ export default function DashboardOrcamento({ regionalId, userRole }: DashboardOr
 
       {/* Gráfico de consumo por UOP */}
       <Card>
-        <CardHeader><CardTitle className="text-lg">Cota vs Consumido por UOP</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-lg">Consumido por UOP</CardTitle></CardHeader>
         <CardContent>
           {consumoPorUOP.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">Nenhum consumo registrado por UOP em {exercicio}.</p>
