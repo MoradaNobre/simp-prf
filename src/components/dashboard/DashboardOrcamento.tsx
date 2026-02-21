@@ -96,7 +96,7 @@ export default function DashboardOrcamento({ regionalId, userRole }: DashboardOr
     },
   });
 
-  // Query for delegacia-level consumption (for gestor_regional / fiscal_contrato)
+  // Query for delegacia-level consumption
   const { data: custosDelegacia } = useQuery({
     queryKey: ["dash-custos-delegacia", exercicio, regionalId],
     queryFn: async () => {
@@ -108,7 +108,6 @@ export default function DashboardOrcamento({ regionalId, userRole }: DashboardOr
       if (error) throw error;
       return data as any[];
     },
-    enabled: !showFullDashboard,
   });
 
   const { data: delegacias } = useQuery({
@@ -120,7 +119,6 @@ export default function DashboardOrcamento({ regionalId, userRole }: DashboardOr
       if (error) throw error;
       return data ?? [];
     },
-    enabled: !showFullDashboard,
   });
 
   const { data: uops } = useQuery({
@@ -130,12 +128,12 @@ export default function DashboardOrcamento({ regionalId, userRole }: DashboardOr
       if (!delegaciaIds.length) return [];
       const { data, error } = await supabase
         .from("uops")
-        .select("id, delegacia_id")
+        .select("id, nome, delegacia_id")
         .in("delegacia_id", delegaciaIds);
       if (error) throw error;
       return data ?? [];
     },
-    enabled: !showFullDashboard && (delegacias?.length ?? 0) > 0,
+    enabled: (delegacias?.length ?? 0) > 0,
   });
 
   const consumoPorDelegacia = useMemo(() => {
@@ -160,6 +158,23 @@ export default function DashboardOrcamento({ regionalId, userRole }: DashboardOr
       .filter(d => d.total > 0)
       .sort((a, b) => b.total - a.total);
   }, [custosDelegacia, delegacias, uops]);
+
+  const consumoPorUOP = useMemo(() => {
+    if (!custosDelegacia || !uops) return [];
+    const uopMap = new Map<string, { nome: string; total: number }>();
+    for (const u of uops) {
+      uopMap.set(u.id, { nome: u.nome, total: 0 });
+    }
+    for (const c of custosDelegacia) {
+      const uopId = c.ordens_servico?.uop_id;
+      if (!uopId) continue;
+      const entry = uopMap.get(uopId);
+      if (entry) entry.total += Number(c.valor);
+    }
+    return Array.from(uopMap.values())
+      .filter(u => u.total > 0)
+      .sort((a, b) => b.total - a.total);
+  }, [custosDelegacia, uops]);
 
   const consolidado = useMemo(() => {
     if (!orcamentos) return [];
@@ -236,38 +251,60 @@ export default function DashboardOrcamento({ regionalId, userRole }: DashboardOr
         </Card>
       </div>
 
-      {/* Gráfico de consumo por delegacia — apenas gestor_regional e fiscal_contrato */}
-      {!showFullDashboard && (
-        <Card>
-          <CardHeader><CardTitle className="text-lg">Consumo por Delegacia</CardTitle></CardHeader>
-          <CardContent>
-            {consumoPorDelegacia.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">Nenhum consumo registrado por delegacia em {exercicio}.</p>
-            ) : (
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={consumoPorDelegacia}
-                    margin={{ top: 5, right: 20, left: 10, bottom: 80 }}
-                    layout="vertical"
-                  >
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                    <XAxis type="number" tickFormatter={shortBRL} tick={{ fontSize: 11 }} />
-                    <YAxis
-                      type="category"
-                      dataKey="nome"
-                      tick={{ fontSize: 10 }}
-                      width={150}
-                    />
-                    <Tooltip formatter={(v: number) => formatBRL(v)} />
-                    <Bar dataKey="total" name="Consumo" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
+      {/* Gráfico de consumo por delegacia — visível para todos */}
+      <Card>
+        <CardHeader><CardTitle className="text-lg">Cota vs Consumido por Delegacia</CardTitle></CardHeader>
+        <CardContent>
+          {consumoPorDelegacia.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">Nenhum consumo registrado por delegacia em {exercicio}.</p>
+          ) : (
+            <div style={{ height: Math.max(300, consumoPorDelegacia.length * 36) }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={consumoPorDelegacia}
+                  layout="vertical"
+                  margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis type="number" tickFormatter={shortBRL} tick={{ fontSize: 11 }} />
+                  <YAxis type="category" dataKey="nome" tick={{ fontSize: 10 }} width={150} />
+                  <Tooltip formatter={(v: number) => formatBRL(v)} />
+                  <Bar dataKey="total" name="Consumido" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Gráfico de consumo por UOP */}
+      <Card>
+        <CardHeader><CardTitle className="text-lg">Cota vs Consumido por UOP</CardTitle></CardHeader>
+        <CardContent>
+          {consumoPorUOP.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">Nenhum consumo registrado por UOP em {exercicio}.</p>
+          ) : (
+            <div style={{ height: Math.max(300, consumoPorUOP.length * 32) }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={consumoPorUOP.slice(0, 30)}
+                  layout="vertical"
+                  margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis type="number" tickFormatter={shortBRL} tick={{ fontSize: 11 }} />
+                  <YAxis type="category" dataKey="nome" tick={{ fontSize: 9 }} width={180} />
+                  <Tooltip formatter={(v: number) => formatBRL(v)} />
+                  <Bar dataKey="total" name="Consumido" fill="hsl(var(--chart-2, 340 75% 55%))" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+          {consumoPorUOP.length > 30 && (
+            <p className="text-xs text-muted-foreground text-center mt-2">Exibindo top 30 de {consumoPorUOP.length} UOPs.</p>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Seções adicionais — apenas para admin/nacional */}
       {showFullDashboard && consolidado.length === 0 && (
