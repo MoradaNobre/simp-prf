@@ -205,7 +205,7 @@ export default function Dashboard() {
             <DashboardOperacional data={data} isLoading={isLoading} />
           </TabsContent>
           <TabsContent value="orcamento" className="mt-4">
-            <DashboardOrcamento regionalId={effectiveRegionalId} />
+            <DashboardOrcamento regionalId={effectiveRegionalId} userRole={role} />
           </TabsContent>
         </Tabs>
       ) : (

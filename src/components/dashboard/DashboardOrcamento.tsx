@@ -10,6 +10,7 @@ import {
 } from "recharts";
 import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { isAdminRole } from "@/utils/roles";
 
 const currentYear = new Date().getFullYear();
 const yearRange = Array.from({ length: 10 }, (_, i) => currentYear - 7 + i);
@@ -26,11 +27,16 @@ function shortBRL(value: number) {
 
 interface DashboardOrcamentoProps {
   regionalId?: string | null;
+  userRole?: string | null;
 }
 
-export default function DashboardOrcamento({ regionalId }: DashboardOrcamentoProps) {
+export default function DashboardOrcamento({ regionalId, userRole }: DashboardOrcamentoProps) {
   const [exercicio, setExercicio] = useState(currentYear);
   const [sortChart1, setSortChart1] = useState<"sigla" | "dotacaoTotal" | "totalConsumido">("sigla");
+
+  const isAdmin = isAdminRole(userRole) || userRole === "gestor_master";
+  const isGestorNacional = userRole === "gestor_nacional";
+  const showFullDashboard = isAdmin || isGestorNacional;
 
   const { data: orcamentos, isLoading: orcLoading } = useQuery({
     queryKey: ["dash-orcamento-anual", exercicio, regionalId],
@@ -90,6 +96,71 @@ export default function DashboardOrcamento({ regionalId }: DashboardOrcamentoPro
     },
   });
 
+  // Query for delegacia-level consumption (for gestor_regional / fiscal_contrato)
+  const { data: custosDelegacia } = useQuery({
+    queryKey: ["dash-custos-delegacia", exercicio, regionalId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("os_custos")
+        .select("valor, ordens_servico!inner(uop_id, data_abertura, regional_id)")
+        .gte("ordens_servico.data_abertura", `${exercicio}-01-01`)
+        .lte("ordens_servico.data_abertura", `${exercicio}-12-31`);
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: !showFullDashboard,
+  });
+
+  const { data: delegacias } = useQuery({
+    queryKey: ["dash-delegacias", regionalId],
+    queryFn: async () => {
+      let q = supabase.from("delegacias").select("id, nome, regional_id");
+      if (regionalId) q = q.eq("regional_id", regionalId);
+      const { data, error } = await q;
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: !showFullDashboard,
+  });
+
+  const { data: uops } = useQuery({
+    queryKey: ["dash-uops-delegacia", regionalId],
+    queryFn: async () => {
+      const delegaciaIds = (delegacias || []).map(d => d.id);
+      if (!delegaciaIds.length) return [];
+      const { data, error } = await supabase
+        .from("uops")
+        .select("id, delegacia_id")
+        .in("delegacia_id", delegaciaIds);
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: !showFullDashboard && (delegacias?.length ?? 0) > 0,
+  });
+
+  const consumoPorDelegacia = useMemo(() => {
+    if (!custosDelegacia || !delegacias || !uops) return [];
+    const uopToDelegacia = new Map<string, string>();
+    for (const u of uops) {
+      uopToDelegacia.set(u.id, u.delegacia_id);
+    }
+    const delegaciaMap = new Map<string, { nome: string; total: number }>();
+    for (const d of delegacias) {
+      delegaciaMap.set(d.id, { nome: d.nome, total: 0 });
+    }
+    for (const c of custosDelegacia) {
+      const uopId = c.ordens_servico?.uop_id;
+      if (!uopId) continue;
+      const delId = uopToDelegacia.get(uopId);
+      if (!delId) continue;
+      const entry = delegaciaMap.get(delId);
+      if (entry) entry.total += Number(c.valor);
+    }
+    return Array.from(delegaciaMap.values())
+      .filter(d => d.total > 0)
+      .sort((a, b) => b.total - a.total);
+  }, [custosDelegacia, delegacias, uops]);
+
   const consolidado = useMemo(() => {
     if (!orcamentos) return [];
     return orcamentos.map((orc: any) => {
@@ -142,7 +213,7 @@ export default function DashboardOrcamento({ regionalId }: DashboardOrcamentoPro
         </Select>
       </div>
 
-      {/* KPIs globais */}
+      {/* KPIs globais — visível para todos */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Cota Total</CardTitle></CardHeader>
@@ -165,9 +236,45 @@ export default function DashboardOrcamento({ regionalId }: DashboardOrcamentoPro
         </Card>
       </div>
 
-      {consolidado.length === 0 ? (
+      {/* Gráfico de consumo por delegacia — apenas gestor_regional e fiscal_contrato */}
+      {!showFullDashboard && (
+        <Card>
+          <CardHeader><CardTitle className="text-lg">Consumo por Delegacia</CardTitle></CardHeader>
+          <CardContent>
+            {consumoPorDelegacia.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">Nenhum consumo registrado por delegacia em {exercicio}.</p>
+            ) : (
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={consumoPorDelegacia}
+                    margin={{ top: 5, right: 20, left: 10, bottom: 80 }}
+                    layout="vertical"
+                  >
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis type="number" tickFormatter={shortBRL} tick={{ fontSize: 11 }} />
+                    <YAxis
+                      type="category"
+                      dataKey="nome"
+                      tick={{ fontSize: 10 }}
+                      width={150}
+                    />
+                    <Tooltip formatter={(v: number) => formatBRL(v)} />
+                    <Bar dataKey="total" name="Consumo" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Seções adicionais — apenas para admin/nacional */}
+      {showFullDashboard && consolidado.length === 0 && (
         <Card><CardContent className="py-8 text-center text-muted-foreground">Nenhuma cota orçamentária cadastrada para {exercicio}.</CardContent></Card>
-      ) : (
+      )}
+
+      {showFullDashboard && consolidado.length > 0 && (
         <>
           {/* Gráfico 1: Dotação vs Consumido */}
           <Card>
