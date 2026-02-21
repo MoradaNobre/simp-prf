@@ -373,7 +373,7 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
           <SelectTrigger className="w-[160px]"><SelectValue placeholder="Papel" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos os papéis</SelectItem>
-            {Constants.public.Enums.app_role.map((r) => (
+            {[...Constants.public.Enums.app_role].sort((a, b) => (roleLabels[a] || a).localeCompare(roleLabels[b] || b)).map((r) => (
               <SelectItem key={r} value={r}>{roleLabels[r] || r}</SelectItem>
             ))}
           </SelectContent>
@@ -570,7 +570,7 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
               <Select value={editRole} onValueChange={setEditRole}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {assignableRoles.map((r) => (
+                {[...assignableRoles].sort((a, b) => (roleLabels[a] || a).localeCompare(roleLabels[b] || b)).map((r) => (
                     <SelectItem key={r} value={r}>{roleLabels[r]}</SelectItem>
                   ))}
                 </SelectContent>
