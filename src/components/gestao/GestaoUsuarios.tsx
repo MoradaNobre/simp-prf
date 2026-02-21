@@ -161,6 +161,25 @@ const roleColors: Record<string, string> = {
   terceirizado: "secondary",
 };
 
+/**
+ * Returns the list of roles that a given user role can assign to other users.
+ */
+function getAssignableRoles(currentRole: string): string[] {
+  const allRoles = Constants.public.Enums.app_role;
+  switch (currentRole) {
+    case "gestor_master":
+      return [...allRoles]; // can assign all
+    case "gestor_nacional":
+      return allRoles.filter(r => r !== "gestor_master");
+    case "gestor_regional":
+      return allRoles.filter(r => r !== "gestor_master" && r !== "gestor_nacional");
+    case "fiscal_contrato":
+      return ["preposto", "operador", "terceirizado"];
+    default:
+      return [];
+  }
+}
+
 interface Props {
   currentUserRole: string;
 }
@@ -182,7 +201,7 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
       if (res.error) throw res.error;
       return (res.data || {}) as Record<string, { email: string; confirmed: boolean }>;
     },
-    enabled: isAdminRole(currentUserRole),
+    enabled: isAdminRole(currentUserRole) || currentUserRole === "gestor_regional" || currentUserRole === "fiscal_contrato",
   });
   const isMobile = useIsMobile();
   const [search, setSearch] = useState("");
@@ -201,7 +220,10 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
 
   const isNacional = isAdminRole(currentUserRole);
   const isRegional = currentUserRole === "gestor_regional";
+  const isFiscal = currentUserRole === "fiscal_contrato";
+  const canManageUsers = isNacional || isRegional || isFiscal;
   const isRegionalScoped = !isGlobalRole(currentUserRole) && (currentUserRole === "gestor_nacional" || isRegional);
+  const assignableRoles = getAssignableRoles(currentUserRole);
 
   const userRegionalIds: string[] = (profile as any)?.regionais?.map((r: any) => r.id) ?? [];
 
@@ -257,7 +279,11 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
   }, [users, search, filterRole, filterRegionalId, filterStatus, sortField, sortDir, isRegional, userRegionalIds]);
 
   const openEdit = (user: UserWithRole) => {
-    if (!isNacional) return;
+    if (!canManageUsers) return;
+    // Prevent editing users with higher/equal privilege
+    if (!isGlobalRole(currentUserRole) && user.role === "gestor_master") return;
+    if (!isNacional && user.role === "gestor_nacional") return;
+    if (isFiscal && (user.role === "gestor_regional" || user.role === "fiscal_contrato")) return;
     setEditUser(user);
     setEditName(user.full_name);
     setEditRole(user.role || "operador");
@@ -401,15 +427,19 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
               <p className="text-xs text-muted-foreground">
                 {u.regionais.length > 0 ? u.regionais.map((r) => r.sigla).join(", ") : "Sem regional"}
               </p>
-              {isNacional && (
+              {canManageUsers && (
                 <div className="flex gap-1 pt-1">
                   <Button variant="outline" size="sm" onClick={() => openEdit(u)}>Editar</Button>
-                  <Button variant="ghost" size="icon" onClick={() => handleToggleAtivo(u)} disabled={toggling === u.user_id}>
-                    {toggling === u.user_id ? <Loader2 className="h-4 w-4 animate-spin" /> : u.ativo ? <Ban className="h-4 w-4 text-orange-500" /> : <CheckCircle className="h-4 w-4 text-green-600" />}
-                  </Button>
-                  <Button variant="ghost" size="icon" onClick={() => setDeleteConfirm(u)}>
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
+                  {isNacional && (
+                    <>
+                      <Button variant="ghost" size="icon" onClick={() => handleToggleAtivo(u)} disabled={toggling === u.user_id}>
+                        {toggling === u.user_id ? <Loader2 className="h-4 w-4 animate-spin" /> : u.ativo ? <Ban className="h-4 w-4 text-orange-500" /> : <CheckCircle className="h-4 w-4 text-green-600" />}
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => setDeleteConfirm(u)}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </>
+                  )}
                 </div>
               )}
             </div>
@@ -460,35 +490,39 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
                 </TableCell>
                 <TableCell>
                   <div className="flex gap-1">
-                    {isNacional && (
+                    {canManageUsers && (
                       <>
                         <Button variant="ghost" size="sm" onClick={() => openEdit(u)}>Editar</Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          title={u.ativo ? "Inativar" : "Reativar"}
-                          onClick={() => handleToggleAtivo(u)}
-                          disabled={toggling === u.user_id}
-                        >
-                          {toggling === u.user_id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : u.ativo ? (
-                            <Ban className="h-4 w-4 text-orange-500" />
-                          ) : (
-                            <CheckCircle className="h-4 w-4 text-green-600" />
-                          )}
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          title="Excluir permanentemente"
-                          onClick={() => setDeleteConfirm(u)}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
+                        {isNacional && (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              title={u.ativo ? "Inativar" : "Reativar"}
+                              onClick={() => handleToggleAtivo(u)}
+                              disabled={toggling === u.user_id}
+                            >
+                              {toggling === u.user_id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : u.ativo ? (
+                                <Ban className="h-4 w-4 text-orange-500" />
+                              ) : (
+                                <CheckCircle className="h-4 w-4 text-green-600" />
+                              )}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              title="Excluir permanentemente"
+                              onClick={() => setDeleteConfirm(u)}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </>
+                        )}
                       </>
                     )}
-                    {!isNacional && (
+                    {!canManageUsers && (
                       <span className="text-xs text-muted-foreground">Somente leitura</span>
                     )}
                   </div>
@@ -530,7 +564,7 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
               <Select value={editRole} onValueChange={setEditRole}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {Constants.public.Enums.app_role.map((r) => (
+                  {assignableRoles.map((r) => (
                     <SelectItem key={r} value={r}>{roleLabels[r]}</SelectItem>
                   ))}
                 </SelectContent>
