@@ -83,7 +83,7 @@ function useAuditLogs(actionFilter: string, tableFilter: string) {
   });
 }
 
-export default function GestaoAuditLogs() {
+export default function GestaoAuditLogs({ canDelete = false }: { canDelete?: boolean }) {
   const isMobile = useIsMobile();
   const queryClient = useQueryClient();
   const [actionFilter, setActionFilter] = useState("all");
@@ -173,7 +173,7 @@ export default function GestaoAuditLogs() {
       <div className="flex items-center justify-between gap-2">
         <p className="text-muted-foreground text-sm">Histórico de ações críticas</p>
         <div className="flex items-center gap-2">
-          {selected.size > 0 && (
+          {canDelete && selected.size > 0 && (
             <Button
               variant="destructive"
               size="sm"
@@ -184,7 +184,7 @@ export default function GestaoAuditLogs() {
               Excluir ({selected.size})
             </Button>
           )}
-          {filtered.length > 0 && (
+          {canDelete && filtered.length > 0 && (
             <Button
               variant="outline"
               size="sm"
@@ -259,10 +259,12 @@ export default function GestaoAuditLogs() {
               <CardContent className="p-3 space-y-1.5">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <Checkbox
-                      checked={selected.has(log.id)}
-                      onCheckedChange={() => toggleSelect(log.id)}
-                    />
+                    {canDelete && (
+                      <Checkbox
+                        checked={selected.has(log.id)}
+                        onCheckedChange={() => toggleSelect(log.id)}
+                      />
+                    )}
                     <Badge variant={actionColors[log.action] as any} className="text-[10px]">
                       {actionLabels[log.action] || log.action}
                     </Badge>
@@ -271,14 +273,16 @@ export default function GestaoAuditLogs() {
                     <span className="text-[10px] text-muted-foreground">
                       {format(new Date(log.created_at), "dd/MM/yy HH:mm", { locale: ptBR })}
                     </span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      onClick={() => { setSingleDeleteId(log.id); setConfirmDelete("single"); }}
-                    >
-                      <Trash2 className="h-3 w-3 text-destructive" />
-                    </Button>
+                    {canDelete && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={() => { setSingleDeleteId(log.id); setConfirmDelete("single"); }}
+                      >
+                        <Trash2 className="h-3 w-3 text-destructive" />
+                      </Button>
+                    )}
                   </div>
                 </div>
                 <div className="text-xs">
@@ -296,29 +300,33 @@ export default function GestaoAuditLogs() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-10">
-                <Checkbox
-                  checked={filtered.length > 0 && selected.size === filtered.length}
-                  onCheckedChange={toggleAll}
-                />
-              </TableHead>
+              {canDelete && (
+                <TableHead className="w-10">
+                  <Checkbox
+                    checked={filtered.length > 0 && selected.size === filtered.length}
+                    onCheckedChange={toggleAll}
+                  />
+                </TableHead>
+              )}
               <TableHead>Data/Hora</TableHead>
               <TableHead>Ação</TableHead>
               <TableHead>Responsável</TableHead>
               <TableHead>Tabela</TableHead>
               <TableHead>Descrição</TableHead>
-              <TableHead className="w-16">Excluir</TableHead>
+              {canDelete && <TableHead className="w-16">Excluir</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
             {filtered.map((log) => (
               <TableRow key={log.id}>
-                <TableCell>
-                  <Checkbox
-                    checked={selected.has(log.id)}
-                    onCheckedChange={() => toggleSelect(log.id)}
-                  />
-                </TableCell>
+                {canDelete && (
+                  <TableCell>
+                    <Checkbox
+                      checked={selected.has(log.id)}
+                      onCheckedChange={() => toggleSelect(log.id)}
+                    />
+                  </TableCell>
+                )}
                 <TableCell className="whitespace-nowrap text-muted-foreground text-xs">
                   {format(new Date(log.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
                 </TableCell>
@@ -336,16 +344,18 @@ export default function GestaoAuditLogs() {
                 <TableCell className="text-sm text-muted-foreground max-w-md truncate">
                   {log.description || "—"}
                 </TableCell>
-                <TableCell>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={() => { setSingleDeleteId(log.id); setConfirmDelete("single"); }}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </TableCell>
+                {canDelete && (
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => { setSingleDeleteId(log.id); setConfirmDelete("single"); }}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>
