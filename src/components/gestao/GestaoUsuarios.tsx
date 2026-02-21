@@ -22,7 +22,7 @@ import { Search, Loader2, Trash2, Ban, CheckCircle, AlertTriangle, ArrowUpDown, 
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Constants } from "@/integrations/supabase/types";
-import { isAdminRole } from "@/utils/roles";
+import { isAdminRole, isGlobalRole } from "@/utils/roles";
 
 type SortField = "full_name" | "role" | "regionais" | "ativo";
 type SortDir = "asc" | "desc";
@@ -201,6 +201,7 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
 
   const isNacional = isAdminRole(currentUserRole);
   const isRegional = currentUserRole === "gestor_regional";
+  const isRegionalScoped = !isGlobalRole(currentUserRole) && (currentUserRole === "gestor_nacional" || isRegional);
 
   const userRegionalIds: string[] = (profile as any)?.regionais?.map((r: any) => r.id) ?? [];
 
@@ -227,7 +228,7 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
       if (filterRegionalId !== "all" && !u.regionais.some(r => r.id === filterRegionalId)) return false;
       if (filterStatus === "ativo" && !u.ativo) return false;
       if (filterStatus === "inativo" && u.ativo) return false;
-      if (isRegional && userRegionalIds.length > 0) {
+      if (isRegionalScoped && userRegionalIds.length > 0) {
         return u.regionais.some((r) => userRegionalIds.includes(r.id));
       }
       return true;

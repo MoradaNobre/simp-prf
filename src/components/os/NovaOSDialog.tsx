@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { isAdminRole } from "@/utils/roles";
+import { isGlobalRole } from "@/utils/roles";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
@@ -45,16 +45,18 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
   const [contratoId, setContratoId] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const isGestorNacional = isAdminRole(role);
+  const isGestorGlobal = isGlobalRole(role);
   const userRegionais: any[] = (profile.data as any)?.regionais || [];
-  const hasMultipleRegionais = isGestorNacional && userRegionais.length > 1;
+  const hasMultipleRegionais = userRegionais.length > 1;
 
   // For gestor_nacional with multiple regionals, use selected; otherwise use profile's single regional
   const regionalId = hasMultipleRegionais
     ? selectedRegionalId || undefined
-    : isGestorNacional && userRegionais.length === 1
+    : isGestorGlobal && userRegionais.length === 1
       ? userRegionais[0]?.id
-      : (profile.data as any)?.regional_id || undefined;
+      : userRegionais.length === 1
+        ? userRegionais[0]?.id
+        : (profile.data as any)?.regional_id || undefined;
 
   const regionalLabel = hasMultipleRegionais
     ? (selectedRegionalId
@@ -63,7 +65,7 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
             return r ? `${r.sigla} — ${r.nome}` : "";
           })()
         : "")
-    : isGestorNacional && userRegionais.length === 1
+    : userRegionais.length === 1
       ? `${userRegionais[0]?.sigla} — ${userRegionais[0]?.nome}`
       : (profile.data as any)?.regional
         ? `${(profile.data as any).regional.sigla} — ${(profile.data as any).regional.nome}`

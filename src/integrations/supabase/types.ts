@@ -1108,6 +1108,8 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_manager: { Args: { _user_id: string }; Returns: boolean }
+      is_nacional: { Args: { _user_id: string }; Returns: boolean }
       user_has_regional: {
         Args: { _regional_id: string; _user_id: string }
         Returns: boolean
