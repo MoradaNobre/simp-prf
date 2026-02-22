@@ -85,6 +85,37 @@ export function useUpdateOS() {
   });
 }
 
+/**
+ * Atomic OS status transition — prevents race conditions via SELECT … FOR UPDATE.
+ * If another user already changed the status, a descriptive error is raised.
+ */
+export function useTransitionOS() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      expectedStatus,
+      newStatus,
+      updates,
+    }: {
+      id: string;
+      expectedStatus: string;
+      newStatus: string;
+      updates?: Record<string, unknown>;
+    }) => {
+      const { data, error } = await supabase.rpc("transition_os_status", {
+        _os_id: id,
+        _expected_status: expectedStatus as any,
+        _new_status: newStatus as any,
+        _updates: updates ? JSON.stringify(updates) : "{}",
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["ordens_servico"] }),
+  });
+}
+
 export function useOSCustos(osId?: string) {
   return useQuery({
     queryKey: ["os_custos", osId],
