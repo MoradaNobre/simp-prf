@@ -30,7 +30,7 @@ A aplicação SIMP coleta os seguintes dados pessoais:
 - Dados de contratos de manutenção (número, empresa, valores, vigência)
 - Informações de contatos de contratos (nome, função, e-mail, telefone)
 - Dados de unidades operacionais (UOPs), delegacias e regionais
-- Dados de equipamentos e seus históricos de manutenção
+
 - Relatórios de execução e pagamento gerados
 - Registros de orçamento anual, empenhos e créditos
 - Fotografias de antes e depois de serviços executados
@@ -51,7 +51,7 @@ a) **Autenticação e Controle de Acesso:** Verificar a identidade do usuário e
 b) **Execução das Funcionalidades:**
    - Gestão de ordens de serviço de manutenção predial (corretiva e preventiva)
    - Cadastro e gestão de contratos de manutenção
-   - Controle de equipamentos e infraestrutura predial
+   - Gestão de unidades operacionais e infraestrutura predial
    - Geração de relatórios técnicos e gerenciais
    - Gestão orçamentária (dotação, empenhos, créditos)
    - Visualização de dados através de dashboards

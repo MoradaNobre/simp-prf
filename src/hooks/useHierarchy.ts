@@ -38,16 +38,3 @@ export function useUops(delegaciaId?: string) {
   });
 }
 
-export function useEquipamentos(uopId?: string) {
-  return useQuery({
-    queryKey: ["equipamentos", uopId],
-    queryFn: async () => {
-      let q = supabase.from("equipamentos").select("*").order("nome");
-      if (uopId) q = q.eq("uop_id", uopId);
-      const { data, error } = await q;
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!uopId,
-  });
-}

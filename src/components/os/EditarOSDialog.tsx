@@ -10,7 +10,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useUpdateOS, type OrdemServico } from "@/hooks/useOrdensServico";
-import { useRegionais, useDelegacias, useUops, useEquipamentos } from "@/hooks/useHierarchy";
+import { useRegionais, useDelegacias, useUops } from "@/hooks/useHierarchy";
 import { useUserRole } from "@/hooks/useUserRole";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
@@ -56,11 +56,9 @@ export function EditarOSDialog({ os, open, onOpenChange }: Props) {
   const [selectedRegionalId, setSelectedRegionalId] = useState("");
   const [delegaciaId, setDelegaciaId] = useState("");
   const [uopId, setUopId] = useState("");
-  const [equipamentoId, setEquipamentoId] = useState("");
 
   const delegacias = useDelegacias(selectedRegionalId || undefined);
   const uops = useUops(delegaciaId || undefined);
-  const equipamentos = useEquipamentos(uopId || undefined);
 
   useEffect(() => {
     if (os) {
@@ -69,7 +67,6 @@ export function EditarOSDialog({ os, open, onOpenChange }: Props) {
         tipo: os.tipo,
         prioridade: os.prioridade,
       });
-      setEquipamentoId(os.equipamento_id ?? "");
       setUopId(os.uop_id ?? "");
 
       // Derive regional and delegacia from nested uops data
@@ -92,7 +89,6 @@ export function EditarOSDialog({ os, open, onOpenChange }: Props) {
         tipo: form.tipo as any,
         prioridade: form.prioridade as any,
         uop_id: uopId || null,
-        equipamento_id: equipamentoId || null,
         regional_id: selectedRegionalId || null,
       } as any);
       toast.success("OS atualizada com sucesso");
@@ -150,7 +146,7 @@ export function EditarOSDialog({ os, open, onOpenChange }: Props) {
 
           <div className="space-y-1.5">
             <Label>Regional</Label>
-            <Select value={selectedRegionalId} onValueChange={(v) => { setSelectedRegionalId(v); setDelegaciaId(""); setUopId(""); setEquipamentoId(""); }}>
+            <Select value={selectedRegionalId} onValueChange={(v) => { setSelectedRegionalId(v); setDelegaciaId(""); setUopId(""); }}>
               <SelectTrigger><SelectValue placeholder="Selecione a regional..." /></SelectTrigger>
               <SelectContent>
                 {regionais.map((r) => (
@@ -163,7 +159,7 @@ export function EditarOSDialog({ os, open, onOpenChange }: Props) {
           {selectedRegionalId && (
             <div className="space-y-1.5">
               <Label>Delegacia</Label>
-              <Select value={delegaciaId} onValueChange={(v) => { setDelegaciaId(v); setUopId(""); setEquipamentoId(""); }}>
+              <Select value={delegaciaId} onValueChange={(v) => { setDelegaciaId(v); setUopId(""); }}>
                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>
                   {(delegacias.data || []).map((d) => (
@@ -177,7 +173,7 @@ export function EditarOSDialog({ os, open, onOpenChange }: Props) {
           {delegaciaId && (
             <div className="space-y-1.5">
               <Label>UOP</Label>
-              <Select value={uopId} onValueChange={(v) => { setUopId(v); setEquipamentoId(""); }}>
+              <Select value={uopId} onValueChange={setUopId}>
                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>
                   {(uops.data || []).map((u) => (
@@ -188,19 +184,6 @@ export function EditarOSDialog({ os, open, onOpenChange }: Props) {
             </div>
           )}
 
-          {uopId && (equipamentos.data || []).length > 0 && (
-            <div className="space-y-1.5">
-              <Label>Equipamento (opcional)</Label>
-              <Select value={equipamentoId} onValueChange={setEquipamentoId}>
-                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                <SelectContent>
-                  {(equipamentos.data || []).map((eq) => (
-                    <SelectItem key={eq.id} value={eq.id}>{eq.nome} ({eq.categoria})</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
         </div>
 
         <DialogFooter>

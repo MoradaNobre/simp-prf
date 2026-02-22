@@ -143,7 +143,6 @@ Deno.serve(async (req) => {
     }
 
     // ---- Clear & insert regionais ----
-    await supabase.from("equipamentos").delete().neq("id", "00000000-0000-0000-0000-000000000000");
     await supabase.from("uops").delete().neq("id", "00000000-0000-0000-0000-000000000000");
     await supabase.from("delegacias").delete().neq("id", "00000000-0000-0000-0000-000000000000");
     await supabase.from("regionais").delete().neq("id", "00000000-0000-0000-0000-000000000000");

@@ -75,7 +75,7 @@ export default function Sobre() {
               {[
                 "Ordens de Serviço",
                 "Contratos",
-                "Equipamentos",
+                "Ativos",
                 "Orçamento",
                 "Relatórios",
                 "Dashboard",

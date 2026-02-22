@@ -243,59 +243,6 @@ export type Database = {
           },
         ]
       }
-      equipamentos: {
-        Row: {
-          categoria: Database["public"]["Enums"]["equipment_category"]
-          created_at: string
-          data_instalacao: string | null
-          id: string
-          marca: string | null
-          modelo: string | null
-          nome: string
-          numero_serie: string | null
-          observacoes: string | null
-          qr_code: string | null
-          uop_id: string
-          updated_at: string
-        }
-        Insert: {
-          categoria?: Database["public"]["Enums"]["equipment_category"]
-          created_at?: string
-          data_instalacao?: string | null
-          id?: string
-          marca?: string | null
-          modelo?: string | null
-          nome: string
-          numero_serie?: string | null
-          observacoes?: string | null
-          qr_code?: string | null
-          uop_id: string
-          updated_at?: string
-        }
-        Update: {
-          categoria?: Database["public"]["Enums"]["equipment_category"]
-          created_at?: string
-          data_instalacao?: string | null
-          id?: string
-          marca?: string | null
-          modelo?: string | null
-          nome?: string
-          numero_serie?: string | null
-          observacoes?: string | null
-          qr_code?: string | null
-          uop_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "equipamentos_uop_id_fkey"
-            columns: ["uop_id"]
-            isOneToOne: false
-            referencedRelation: "uops"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       orcamento_anual: {
         Row: {
           created_at: string
@@ -564,13 +511,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "ordens_servico_equipamento_id_fkey"
-            columns: ["equipamento_id"]
-            isOneToOne: false
-            referencedRelation: "equipamentos"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "ordens_servico_regional_id_fkey"
             columns: ["regional_id"]
             isOneToOne: false
@@ -624,7 +564,6 @@ export type Database = {
       planos_manutencao: {
         Row: {
           ativo: boolean
-          categoria: Database["public"]["Enums"]["equipment_category"]
           created_at: string
           descricao_atividades: string | null
           frequencia: Database["public"]["Enums"]["frequencia_manutencao"]
@@ -636,7 +575,6 @@ export type Database = {
         }
         Insert: {
           ativo?: boolean
-          categoria: Database["public"]["Enums"]["equipment_category"]
           created_at?: string
           descricao_atividades?: string | null
           frequencia: Database["public"]["Enums"]["frequencia_manutencao"]
@@ -648,7 +586,6 @@ export type Database = {
         }
         Update: {
           ativo?: boolean
-          categoria?: Database["public"]["Enums"]["equipment_category"]
           created_at?: string
           descricao_atividades?: string | null
           frequencia?: Database["public"]["Enums"]["frequencia_manutencao"]
@@ -1133,14 +1070,6 @@ export type Database = {
         | "preposto"
         | "terceirizado"
         | "gestor_master"
-      equipment_category:
-        | "ar_condicionado"
-        | "gerador"
-        | "eletrica"
-        | "telhado"
-        | "hidraulica"
-        | "elevador"
-        | "outro"
       frequencia_manutencao: "mensal" | "trimestral" | "semestral" | "anual"
       os_prioridade: "baixa" | "media" | "alta" | "urgente"
       os_status:
@@ -1288,15 +1217,6 @@ export const Constants = {
         "preposto",
         "terceirizado",
         "gestor_master",
-      ],
-      equipment_category: [
-        "ar_condicionado",
-        "gerador",
-        "eletrica",
-        "telhado",
-        "hidraulica",
-        "elevador",
-        "outro",
       ],
       frequencia_manutencao: ["mensal", "trimestral", "semestral", "anual"],
       os_prioridade: ["baixa", "media", "alta", "urgente"],

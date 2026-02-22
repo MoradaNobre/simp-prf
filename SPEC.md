@@ -26,12 +26,12 @@
 
 ## 1. Visão Geral
 
-O SIMP é um sistema web interno da Polícia Rodoviária Federal para gestão de manutenção predial. Permite o controle de ordens de serviço, contratos, orçamento e estrutura organizacional (regionais, delegacias, UOPs e equipamentos).
+O SIMP é um sistema web interno da Polícia Rodoviária Federal para gestão de manutenção predial. Permite o controle de ordens de serviço, contratos, orçamento e estrutura organizacional (regionais, delegacias e UOPs).
 
 ### 1.1. Hierarquia Organizacional
 
 ```
-Regional (Superintendência) → Delegacia → UOP (Unidade Operacional) → Equipamento
+Regional (Superintendência) → Delegacia → UOP (Unidade Operacional)
 ```
 
 ### 1.2. Stack Tecnológica
@@ -324,14 +324,14 @@ O sistema aplica bloqueios **estritos e sequenciais** na transição Autorizaç�
 ### 6.11. Criação de OS (Nova OS)
 
 - **Campos obrigatórios:** Título, tipo (corretiva/preventiva), regional, UOP
-- **Campos opcionais:** Descrição, equipamento (filtrado pela UOP selecionada), foto "antes", prioridade
+- **Campos opcionais:** Descrição, foto "antes", prioridade
 - **Código automático:** Gerado pela tabela `regional_os_seq` (formato: SIGLA-ANO-SEQUENCIAL)
 - **Solicitante:** Automaticamente o usuário logado
 
 ### 6.12. Edição de OS
 
 - Permite editar: título, descrição, tipo, prioridade
-- Permite vincular/alterar: UOP, equipamento, contrato
+- Permite vincular/alterar: UOP, contrato
 - Permite definir responsáveis: fiscal, preposto/execução, encerramento
 - **Quem pode editar:** Solicitante, responsável, gestores, fiscal, preposto (do contrato), terceirizado (vinculado)
 
@@ -539,7 +539,6 @@ Saldo = (Valor Total + Σ Aditivos) - Σ Orçamentos de OS em Execução+
 
 - Filtro por regional e delegacia
 - Campos: nome, endereço, área (m²), latitude, longitude, delegacia vinculada
-- Gestão de equipamentos por UOP
 - CRUD (Master, Nacional, Regional podem gerenciar)
 
 ### 10.6. Aba "Auditoria" (`GestaoAuditLogs`)
@@ -625,7 +624,7 @@ Saldo = (Valor Total + Σ Aditivos) - Σ Orçamentos de OS em Execução+
 - **Todas as tabelas** possuem RLS habilitado
 - Políticas implementadas por perfil e escopo de dados
 - Isolamento por regional em dados operacionais
-- Proteção em cascata: regionais → delegacias → UOPs → equipamentos
+- Proteção em cascata: regionais → delegacias → UOPs
 
 ### 13.2. Auditoria
 
