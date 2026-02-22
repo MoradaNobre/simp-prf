@@ -39,7 +39,7 @@ O sistema atende a hierarquia organizacional da PRF, desde a administração cen
 | OE-02 | Garantir rastreabilidade completa do ciclo da despesa, da abertura ao encerramento. |
 | OE-03 | Assegurar segregação de funções no fluxo operacional (solicitante ≠ autorizador ≠ executor ≠ atestador). |
 | OE-04 | Reduzir riscos de sobrecontratação e extrapolação de saldo contratual e orçamentário. |
-| OE-05 | Padronizar o fluxo de manutenção predial em todas as 24+ regionais da PRF. |
+| OE-05 | Padronizar o fluxo de manutenção predial em todas as 29 regionais da PRF. |
 | OE-06 | Disponibilizar indicadores gerenciais em tempo real para tomada de decisão. |
 | OE-07 | Facilitar auditorias internas e externas com registro automático de todas as ações. |
 
@@ -338,7 +338,7 @@ Cada transição:
 | RNF-01 | Performance | Atualização automática do dashboard a cada 30 segundos. |
 | RNF-02 | Responsividade | Interface responsiva: tabelas convertidas em cards em telas pequenas. |
 | RNF-03 | Acessibilidade Visual | Suporte a tema claro e escuro com persistência de preferência. |
-| RNF-04 | Escalabilidade | Performance adequada para 24+ regionais simultâneas. |
+| RNF-04 | Escalabilidade | Performance adequada para 29 regionais simultâneas. |
 | RNF-05 | Geração de Documentos | Relatórios em formato PDF gerados automaticamente. |
 | RNF-06 | Armazenamento | Upload de arquivos com identificação por UUID para evitar colisões. |
 | RNF-07 | Cache | Invalidação de cache via TanStack React Query em mutations. |
