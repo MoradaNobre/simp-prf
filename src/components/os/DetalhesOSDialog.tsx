@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { isAdminRole } from "@/utils/roles";
 import { OSStatusStepper } from "@/components/os/OSStatusStepper";
 import {
@@ -55,6 +56,7 @@ interface Props {
 }
 
 export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
+  const navigate = useNavigate();
   const updateOS = useUpdateOS();
   const custos = useOSCustos(os?.id);
   const addCusto = useAddCusto();
@@ -901,7 +903,8 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                         <Button
                           variant="outline"
                           onClick={() => {
-                            window.open("/app/orcamento", "_blank");
+                            onOpenChange(false);
+                            navigate("/app/orcamento");
                           }}
                           className="w-full"
                         >
