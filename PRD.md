@@ -369,7 +369,7 @@ Cada transição:
 | R-03 | Crescimento indefinido de logs de auditoria | Degradação de performance em consultas | Implementar política de arquivamento em versão futura |
 | R-04 | Complexidade crescente do modelo de permissão | Dificuldade de manutenção e teste de 7 perfis | Documentação atualizada (REGRAS_NEGOCIO.md) e testes |
 | R-05 | Falha no envio de notificações por e-mail | Stakeholders não informados sobre transições | Fallback visual + retry em edge functions |
-| R-06 | Concorrência em transições de OS | Dois usuários avançando a mesma OS simultaneamente | Validação de status atual antes de cada transição |
+| R-06 | Concorrência em transições de OS | Dois usuários avançando a mesma OS simultaneamente | **Mitigado**: função `transition_os_status` com `SELECT … FOR UPDATE` valida atomicamente o status esperado antes de permitir a transição. |
 
 ---
 

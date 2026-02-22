@@ -1110,6 +1110,15 @@ export type Database = {
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_manager: { Args: { _user_id: string }; Returns: boolean }
       is_nacional: { Args: { _user_id: string }; Returns: boolean }
+      transition_os_status: {
+        Args: {
+          _expected_status: Database["public"]["Enums"]["os_status"]
+          _new_status: Database["public"]["Enums"]["os_status"]
+          _os_id: string
+          _updates?: Json
+        }
+        Returns: string
+      }
       user_has_regional: {
         Args: { _regional_id: string; _user_id: string }
         Returns: boolean
