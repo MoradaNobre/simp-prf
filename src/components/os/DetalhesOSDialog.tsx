@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { isAdminRole } from "@/utils/roles";
+import { OSStatusStepper } from "@/components/os/OSStatusStepper";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
@@ -486,25 +487,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   const totalCustos = (custos.data || []).reduce((sum, c) => sum + Number(c.valor), 0);
   const paymentDocs: string[] = (os as any).documentos_pagamento || [];
 
-  // Status stepper
-  const renderStepper = () => (
-    <div className="flex items-center gap-1 flex-wrap pb-1">
-      {statusFlow.map((s, i) => {
-        const isCurrent = s === os.status;
-        const isPast = i < currentIdx;
-        return (
-          <div key={s} className="flex items-center gap-1">
-            <div className={`text-xs px-2 py-1 rounded-full whitespace-nowrap font-medium ${
-              isCurrent ? statusColors[s] : isPast ? "bg-muted text-muted-foreground line-through" : "bg-muted/50 text-muted-foreground/50"
-            }`}>
-              {i + 1}. {statusLabels[s]}
-            </div>
-            {i < statusFlow.length - 1 && <span className="text-muted-foreground/30">→</span>}
-          </div>
-        );
-      })}
-    </div>
-  );
+  // Status stepper - now uses the chevron component
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -519,7 +502,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
 
         <div className="space-y-4">
           {/* Stepper */}
-          {renderStepper()}
+          <OSStatusStepper currentStatus={os.status} />
 
           {/* Status & Priority */}
           <div className="flex items-center gap-3 flex-wrap">
