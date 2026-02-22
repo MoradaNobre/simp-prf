@@ -15,7 +15,7 @@ import { useCreateOS } from "@/hooks/useOrdensServico";
 import { useContratos } from "@/hooks/useContratos";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useUserRole } from "@/hooks/useUserRole";
-import { useDelegacias, useUops, useEquipamentos } from "@/hooks/useHierarchy";
+import { useDelegacias, useUops } from "@/hooks/useHierarchy";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
@@ -40,7 +40,6 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
   const [selectedRegionalId, setSelectedRegionalId] = useState("");
   const [delegaciaId, setDelegaciaId] = useState("");
   const [uopId, setUopId] = useState("");
-  const [equipamentoId, setEquipamentoId] = useState("");
   const [fotoAntes, setFotoAntes] = useState<File | null>(null);
   const [contratoId, setContratoId] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -73,11 +72,10 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
 
   const delegacias = useDelegacias(regionalId);
   const uops = useUops(delegaciaId || undefined);
-  const equipamentos = useEquipamentos(uopId || undefined);
 
   const reset = () => {
     setCategoria(""); setDescricao(""); setTipo("corretiva"); setPrioridade("media");
-    setSelectedRegionalId(""); setDelegaciaId(""); setUopId(""); setEquipamentoId("");
+    setSelectedRegionalId(""); setDelegaciaId(""); setUopId("");
     setFotoAntes(null); setContratoId("");
   };
 
@@ -108,7 +106,6 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
         tipo: tipo as any,
         prioridade: prioridade as any,
         uop_id: uopId || null,
-        equipamento_id: equipamentoId || null,
         contrato_id: contratoId || null,
         solicitante_id: user.id,
         foto_antes: fotoUrl,
@@ -203,7 +200,7 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
           <div>
             <Label>Regional</Label>
             {hasMultipleRegionais ? (
-              <Select value={selectedRegionalId} onValueChange={(v) => { setSelectedRegionalId(v); setDelegaciaId(""); setUopId(""); setEquipamentoId(""); }}>
+              <Select value={selectedRegionalId} onValueChange={(v) => { setSelectedRegionalId(v); setDelegaciaId(""); setUopId(""); }}>
                 <SelectTrigger><SelectValue placeholder="Selecione a regional..." /></SelectTrigger>
                 <SelectContent>
                   {userRegionais.map((r: any) => (
@@ -224,7 +221,7 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
           {regionalId && (
             <div>
               <Label>Delegacia</Label>
-              <Select value={delegaciaId} onValueChange={(v) => { setDelegaciaId(v); setUopId(""); setEquipamentoId(""); }}>
+              <Select value={delegaciaId} onValueChange={(v) => { setDelegaciaId(v); setUopId(""); }}>
                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>
                   {(delegacias.data || []).map((d) => (
@@ -238,25 +235,11 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
           {delegaciaId && (
             <div>
               <Label>UOP</Label>
-              <Select value={uopId} onValueChange={(v) => { setUopId(v); setEquipamentoId(""); }}>
+              <Select value={uopId} onValueChange={setUopId}>
                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>
                   {(uops.data || []).map((u) => (
                     <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          {uopId && (equipamentos.data || []).length > 0 && (
-            <div>
-              <Label>Equipamento (opcional)</Label>
-              <Select value={equipamentoId} onValueChange={setEquipamentoId}>
-                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                <SelectContent>
-                  {(equipamentos.data || []).map((eq) => (
-                    <SelectItem key={eq.id} value={eq.id}>{eq.nome} ({eq.categoria})</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

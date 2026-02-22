@@ -56,7 +56,7 @@ const features = [
     icon: Building2,
     title: "Gestão de Unidades",
     description:
-      "Cadastro de regionais, delegacias e UOPs com geolocalização e inventário de equipamentos.",
+      "Cadastro de regionais, delegacias e UOPs com geolocalização.",
   },
 ];
 

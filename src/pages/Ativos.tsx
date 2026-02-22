@@ -119,7 +119,7 @@ export default function Ativos() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Ativos</h1>
           <p className="text-muted-foreground">
-            Cadastro hierárquico de unidades e equipamentos
+            Cadastro hierárquico de unidades operacionais
             {totalUnidades > 0 && <span className="ml-2 text-xs">({totalUnidades} registros)</span>}
           </p>
         </div>

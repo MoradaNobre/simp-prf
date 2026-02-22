@@ -8,7 +8,7 @@ A aplicação SIMP foi desenvolvida como uma ferramenta interna para otimizar os
 
 - **Gestão de Ordens de Serviço:** Abertura, acompanhamento e encerramento de ordens de serviço de manutenção corretiva e preventiva
 - **Gestão de Contratos:** Cadastro e controle de contratos de manutenção predial, incluindo saldos e custos
-- **Gestão de Equipamentos:** Cadastro e manutenção de equipamentos das unidades operacionais (ar-condicionado, geradores, elétrica, hidráulica, etc.)
+- **Gestão de Ativos:** Cadastro hierárquico de unidades operacionais (regionais, delegacias, UOPs)
 - **Gestão Orçamentária:** Controle de dotação anual, empenhos e créditos por regional
 - **Dashboards e Relatórios:** Visualização de dados com gráficos interativos e geração de relatórios de execução e pagamento
 - **Controle de Acesso:** Sistema robusto de autenticação e permissões por perfil e regional
@@ -96,7 +96,7 @@ A aplicação SIMP foi desenvolvida como uma ferramenta interna para otimizar os
 - **RLS (Row Level Security):** Políticas implementadas em todas as tabelas:
   - Isolamento por regional em tabelas de dados operacionais
   - Políticas específicas para cada perfil de usuário
-  - Proteção em cascata em tabelas relacionadas (regionais → delegacias → UOPs → equipamentos)
+  - Proteção em cascata em tabelas relacionadas (regionais → delegacias → UOPs)
   - Controle granular de operações (SELECT, INSERT, UPDATE, DELETE) por perfil
 - **Proteção de Funções:** Todas as funções PostgreSQL utilizam `search_path` explícito prevenindo ataques de manipulação de schema
 
@@ -131,7 +131,7 @@ A aplicação coleta os seguintes tipos de dados:
 - Perfil de acesso no sistema
 - Ordens de serviço (abertura, execução, ateste, pagamento, encerramento)
 - Contratos de manutenção (número, empresa, valores, vigência, contatos)
-- Equipamentos (categoria, marca, modelo, número de série)
+
 - Unidades operacionais (UOPs), delegacias e regionais
 - Relatórios de execução e pagamento gerados
 - Dados orçamentários (dotação, empenhos, créditos)
@@ -172,7 +172,7 @@ Todos os dados coletados têm como finalidade exclusiva:
 | `regionais` | Cadastro das superintendências regionais (nome, sigla, UF) |
 | `delegacias` | Cadastro de delegacias vinculadas às regionais |
 | `uops` | Unidades Operacionais Policiais (endereço, área, coordenadas) |
-| `equipamentos` | Equipamentos das UOPs (categoria, marca, modelo, série) |
+
 | `ordens_servico` | Ordens de serviço de manutenção (título, descrição, status, prioridade, tipo) |
 | `os_custos` | Custos associados às ordens de serviço |
 | `contratos` | Contratos de manutenção predial |
@@ -262,7 +262,7 @@ Cada transição de status é registrada com timestamp e identificação do resp
 ### 6.3. Módulo de Gestão
 - Cadastro de regionais, delegacias e UOPs
 - Gestão de usuários (criação, perfis, ativação/desativação)
-- Gestão de equipamentos por UOP
+
 - Logs de auditoria do sistema
 - **Solicitações de Crédito Suplementar:** Aba centralizada para análise e decisão pelo Gestor Nacional sobre solicitações de crédito submetidas por Gestores Regionais e Fiscais
 
