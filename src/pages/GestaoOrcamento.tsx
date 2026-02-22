@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useSearchParams } from "react-router-dom";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -44,6 +44,8 @@ export default function GestaoOrcamento() {
   const [creditoDialog, setCreditoDialog] = useState<{ open: boolean; orcamentoId?: string }>({ open: false });
   const [empenhoDialog, setEmpenhoDialog] = useState<{ open: boolean; orcamentoId?: string }>({ open: false });
 
+  const [searchParams] = useSearchParams();
+  const tabFromUrl = searchParams.get("tab");
   const isNacional = isAdminRole(role);
   const isGlobal = isGlobalRole(role);
   const isRegional = role === "gestor_regional";
@@ -329,7 +331,7 @@ export default function GestaoOrcamento() {
         </div>
       </div>
 
-      <Tabs defaultValue={isNacional ? "solicitacoes" : "dotacoes"} className="w-full">
+      <Tabs defaultValue={tabFromUrl || (isNacional ? "solicitacoes" : "dotacoes")} className="w-full">
         <TabsList className="w-full sm:w-auto flex-wrap h-auto gap-1 p-1">
           {isNacional && (
             <TabsTrigger value="loa" className="flex items-center gap-1.5 text-xs sm:text-sm">

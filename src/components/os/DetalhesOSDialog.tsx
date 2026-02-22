@@ -904,7 +904,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                           variant="outline"
                           onClick={() => {
                             onOpenChange(false);
-                            navigate("/app/orcamento");
+                            navigate("/app/orcamento?tab=dotacoes");
                           }}
                           className="w-full"
                         >
