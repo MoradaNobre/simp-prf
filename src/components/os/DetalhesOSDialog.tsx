@@ -17,6 +17,7 @@ import {
 import { useUpdateOS, useOSCustos, useAddCusto, type OrdemServico } from "@/hooks/useOrdensServico";
 import { useContratos, useContratosSaldo } from "@/hooks/useContratos";
 import { useSaldoOrcamentarioRegional, useCreateSolicitacaoCredito } from "@/hooks/useSaldoOrcamentario";
+import { useLimitesModalidade } from "@/hooks/useLimitesModalidade";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { supabase } from "@/integrations/supabase/client";
@@ -96,6 +97,47 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   const { data: saldoOrcamento } = useSaldoOrcamentarioRegional(osRegionalId);
   const createSolicitacao = useCreateSolicitacaoCredito();
   const contratoId = os?.contrato_id;
+
+  // Limite de modalidade: fetch limit and consumed amount for cartao_corporativo / contrata_brasil
+  const contratoForModalidade = contratosAll.find(c => c.id === os?.contrato_id);
+  const tipoServicoForQuery = contratoForModalidade?.tipo_servico;
+  const isModalidadeEspecial = tipoServicoForQuery === "cartao_corporativo" || tipoServicoForQuery === "contrata_brasil";
+  const currentYear = new Date().getFullYear();
+  
+  const { data: limitesModalidade = [] } = useLimitesModalidade(osRegionalId, currentYear);
+  
+  // Sum of valor_orcamento from OS already past orcamento (autorizacao+) for same modalidade/regional/year
+  const { data: consumoModalidade } = useQuery({
+    queryKey: ["consumo-modalidade", osRegionalId, tipoServicoForQuery, currentYear, os?.id],
+    queryFn: async () => {
+      if (!osRegionalId || !tipoServicoForQuery) return 0;
+      // Get all contrato IDs with this tipo_servico in this regional
+      const { data: contratos, error: cErr } = await supabase
+        .from("contratos")
+        .select("id")
+        .eq("regional_id", osRegionalId)
+        .eq("tipo_servico", tipoServicoForQuery);
+      if (cErr) throw cErr;
+      if (!contratos || contratos.length === 0) return 0;
+      const contratoIds = contratos.map(c => c.id);
+      
+      // Get OS linked to these contracts, past orçamento stage, in current year, excluding current OS
+      const { data: osList, error: oErr } = await supabase
+        .from("ordens_servico")
+        .select("valor_orcamento")
+        .in("contrato_id", contratoIds)
+        .gte("data_abertura", `${currentYear}-01-01`)
+        .lt("data_abertura", `${currentYear + 1}-01-01`)
+        .not("status", "in", '("aberta","orcamento")');
+      if (oErr) throw oErr;
+      
+      // Sum values, excluding current OS
+      const total = (osList || [])
+        .reduce((sum, o) => sum + (Number(o.valor_orcamento) || 0), 0);
+      return total;
+    },
+    enabled: !!osRegionalId && isModalidadeEspecial,
+  });
   const { data: contatos = [] } = useQuery({
     queryKey: ["contrato-contatos", contratoId],
     queryFn: async () => {
@@ -821,17 +863,29 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
             const totalEmpenhado = saldoOrcamento?.total_empenhos ?? 0;
             const creditoNaoEmpenhado = saldoOrcamento?.credito_nao_empenhado ?? 0;
             // Empenho is required for ALL modalities including cartão_corporativo
-            // Only skip if there's no budget registered at all (and budget blocking is active)
             const skipEmpenhoCheck = !skipBudgetBlock && (semOrcamentoCadastrado || orcamentoInsuficiente);
             const empenhoInsuficiente = !skipEmpenhoCheck && totalEmpenhado < valorOS;
-            
 
-            // Blocking priority: 1) Cota Regional, 2) Saldo Contrato, 3) Empenho
-            // Only show the first active blocker
+            // Limite de Modalidade check (for cartao_corporativo / contrata_brasil)
+            const limiteModalidade = isModalidadeEspecial
+              ? limitesModalidade.find(l => l.modalidade === tipoServico)
+              : null;
+            const valorLimite = limiteModalidade ? Number(limiteModalidade.valor_limite) : null;
+            const consumoAtual = (consumoModalidade ?? 0);
+            // Exclude current OS from consumo if it's already counted (status past orcamento)
+            const consumoSemAtual = os.status !== "aberta" && os.status !== "orcamento"
+              ? consumoAtual - valorOS
+              : consumoAtual;
+            const consumoComAtual = consumoSemAtual + valorOS;
+            const limiteExcedido = isModalidadeEspecial && valorLimite !== null && consumoComAtual > valorLimite;
+            const semLimiteCadastrado = isModalidadeEspecial && valorLimite === null;
+
+            // Blocking priority: 1) Cota Regional, 2) Saldo Contrato / Limite Modalidade, 3) Empenho
             const bloqueio1_cota = orcamentoInsuficiente || semOrcamentoCadastrado;
             const bloqueio2_contrato = !bloqueio1_cota && contratoInsuficiente;
-            const bloqueio3_empenho = !bloqueio1_cota && !bloqueio2_contrato && empenhoInsuficiente;
-            const bloqueado = bloqueio1_cota || bloqueio2_contrato || bloqueio3_empenho;
+            const bloqueio2_limite = !bloqueio1_cota && !bloqueio2_contrato && (limiteExcedido || semLimiteCadastrado);
+            const bloqueio3_empenho = !bloqueio1_cota && !bloqueio2_contrato && !bloqueio2_limite && empenhoInsuficiente;
+            const bloqueado = bloqueio1_cota || bloqueio2_contrato || bloqueio2_limite || bloqueio3_empenho;
 
             return (
               <>
@@ -917,8 +971,47 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                     );
                   })()}
 
-                  {/* 3. Empenho — only show if cota and contrato are OK */}
-                  {!bloqueio1_cota && !bloqueio2_contrato && !semOrcamentoCadastrado && (
+                  {/* 2b. Limite de Modalidade — for cartao_corporativo / contrata_brasil */}
+                  {!bloqueio1_cota && !bloqueio2_contrato && isModalidadeEspecial && (
+                    <div className={`text-sm p-3 rounded-md border ${bloqueio2_limite ? "border-destructive bg-destructive/10" : "bg-muted/50"}`}>
+                      <div className="flex items-center gap-2">
+                        {bloqueio2_limite ? <AlertTriangle className="h-4 w-4 text-destructive" /> : <DollarSign className="h-4 w-4 text-muted-foreground" />}
+                        <span className="font-medium">Limite de Modalidade ({tipoServicoLabel(tipoServico)})</span>
+                      </div>
+                      {semLimiteCadastrado ? (
+                        <p className="text-xs text-destructive mt-1 font-medium">
+                          ⚠ Nenhum limite cadastrado para esta modalidade/regional no exercício {currentYear}. Cadastre em Gestão → Limites Modalidade.
+                        </p>
+                      ) : (
+                        <>
+                          <div className="mt-1 grid grid-cols-3 gap-2">
+                            <div>
+                              <span className="text-muted-foreground text-xs">Teto</span>
+                              <p>{valorLimite!.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground text-xs">Consumido</span>
+                              <p>{consumoSemAtual.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground text-xs">Disponível</span>
+                              <p className={limiteExcedido ? "text-destructive font-medium" : ""}>
+                                {(valorLimite! - consumoSemAtual).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                              </p>
+                            </div>
+                          </div>
+                          {limiteExcedido && (
+                            <p className="text-xs text-destructive mt-1 font-medium">
+                              ⚠ O valor desta OS ({valorOS.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}) excede o saldo disponível do limite de modalidade
+                            </p>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 3. Empenho — only show if cota, contrato and limite are OK */}
+                  {!bloqueio1_cota && !bloqueio2_contrato && !bloqueio2_limite && !semOrcamentoCadastrado && (
                     <div className={`text-sm p-3 rounded-md border ${bloqueio3_empenho ? "border-destructive bg-destructive/10" : "bg-muted/50"}`}>
                       <div className="flex items-center gap-2">
                         {bloqueio3_empenho ? <AlertTriangle className="h-4 w-4 text-destructive" /> : <DollarSign className="h-4 w-4 text-muted-foreground" />}
@@ -1023,6 +1116,34 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                         >
                           <FilePlus2 className="mr-2 h-4 w-4" />
                           Ir para Gestão de Contratos — Registrar Aditivo
+                        </Button>
+                      )}
+                    </div>
+                  ) : bloqueio2_limite ? (
+                    /* 2bº Bloqueio: Limite de Modalidade excedido */
+                    <div className="space-y-3">
+                      <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3">
+                        <p className="text-sm font-medium text-destructive flex items-center gap-1">
+                          <AlertTriangle className="h-4 w-4" /> Autorização Bloqueada — {semLimiteCadastrado ? "Limite de Modalidade Não Cadastrado" : "Limite de Modalidade Excedido"}
+                        </p>
+                        <p className="text-xs text-foreground mt-1">
+                          {semLimiteCadastrado
+                            ? `Não há limite cadastrado para a modalidade "${tipoServicoLabel(tipoServico)}" nesta regional para o exercício ${currentYear}. Cadastre o limite em Gestão do Sistema → Limites Modalidade.`
+                            : `O consumo acumulado (${consumoSemAtual.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}) + esta OS (${valorOS.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}) = ${consumoComAtual.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} ultrapassa o teto de ${valorLimite!.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}.`
+                          }
+                        </p>
+                      </div>
+                      {isGestorOrFiscal && (
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            onOpenChange(false);
+                            navigate("/app/gestao?tab=limites");
+                          }}
+                          className="w-full"
+                        >
+                          <DollarSign className="mr-2 h-4 w-4" />
+                          Ir para Gestão → Limites Modalidade
                         </Button>
                       )}
                     </div>
