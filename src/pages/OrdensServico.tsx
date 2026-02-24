@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Loader2, Pencil, Trash2, CalendarIcon, ArrowUp, ArrowDown, ArrowUpDown, Info, Filter } from "lucide-react";
+import { Plus, Search, Loader2, Pencil, Trash2, CalendarIcon, ArrowUp, ArrowDown, ArrowUpDown, Info, Filter, RefreshCw } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
@@ -122,7 +122,7 @@ export default function OrdensServico() {
     return sortDir === "asc" ? <ArrowUp className="h-3 w-3 ml-1" /> : <ArrowDown className="h-3 w-3 ml-1" />;
   };
 
-  const { data: ordensRaw, isLoading } = useOrdensServico({
+  const { data: ordensRaw, isLoading, refetch, isFetching } = useOrdensServico({
     status: statusFilter || undefined,
     prioridade: prioridadeFilter || undefined,
     search: search || undefined,
@@ -167,6 +167,9 @@ export default function OrdensServico() {
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
+          <Button variant="outline" size="icon" onClick={() => refetch()} disabled={isFetching} title="Atualizar">
+            <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
+          </Button>
           {isMobile && (
             <Button variant="outline" size="icon" onClick={() => setFiltersOpen(!filtersOpen)}>
               <Filter className="h-4 w-4" />
