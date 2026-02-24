@@ -2,8 +2,9 @@ import { cn } from "@/lib/utils";
 import {
   FileText, Calculator, ShieldCheck, Wrench, Camera, Receipt, DollarSign, CheckCircle,
 } from "lucide-react";
+import { getStatusFlowForTipo } from "@/utils/modalidade";
 
-const statusFlow = [
+const allStatuses = [
   "aberta", "orcamento", "autorizacao", "execucao", "ateste", "faturamento", "pagamento", "encerrada",
 ] as const;
 
@@ -68,10 +69,12 @@ const stepConfig: Record<string, { label: string; desc: string; icon: React.Elem
 
 interface Props {
   currentStatus: string;
+  tipoServico?: string | null;
 }
 
-export function OSStatusStepper({ currentStatus }: Props) {
-  const currentIdx = statusFlow.indexOf(currentStatus as any);
+export function OSStatusStepper({ currentStatus, tipoServico }: Props) {
+  const statusFlow = getStatusFlowForTipo(tipoServico);
+  const currentIdx = statusFlow.indexOf(currentStatus);
 
   return (
     <div className="w-full overflow-x-auto pb-2">
