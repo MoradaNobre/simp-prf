@@ -2,8 +2,8 @@
 
 ## SIMP-PRF – Sistema Integrado de Manutenção Predial
 
-**Versão:** 1.0  
-**Data:** 22/02/2026  
+**Versão:** 1.1  
+**Data:** 24/02/2026  
 **Classificação:** Documento Institucional
 
 ---
@@ -17,7 +17,7 @@ O SIMP-PRF é um sistema corporativo destinado à gestão integrada da manutenç
 - Controle de contratos de manutenção vinculados a regionais
 - Gestão orçamentária descentralizada por regional (dotação, cotas, empenhos)
 - Formalização e rastreabilidade completa de Ordens de Serviço (OS) em 8 etapas
-- Controle preventivo da execução da despesa com bloqueios automáticos em 3 níveis
+- Controle preventivo da execução da despesa com bloqueios automáticos em 4 níveis
 - Monitoramento gerencial por indicadores em tempo real
 - Gestão de ativos prediais e planos de manutenção preventiva (PMOC)
 
@@ -49,7 +49,7 @@ O sistema atende a hierarquia organizacional da PRF, desde a administração cen
 |---|---|
 | Controle manual de saldo contratual em planilhas | Cálculo automático com view materializada `contratos_saldo` |
 | Falta de visibilidade consolidada por regional | Dashboard com KPIs e gráficos atualizados a cada 30 segundos |
-| Risco de execução sem dotação orçamentária suficiente | Bloqueios sequenciais automáticos (contrato → empenho → cota) |
+| Risco de execução sem dotação orçamentária suficiente | Bloqueios sequenciais automáticos em 4 níveis (cota → contrato → limite modalidade → empenho) |
 | Fragilidade na trilha de auditoria | Registro automático via triggers em `audit_logs` com dados antigos e novos |
 | Fluxos não padronizados entre regionais | Fluxo único nacional de 8 etapas com requisitos obrigatórios por transição |
 | Comunicação informal sobre andamento de OS | Notificações automáticas por e-mail em cada transição de status |
@@ -133,13 +133,14 @@ O sistema possui **7 perfis de acesso** organizados hierarquicamente:
 
 ### 5.3 Regras de Controle Financeiro
 
-A autorização de execução de uma OS está sujeita a **três bloqueios sequenciais e estritos**:
+A autorização de execução de uma OS está sujeita a **quatro bloqueios sequenciais e estritos**:
 
 | Nível | Verificação | Consequência se Insuficiente |
 |---|---|---|
-| **1º – Saldo de Contrato** | (Valor Total + Aditivos) − Custos OS ≥ Valor do Orçamento | Bloqueio absoluto (inclui Gestor Master). Sugere inclusão de aditivo. |
-| **2º – Valor Empenhado** | Saldo empenhado da regional ≥ Valor do Orçamento | Bloqueio com alerta visual. |
-| **3º – Cota Regional** | (Dotação + Créditos − Reduções) − Consumo ≥ Valor do Orçamento | Bloqueio com opção de criar solicitação de crédito. |
+| **1º – Cota Regional** | (Dotação + Créditos − Reduções) − Consumo ≥ Valor do Orçamento | Bloqueio absoluto (inclui Gestor Master). Opção de criar solicitação de crédito. |
+| **2º – Saldo de Contrato** | (Valor Total + Aditivos) − Custos OS ≥ Valor do Orçamento | Bloqueio com sugestão de aditivo. Exceção: "Contrata + Brasil" ignora este bloqueio. |
+| **3º – Limite de Modalidade** | Consumo da modalidade (regional/ano) + OS atual ≤ Teto cadastrado | Apenas para Cartão Corporativo e Contrata + Brasil. Painel com Teto/Consumido/Disponível. |
+| **4º – Valor Empenhado** | Saldo empenhado da regional ≥ Valor do Orçamento | Bloqueio com alerta visual. |
 
 > A OS permanece **sobrestada** até a recomposição do saldo em qualquer nível de bloqueio.
 
@@ -165,7 +166,7 @@ Cada transição:
 |---|---|---|
 | Aberta → Orçamento | Vinculação de contrato vigente | Gestor/Fiscal/Operador |
 | Orçamento → Autorização | Arquivo de orçamento (Excel/PDF) + valor > 0 | Preposto/Terceirizado |
-| Autorização → Execução | Verificação de saldo (3 bloqueios) | Gestor/Fiscal |
+| Autorização → Execução | Verificação de saldo (4 bloqueios: cota, contrato, limite modalidade, empenho) | Gestor/Fiscal |
 | Execução → Ateste | Foto "depois" (evidência) | Preposto/Terceirizado |
 | Ateste → Faturamento | Aprovação do ateste | Gestor/Fiscal/Operador |
 | Faturamento → Pagamento | Documentos fiscais e certidões | Preposto/Terceirizado |
@@ -223,6 +224,7 @@ Cada transição:
 | RF-CTR-06 | Status automático (Vigente/Encerrado) calculado pela data atual vs. vigência. |
 | RF-CTR-07 | Vinculação de Preposto com sincronização de e-mail da base de usuários. |
 | RF-CTR-08 | Gerenciamento de contatos do contrato. |
+| RF-CTR-09 | Duplicação de contratos do tipo "Cartão Corporativo" com formulário pré-preenchido. |
 
 ### 7.4 Gestão de Ordens de Serviço (RF-OS)
 
@@ -232,7 +234,7 @@ Cada transição:
 | RF-OS-02 | Geração automática de código no formato `{SIGLA_REGIONAL}-{ANO}-{SEQUENCIAL_5_DIGITOS}`. |
 | RF-OS-03 | Campos obrigatórios: Título, Tipo (corretiva/preventiva), Regional, UOP. |
 | RF-OS-04 | Vinculação obrigatória a contrato vigente da mesma regional na transição para Orçamento. |
-| RF-OS-05 | Bloqueio de execução por insuficiência de saldo (3 níveis). |
+| RF-OS-05 | Bloqueio de execução por insuficiência de saldo (4 níveis: cota regional, contrato, limite de modalidade, empenho). |
 | RF-OS-06 | Restituição com justificativa obrigatória por Gestor/Fiscal. |
 | RF-OS-07 | Geração automática de Relatório de Execução em PDF na transição para Execução. |
 | RF-OS-08 | Exclusão com expurgo em cascata de registros vinculados (custos, relatórios, solicitações de crédito). |
@@ -252,6 +254,7 @@ Cada transição:
 | RF-ORC-07 | Aprovação total ou parcial de solicitações com criação automática de suplementação. |
 | RF-ORC-08 | Resposta a solicitações restrita a Gestor Nacional e Gestor Master. |
 | RF-ORC-09 | Fiscal com acesso somente leitura às cotas, podendo criar e visualizar solicitações de crédito. |
+| RF-ORC-10 | Gestão de limites de modalidade (Cartão Corporativo, Contrata + Brasil) por regional e ano, com edição inline. |
 
 ### 7.6 Notificações (RF-NOT)
 
@@ -378,7 +381,7 @@ Cada transição:
 | Documento | Localização | Descrição |
 |---|---|---|
 | SPEC.md | Raiz do projeto | Especificação técnica completa de funcionalidades |
-| REGRAS_NEGOCIO.md | Raiz do projeto | Catálogo formal com 155 regras numeradas (RN-001 a RN-155) |
+| REGRAS_NEGOCIO.md | Raiz do projeto | Catálogo formal com 179 regras numeradas (RN-001 a RN-179) |
 | TECHNICAL_DOCS.md | Raiz e `/public` | Documentação técnica do sistema (v1.1) |
 | PRIVACY_POLICY.md | Raiz e `/public` | Política de privacidade |
 | DEVELOPER.md | Raiz do projeto | Créditos e informações do desenvolvedor |
@@ -399,4 +402,11 @@ Não se trata apenas de ferramenta operacional, mas de **mecanismo institucional
 ---
 
 *PRD – Product Requirements Document — SIMP-PRF*  
-*Versão 1.0 — 22/02/2026*
+*Versão 1.1 — 24/02/2026*
+
+## Histórico de Versões
+
+| Versão | Data | Descrição |
+|--------|------|-----------|
+| 1.0 | 22/02/2026 | Versão inicial do PRD |
+| 1.1 | 24/02/2026 | Atualização para 4 níveis de bloqueio na autorização (cota → contrato → limite modalidade → empenho), duplicação de contratos, limites de modalidade, 179 regras de negócio |

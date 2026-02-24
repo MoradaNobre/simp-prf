@@ -197,6 +197,7 @@ Todos os dados coletados têm como finalidade exclusiva:
 | `relatorios_os`       | Relatórios de ateste/pagamento de OS                                          |
 | `planos_manutencao`   | Planos de manutenção preventiva                                               |
 | `agendamentos_visita` | Agendamentos de visitas técnicas vinculadas a OS                              |
+| `limites_modalidade`  | Tetos anuais por modalidade (Cartão Corporativo, Contrata + Brasil) e regional |
 | `audit_logs`          | Logs de auditoria do sistema                                                  |
 | `regional_os_seq`     | Sequencial de numeração de OS por regional                                    |
 
@@ -249,8 +250,8 @@ Cada transição de status é registrada com timestamp e identificação do resp
 
 ### 6.1. Módulo de Ordens de Serviço
 
-- Abertura de OS corretivas e preventivas
-- Fluxo completo de status (aberta → encerrada) com 7 etapas
+- Abertura de OS corretivas e preventivas com fluxo de 8 etapas
+- Fluxo completo de status (aberta → encerrada) com bloqueios em 4 níveis na autorização
 - Atribuição de responsáveis (fiscal, preposto, terceirizado)
 - Upload de fotos (antes/depois) e documentos de orçamento
 - Registro de custos (peças, mão de obra)
@@ -260,17 +261,19 @@ Cada transição de status é registrada com timestamp e identificação do resp
 
 ### 6.2. Módulo de Contratos
 
-- Cadastro de contratos com dados completos (número, empresa, valor, vigência)
+- Cadastro de contratos com dados completos (número, empresa, valor, vigência, tipo de serviço)
+- Tipos de serviço: Manutenção Predial, Ar Condicionado, Cartão Corporativo, Contrata + Brasil
+- Duplicação de contratos do tipo Cartão Corporativo
 - Gestão de contatos vinculados ao contrato
-- Vinculação de preposto e terceirizados
+- Vinculação de preposto (ou suprido para cartão corporativo) e terceirizados
 - Controle de saldo (valor total – custos das OS)
 - Geração de relatórios por contrato
 
 ### 6.3. Módulo de Gestão
 
 - Cadastro de regionais, delegacias e UOPs
-- Gestão de usuários (criação, perfis, ativação/desativação)
-- Gestão de equipamentos por UOP
+- Gestão de usuários (criação, perfis, ativação/desativação, flag Suprido)
+- Gestão de limites de modalidade (Cartão Corporativo, Contrata + Brasil) por regional e ano com edição inline
 - Logs de auditoria do sistema
 
 ### 6.4. Módulo Orçamentário
@@ -319,7 +322,7 @@ Cada transição de status é registrada com timestamp e identificação do resp
 
 _Documento técnico elaborado conforme padrões de documentação da Polícia Rodoviária Federal._
 
-**Versão:** 1.3
+**Versão:** 1.4
 **Data:** 16/02/2026
 **Última Atualização:** 24/02/2026
 **Responsável:** Daniel Nunes de Ávila
@@ -332,3 +335,4 @@ _Documento técnico elaborado conforme padrões de documentação da Polícia Ro
 | 1.1    | 24/02/2026 | Adição do módulo de Agenda de Visitas e tabela `agendamentos_visita` |
 | 1.2    | 24/02/2026 | Refinamento de UI no módulo de Agenda (Destaque visual de botões) |
 | 1.3    | 24/02/2026 | Adição da flag "Suprido" (preposto do cartão corporativo) como campo booleano acumulável na tabela `profiles` |
+| 1.4    | 24/02/2026 | Limites de Modalidade (`limites_modalidade`), 4 níveis de bloqueio na autorização, duplicação de contratos Cartão Corporativo, edição inline de limites |
