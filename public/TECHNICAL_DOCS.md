@@ -186,6 +186,7 @@ Todos os dados coletados têm como finalidade exclusiva:
 | `relatorios_execucao` | Relatórios de execução de OS |
 | `relatorios_os` | Relatórios de ateste/pagamento de OS |
 | `planos_manutencao` | Planos de manutenção preventiva |
+| `agendamentos_visita` | Agendamentos de visitas técnicas vinculadas a OS |
 | `audit_logs` | Logs de auditoria do sistema |
 | `regional_os_seq` | Sequencial de numeração de OS por regional |
 
@@ -279,7 +280,16 @@ Cada transição de status é registrada com timestamp e identificação do resp
 - Exportação em PDF
 - Envio por e-mail aos destinatários
 
-### 6.6. Dashboard
+### 6.6. Módulo de Agenda de Visitas
+
+- Calendário mensal de agendamentos de visitas técnicas
+- Vinculação obrigatória a uma Ordem de Serviço em execução
+- Registro de data, descrição, responsável técnico e status (agendada/realizada/cancelada)
+- Campo de observações pós-visita
+- Visualização na página dedicada e na aba de detalhes da OS
+- Controle de permissões: Preposto/Terceirizado criam; Gestores/Fiscais gerenciam
+
+### 6.7. Dashboard
 - Visão geral de OS por status e prioridade
 - Gráficos de execução orçamentária
 - Filtros por regional
@@ -301,9 +311,9 @@ Cada transição de status é registrada com timestamp e identificação do resp
 
 *Documento técnico elaborado conforme padrões de documentação da Polícia Rodoviária Federal.*
 
-**Versão:** 1.1
+**Versão:** 1.2
 **Data:** 16/02/2026
-**Última Atualização:** 20/02/2026
+**Última Atualização:** 24/02/2026
 **Responsável:** Daniel Nunes de Ávila
 
 ## Histórico de Versões
@@ -312,3 +322,4 @@ Cada transição de status é registrada com timestamp e identificação do resp
 |--------|------|-----------|
 | 1.0 | 16/02/2026 | Versão inicial da documentação técnica do SIMP |
 | 1.1 | 20/02/2026 | Adição de aditivos contratuais, bloqueio estrito de autorização por saldo de contrato, solicitações de crédito suplementar, gestão de terceirizados pelo preposto |
+| 1.2 | 24/02/2026 | Adição do módulo de Agenda de Visitas e tabela `agendamentos_visita` |

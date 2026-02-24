@@ -1,7 +1,7 @@
 # SPEC – Especificação Funcional do SIMP (Sistema de Manutenção Predial)
 
-**Versão:** 1.0  
-**Data:** 22/02/2026  
+**Versão:** 1.1  
+**Data:** 24/02/2026  
 **Responsável:** Daniel Nunes de Ávila  
 
 ---
@@ -14,13 +14,14 @@
 4. [Autenticação (Login)](#4-autenticação-login)
 5. [Dashboard](#5-dashboard)
 6. [Ordens de Serviço](#6-ordens-de-serviço)
-7. [Contratos](#7-contratos)
-8. [Relatórios OS](#8-relatórios-os)
-9. [Gestão do Orçamento](#9-gestão-do-orçamento)
-10. [Gestão do Sistema](#10-gestão-do-sistema)
-11. [Sobre](#11-sobre)
-12. [Navegação e Layout](#12-navegação-e-layout)
-13. [Regras de Negócio Transversais](#13-regras-de-negócio-transversais)
+7. [Agenda de Visitas](#7-agenda-de-visitas)
+8. [Contratos](#8-contratos)
+9. [Relatórios OS](#9-relatórios-os)
+10. [Gestão do Orçamento](#10-gestão-do-orçamento)
+11. [Gestão do Sistema](#11-gestão-do-sistema)
+12. [Sobre](#12-sobre)
+13. [Navegação e Layout](#13-navegação-e-layout)
+14. [Regras de Negócio Transversais](#14-regras-de-negócio-transversais)
 
 ---
 
@@ -85,6 +86,7 @@ Regional (Superintendência) → Delegacia → UOP (Unidade Operacional)
 |---|---|
 | Dashboard | Master, Nacional, Regional, Fiscal, Operador |
 | Ordens de Serviço | **Todos** os perfis |
+| Agenda de Visitas | **Todos** os perfis |
 | Relatórios OS | Master, Nacional, Regional, Fiscal, Preposto, Terceirizado |
 | Contratos | Master, Nacional, Regional, Fiscal, Operador, Preposto |
 | Gestão do Orçamento | Master, Nacional, Regional (+ Fiscal apenas leitura) |
@@ -337,7 +339,69 @@ O sistema aplica bloqueios **estritos e sequenciais** na transição Autorizaç�
 
 ---
 
-## 7. Contratos
+## 7. Agenda de Visitas
+
+**Rota:** `/app/agenda`
+
+### 7.1. Acesso
+
+| Página / Ação | Perfis |
+|---|---|
+| Página "Agenda de Visitas" (menu lateral) | Master, Nacional, Regional, Fiscal, Operador, Preposto, Terceirizado |
+| Aba "Agendamentos" (detalhes da OS) | Todos os perfis com acesso à OS |
+| Criar/Editar agendamento | Preposto, Terceirizado |
+| Gerenciar agendamentos (qualquer) | Master, Nacional, Regional, Fiscal |
+| Visualização (somente leitura) | Operador |
+
+### 7.2. Pré-requisito
+
+- Agendamentos de visita só podem ser criados quando a OS está no status **"Execução"**.
+- A OS deve estar vinculada a um contrato.
+
+### 7.3. Dados do Agendamento
+
+| Campo | Tipo | Obrigatório |
+|---|---|---|
+| OS vinculada | Referência (`os_id`) | Sim |
+| Data do agendamento | Data (datetime) | Sim |
+| Descrição da atividade | Texto | Sim |
+| Responsável técnico | Texto | Sim |
+| Status | Select (agendada / realizada / cancelada) | Sim (padrão: "agendada") |
+| Observações pós-visita | Texto | Não |
+
+### 7.4. Visualizações
+
+#### 7.4.1. Página Dedicada (Menu Lateral)
+
+- **Calendário mensal** com marcadores visuais nos dias com agendamentos
+- Navegação entre meses (anterior/próximo)
+- Ao clicar em um dia, exibe lista dos agendamentos daquele dia
+- Cada agendamento mostra: código da OS, descrição, responsável técnico, status com badge colorido
+- Botão para criar novo agendamento e editar existentes
+
+#### 7.4.2. Aba na OS (Detalhes da OS)
+
+- Listagem de todos os agendamentos vinculados àquela OS específica
+- Exibe: data, descrição, responsável, status, observações
+- Botão para criar novo agendamento (visível apenas quando OS está em "Execução")
+- Edição inline dos agendamentos existentes
+
+### 7.5. Status dos Agendamentos
+
+| Status | Descrição | Badge |
+|---|---|---|
+| Agendada | Visita planejada, ainda não realizada | Azul (default) |
+| Realizada | Visita concluída | Verde (success) |
+| Cancelada | Visita cancelada | Vermelho (destructive) |
+
+### 7.6. Tabela de Banco de Dados
+
+- **Tabela:** `agendamentos_visita`
+- **RLS:** Políticas por perfil e regional, análogas às de `ordens_servico`
+
+---
+
+## 8. Contratos
 
 **Rota:** `/app/contratos`
 
@@ -415,7 +479,7 @@ Saldo = (Valor Total + Σ Aditivos) - Σ Orçamentos de OS em Execução+
 
 ---
 
-## 8. Relatórios OS
+## 9. Relatórios OS
 
 **Rota:** `/app/relatorios`
 
@@ -448,7 +512,7 @@ Saldo = (Valor Total + Σ Aditivos) - Σ Orçamentos de OS em Execução+
 
 ---
 
-## 9. Gestão do Orçamento
+## 10. Gestão do Orçamento
 
 **Rota:** `/app/orcamento`
 
@@ -500,7 +564,7 @@ Saldo = (Valor Total + Σ Aditivos) - Σ Orçamentos de OS em Execução+
 
 ---
 
-## 10. Gestão do Sistema
+## 11. Gestão do Sistema
 
 **Rota:** `/app/gestao`
 
@@ -559,7 +623,7 @@ Saldo = (Valor Total + Σ Aditivos) - Σ Orçamentos de OS em Execução+
 
 ---
 
-## 11. Sobre
+## 12. Sobre
 
 **Rota:** `/app/sobre`
 
@@ -570,7 +634,7 @@ Saldo = (Valor Total + Σ Aditivos) - Σ Orçamentos de OS em Execução+
 
 ---
 
-## 12. Navegação e Layout
+## 13. Navegação e Layout
 
 ### 12.1. Layout da Aplicação (`AppLayout`)
 
@@ -617,7 +681,7 @@ Saldo = (Valor Total + Σ Aditivos) - Σ Orçamentos de OS em Execução+
 
 ---
 
-## 13. Regras de Negócio Transversais
+## 14. Regras de Negócio Transversais
 
 ### 13.1. Row Level Security (RLS)
 
@@ -693,3 +757,10 @@ Saldo = Cota Total - Total Consumido
 ---
 
 *Documento de especificações elaborado para referência interna de desenvolvimento e manutenção do SIMP-PRF.*
+
+## Histórico de Versões
+
+| Versão | Data | Descrição |
+|--------|------|-----------|
+| 1.0 | 22/02/2026 | Versão inicial da especificação funcional do SIMP |
+| 1.1 | 24/02/2026 | Adição da seção 7 – Agenda de Visitas (calendário de manutenção vinculado a OS) |
