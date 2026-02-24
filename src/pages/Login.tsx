@@ -17,12 +17,25 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
   const [regionalId, setRegionalId] = useState("");
   const [regionais, setRegionais] = useState<{ id: string; nome: string; sigla: string }[]>([]);
   const [mode, setMode] = useState<Mode>("login");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  const formatPhone = (value: string) => {
+    const digits = value.replace(/\D/g, "").slice(0, 11);
+    if (digits.length <= 2) return digits;
+    if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+  };
+
+  const isValidPhone = (value: string) => {
+    const digits = value.replace(/\D/g, "");
+    return digits.length === 10 || digits.length === 11;
+  };
 
   const isPrfEmail = email.trim().toLowerCase().endsWith("@prf.gov.br");
 
@@ -49,7 +62,12 @@ export default function Login() {
 
     try {
       if (mode === "signup") {
-        const metadata: Record<string, string> = { full_name: fullName };
+        if (!isValidPhone(phone)) {
+          toast.error("Informe um telefone válido com DDD. Ex: (81) 99507-3100");
+          setLoading(false);
+          return;
+        }
+        const metadata: Record<string, string> = { full_name: fullName, phone: phone.replace(/\D/g, "") };
         if (isPrfEmail && regionalId) {
           metadata.regional_id = regionalId;
         }
@@ -70,6 +88,7 @@ export default function Login() {
         setEmail("");
         setPassword("");
         setFullName("");
+        setPhone("");
         setRegionalId("");
         setMode("login");
       } else if (mode === "forgot") {
@@ -195,6 +214,19 @@ export default function Login() {
                       placeholder="Seu nome completo"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
+                      required
+                    />
+                  </div>
+                )}
+                {mode === "signup" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Telefone com DDD *</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      placeholder="(81) 99507-3100"
+                      value={phone}
+                      onChange={(e) => setPhone(formatPhone(e.target.value))}
                       required
                     />
                   </div>
