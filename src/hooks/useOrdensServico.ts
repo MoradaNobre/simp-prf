@@ -5,6 +5,7 @@ import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase
 export type OrdemServico = Tables<"ordens_servico"> & {
   uops?: { nome: string; delegacia_id?: string; delegacias?: { nome: string; regional_id?: string; regionais?: { sigla: string; nome: string } | null } | null } | null;
   regionais?: { sigla: string; nome: string } | null;
+  solicitante_profile?: { full_name: string } | null;
 };
 
 export function useOrdensServico(filters?: {
@@ -45,6 +46,20 @@ export function useOrdensServico(filters?: {
           const delegaciaId = (os.uops as any)?.delegacia_id;
           return delegaciaId && delegaciaIds.has(delegaciaId);
         });
+      }
+
+      // Fetch solicitante names
+      const solicitanteIds = [...new Set(result.map(os => os.solicitante_id))];
+      if (solicitanteIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("user_id, full_name")
+          .in("user_id", solicitanteIds);
+        const profileMap = new Map((profiles ?? []).map(p => [p.user_id, p.full_name]));
+        result = result.map(os => ({
+          ...os,
+          solicitante_profile: { full_name: profileMap.get(os.solicitante_id) ?? "" },
+        }));
       }
 
       return result;
