@@ -54,7 +54,7 @@ const statusOrder: Record<string, number> = {
   aberta: 0, orcamento: 1, autorizacao: 2, execucao: 3, ateste: 4, faturamento: 5, pagamento: 6, encerrada: 7,
 };
 
-type SortKey = "codigo" | "titulo" | "solicitante" | "regional" | "delegacia" | "unidade" | "valor" | "status" | "prioridade" | "data";
+type SortKey = "codigo" | "titulo" | "solicitante" | "preposto" | "regional" | "delegacia" | "unidade" | "valor" | "status" | "prioridade" | "data";
 type SortDir = "asc" | "desc";
 
 function getOSSortValue(os: OrdemServico, key: SortKey): string | number {
@@ -65,6 +65,7 @@ function getOSSortValue(os: OrdemServico, key: SortKey): string | number {
     case "codigo": return os.codigo;
     case "titulo": return os.titulo.toLowerCase();
     case "solicitante": return (os.solicitante_profile?.full_name ?? "").toLowerCase();
+    case "preposto": return ((os.contratos as any)?.preposto_nome ?? "").toLowerCase();
     case "regional": return regional?.sigla?.toLowerCase() ?? "";
     case "delegacia": return delegacia?.nome?.toLowerCase() ?? "";
     case "unidade": return uop?.nome?.toLowerCase() ?? "";
@@ -356,6 +357,7 @@ export default function OrdensServico() {
                     ["codigo", "Código"],
                     ["titulo", "Título"],
                     ["solicitante", "Solicitante"],
+                    ["preposto", "Preposto"],
                     ["regional", "Regional"],
                     ["delegacia", "Delegacia"],
                     ["unidade", "Unidade"],
@@ -406,6 +408,29 @@ export default function OrdensServico() {
                         </a>
                       )}
                     </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      {(os.contratos as any)?.preposto_nome ? (
+                        <div>
+                          <div>{(os.contratos as any).preposto_nome}</div>
+                          {(os.contratos as any).preposto_telefone && (
+                            <a
+                              href={`https://wa.me/55${(os.contratos as any).preposto_telefone.replace(/\D/g, "")}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-primary flex items-center gap-0.5 hover:underline mt-0.5"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Phone className="h-3 w-3" />
+                              {((p) => p.length === 11
+                                ? `(${p.slice(0, 2)}) ${p.slice(2, 7)}-${p.slice(7)}`
+                                : p.length === 10
+                                  ? `(${p.slice(0, 2)}) ${p.slice(2, 6)}-${p.slice(6)}`
+                                  : p)((os.contratos as any).preposto_telefone)}
+                            </a>
+                          )}
+                        </div>
+                      ) : "—"}
+                    </TableCell>
                     <TableCell className="text-muted-foreground">{regional?.sigla || "—"}</TableCell>
                     <TableCell className="text-muted-foreground">{delegacia?.nome || "—"}</TableCell>
                     <TableCell className="text-muted-foreground">{uop?.nome || "—"}</TableCell>
@@ -455,7 +480,7 @@ export default function OrdensServico() {
                   );
                 })}
                 <TableRow className="bg-muted/50 font-semibold">
-                  <TableCell colSpan={6} className="text-right text-sm">Total:</TableCell>
+                  <TableCell colSpan={7} className="text-right text-sm">Total:</TableCell>
                   <TableCell className="text-sm">
                     R$ {ordens.reduce((sum, os) => sum + (Number((os as any).valor_orcamento) || 0), 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                   </TableCell>

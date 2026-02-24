@@ -101,6 +101,28 @@ export function OSCardMobile({ os, canManage, onSelect, onEdit, onDelete }: OSCa
               )}
             </div>
           )}
+          {(os.contratos as any)?.preposto_nome && (
+            <div className="flex items-center gap-1 pt-0.5">
+              <span className="text-muted-foreground text-[10px] font-medium">Preposto:</span>
+              <span className="truncate">{(os.contratos as any).preposto_nome}</span>
+              {(os.contratos as any).preposto_telefone && (
+                <a
+                  href={`https://wa.me/55${(os.contratos as any).preposto_telefone.replace(/\D/g, "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary flex items-center gap-0.5 hover:underline shrink-0"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Phone className="h-3 w-3" />
+                  {((p: string) => p.length === 11
+                    ? `(${p.slice(0, 2)}) ${p.slice(2, 7)}-${p.slice(7)}`
+                    : p.length === 10
+                      ? `(${p.slice(0, 2)}) ${p.slice(2, 6)}-${p.slice(6)}`
+                      : p)((os.contratos as any).preposto_telefone)}
+                </a>
+              )}
+            </div>
+          )}
         </div>
 
         {canManage && (
