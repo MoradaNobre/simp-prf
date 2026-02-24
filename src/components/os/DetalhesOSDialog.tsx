@@ -79,6 +79,8 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   const [motivoRestituicao, setMotivoRestituicao] = useState("");
   const [showRestituir, setShowRestituir] = useState(false);
   const [selectedPrioridade, setSelectedPrioridade] = useState("");
+  const [selectedTipo, setSelectedTipo] = useState("");
+  const [descricaoDetalhada, setDescricaoDetalhada] = useState("");
   const [motivoSolicitacao, setMotivoSolicitacao] = useState("");
   const [showSolicitacao, setShowSolicitacao] = useState(false);
   const [downloadingZip, setDownloadingZip] = useState(false);
@@ -108,10 +110,12 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   useEffect(() => {
     setSelectedContratoId(os?.contrato_id ?? "");
     setSelectedPrioridade(os?.prioridade ?? "");
+    setSelectedTipo(os?.tipo ?? "corretiva");
+    setDescricaoDetalhada("");
     setValorOrcamento("");
     setArquivoOrcamento(null);
     setDocumentosPagamento(null);
-  }, [os?.id, os?.contrato_id, os?.prioridade]);
+  }, [os?.id, os?.contrato_id, os?.prioridade, os?.tipo]);
 
   if (!os) return null;
 
@@ -194,6 +198,14 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
         if (selectedContratoId) updates.contrato_id = selectedContratoId;
         if (selectedPrioridade && selectedPrioridade !== os.prioridade) {
           updates.prioridade = selectedPrioridade;
+        }
+        if (selectedTipo && selectedTipo !== os.tipo) {
+          updates.tipo = selectedTipo;
+        }
+        if (descricaoDetalhada.trim()) {
+          const existing = os.descricao || "";
+          const separator = existing ? "\n\n--- Descrição complementar ---\n" : "";
+          updates.descricao = existing + separator + descricaoDetalhada.trim();
         }
       }
 
@@ -712,19 +724,40 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                     </div>
                   );
                 })()}
-                <div className="space-y-1.5">
-                  <Label>Prioridade</Label>
-                  <Select value={selectedPrioridade} onValueChange={setSelectedPrioridade}>
-                    <SelectTrigger><SelectValue placeholder="Selecione a prioridade" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="baixa">Baixa</SelectItem>
-                      <SelectItem value="media">Média</SelectItem>
-                      <SelectItem value="alta">Alta</SelectItem>
-                      <SelectItem value="urgente">Urgente</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label>Prioridade</Label>
+                    <Select value={selectedPrioridade} onValueChange={setSelectedPrioridade}>
+                      <SelectTrigger><SelectValue placeholder="Selecione a prioridade" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="baixa">Baixa</SelectItem>
+                        <SelectItem value="media">Média</SelectItem>
+                        <SelectItem value="alta">Alta</SelectItem>
+                        <SelectItem value="urgente">Urgente</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Tipo de Manutenção</Label>
+                    <Select value={selectedTipo} onValueChange={setSelectedTipo}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="corretiva">Corretiva</SelectItem>
+                        <SelectItem value="preventiva">Preventiva</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <p className="text-sm text-muted-foreground">Vincule o contrato, ajuste a prioridade se necessário, e encaminhe para que o preposto/terceirizado elabore o orçamento.</p>
+                <div className="space-y-1.5">
+                  <Label>Descrição Detalhada</Label>
+                  <Textarea
+                    value={descricaoDetalhada}
+                    onChange={(e) => setDescricaoDetalhada(e.target.value)}
+                    placeholder="Complemente a descrição inicial com mais detalhes, se necessário..."
+                    rows={3}
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground">Vincule o contrato, ajuste a prioridade e tipo se necessário, e encaminhe para que o preposto/terceirizado elabore o orçamento.</p>
                 <Button onClick={handleAdvanceStatus} disabled={uploading} className="w-full">
                   {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Encaminhar para Orçamento
