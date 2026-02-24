@@ -696,6 +696,7 @@ export type Database = {
           created_at: string
           full_name: string
           id: string
+          is_suprido: boolean
           must_change_password: boolean
           phone: string | null
           regional_id: string | null
@@ -707,6 +708,7 @@ export type Database = {
           created_at?: string
           full_name?: string
           id?: string
+          is_suprido?: boolean
           must_change_password?: boolean
           phone?: string | null
           regional_id?: string | null
@@ -718,6 +720,7 @@ export type Database = {
           created_at?: string
           full_name?: string
           id?: string
+          is_suprido?: boolean
           must_change_password?: boolean
           phone?: string | null
           regional_id?: string | null
