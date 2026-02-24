@@ -1,6 +1,6 @@
 # SPEC – Especificação Funcional do SIMP (Sistema de Manutenção Predial)
 
-**Versão:** 1.4  
+**Versão:** 1.5  
 **Data:** 24/02/2026  
 **Responsável:** Daniel Nunes de Ávila  
 
@@ -8,6 +8,7 @@
 
 ## Histórico de Versões
 
+- v1.5 (24/02/2026): Fluxo abreviado do Cartão Corporativo (Ateste → Encerrada), permissões especiais do Suprido no fluxo de OS.
 - v1.4 (24/02/2026): Limites de Modalidade (4º bloqueio), edição inline, duplicação de contratos Cartão Corporativo, reordenação de bloqueios.
 - v1.3 (24/02/2026): Inclusão do perfil Suprido (preposto do cartão corporativo) como flag acumulável.
 - v1.2 (24/02/2026): Destaque visual do botão "Agendar Visita" (vermelho) para maior acessibilidade.
@@ -293,6 +294,19 @@ Aberta → Orçamento → Autorização → Execução → Ateste → Faturament
 | Ateste → Faturamento | Gestor, Fiscal, Operador | Ação de aprovação denominada "Aprovar e Autorizar Emissão da Nota Fiscal". | Notificação enviada **exclusivamente** ao Preposto |
 | Faturamento → Pagamento | Preposto, Terceirizado | Upload obrigatório de documentos fiscais e certidões. | Notificação por e-mail |
 | Pagamento → Encerrada | Gestor, Fiscal | Verificação dos documentos enviados. Opção de assinar digitalmente (assinatura de texto). | Notificação por e-mail |
+
+#### 6.6.1. Fluxo Abreviado – Cartão Corporativo
+
+Para OS vinculadas a contratos do tipo **Cartão Corporativo**, o fluxo **pula as etapas de Faturamento e Pagamento**, indo diretamente:
+
+```
+Aberta → Orçamento → Autorização → Execução → Ateste → Encerrada
+```
+
+**Justificativa:** No Cartão Corporativo, a despesa é paga diretamente pelo suprido (agente de cartão), dispensando emissão de nota fiscal e fase de pagamento.
+
+**Permissões especiais do Suprido em OS de Cartão Corporativo:**
+- O Suprido pode avançar as etapas de **Orçamento** (enviar orçamento e valor) e **Execução** (registrar evidências), atuando como responsável interno pela demanda, em substituição ao Preposto externo.
 
 #### Restituição
 
@@ -803,3 +817,4 @@ Saldo = Cota Total - Total Consumido
 | 1.2 | 24/02/2026 | Destaque visual do botão "Agendar Visita" (vermelho) para maior acessibilidade |
 | 1.3 | 24/02/2026 | Inclusão do perfil Suprido (preposto do cartão corporativo) como flag booleana acumulável com gestores e fiscais |
 | 1.4 | 24/02/2026 | Limites de Modalidade com 4 níveis de bloqueio na autorização, edição inline de limites, duplicação de contratos Cartão Corporativo |
+| 1.5 | 24/02/2026 | Fluxo abreviado Cartão Corporativo (Ateste → Encerrada), permissões especiais do Suprido no fluxo de OS |

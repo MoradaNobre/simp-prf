@@ -2,7 +2,7 @@
 
 ## SIMP-PRF – Sistema Integrado de Manutenção Predial
 
-**Versão:** 1.1  
+**Versão:** 1.2  
 **Data:** 24/02/2026  
 **Classificação:** Documento Institucional
 
@@ -101,6 +101,18 @@ O sistema possui **7 perfis de acesso** organizados hierarquicamente:
 | **Operador** | Regional(is) atribuída(s) | Operações básicas de OS | Acesso operacional limitado |
 | **Preposto** | Contratos vinculados | Gestão operacional do contrato | Visualiza apenas seus contratos |
 | **Terceirizado** | Contratos e OS vinculados | Execução técnica de OS | Acesso mínimo, restrito às OS atribuídas |
+
+**Flag Acumulável:**
+
+| Flag | Campo | Acumulável com | Descrição |
+|---|---|---|---|
+| **Suprido** | `is_suprido` (boolean em `profiles`) | Gestor Master, Gestor Nacional, Gestor Regional, Fiscal de Contrato | Agente do Cartão Corporativo. Gerenciado via checkbox na edição de usuário (visível apenas para gestores e fiscais). Badge visual "Suprido" na listagem de usuários e na sidebar. |
+
+**Comportamento do Suprido:**
+
+- Em contratos do tipo **Cartão Corporativo**, o campo "Preposto" é substituído por "Suprido", filtrando automaticamente apenas usuários com a flag `is_suprido = true`.
+- O Suprido possui permissão especial para avançar as etapas de **Orçamento** e **Execução** em OS vinculadas a contratos Cartão Corporativo, atuando como o responsável interno pela demanda.
+- Para contratos Cartão Corporativo, o fluxo da OS **pula as etapas de Faturamento e Pagamento**, indo diretamente do Ateste para Encerrada.
 
 ### 4.1 Hierarquia de Atribuição de Perfis
 
@@ -211,6 +223,8 @@ Cada transição:
 | RF-USR-04 | Inativação e exclusão controlada, restrita a perfis Gestor Nacional e Gestor Master. |
 | RF-USR-05 | Visualização de usuários limitada conforme escopo territorial e hierárquico. |
 | RF-USR-06 | Exclusão de usuários via edge function `delete-user`. |
+| RF-USR-07 | Gestão da flag "Suprido" via checkbox no formulário de edição (visível apenas para perfis gestor e fiscal). |
+| RF-USR-08 | Badge visual "Suprido" na listagem de usuários e na sidebar do sistema. |
 
 ### 7.3 Gestão de Contratos (RF-CTR)
 
@@ -225,6 +239,7 @@ Cada transição:
 | RF-CTR-07 | Vinculação de Preposto com sincronização de e-mail da base de usuários. |
 | RF-CTR-08 | Gerenciamento de contatos do contrato. |
 | RF-CTR-09 | Duplicação de contratos do tipo "Cartão Corporativo" com formulário pré-preenchido. |
+| RF-CTR-10 | Em contratos "Cartão Corporativo", o campo "Preposto" é substituído por "Suprido" com filtro automático de usuários `is_suprido = true`. |
 
 ### 7.4 Gestão de Ordens de Serviço (RF-OS)
 
@@ -392,7 +407,7 @@ Cada transição:
 
 O SIMP-PRF é um sistema de **governança administrativa** com foco em:
 
-- **Controle preventivo da despesa** — bloqueios automáticos em 3 níveis impedem irregularidades
+- **Controle preventivo da despesa** — bloqueios automáticos em 4 níveis impedem irregularidades
 - **Rastreabilidade completa** — trilha de auditoria automática em todas as ações
 - **Segregação de funções** — 7 perfis com escopos territoriais e funcionais distintos
 - **Transparência gerencial** — dashboard com indicadores em tempo real
@@ -409,4 +424,5 @@ Não se trata apenas de ferramenta operacional, mas de **mecanismo institucional
 | Versão | Data | Descrição |
 |--------|------|-----------|
 | 1.0 | 22/02/2026 | Versão inicial do PRD |
-| 1.1 | 24/02/2026 | Atualização para 4 níveis de bloqueio na autorização (cota → contrato → limite modalidade → empenho), duplicação de contratos, limites de modalidade, 179 regras de negócio |
+| 1.1 | 24/02/2026 | Atualização para 4 níveis de bloqueio na autorização, duplicação de contratos, limites de modalidade, 179 regras de negócio |
+| 1.2 | 24/02/2026 | Inclusão do perfil Suprido (flag acumulável), comportamento em contratos Cartão Corporativo, fluxo abreviado (Ateste → Encerrada) |
