@@ -175,6 +175,11 @@ export function AppSidebar() {
                   {roleLabels[role] || role}
                 </Badge>
               )}
+              {profile.is_suprido && (
+                <Badge variant="warning" className="text-[10px] w-fit px-1.5 py-0">
+                  Suprido
+                </Badge>
+              )}
               {profile.regionais && profile.regionais.length > 0 && (
                 <span className="text-[10px] text-sidebar-foreground/50 truncate mt-0.5" title={profile.regionais.map((r: any) => r.sigla).join(", ")}>
                   {profile.regionais.map((r: any) => r.sigla).join(", ")}
