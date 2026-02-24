@@ -15,12 +15,25 @@ import { useUserProfile } from "@/hooks/useUserProfile";
 import { useRegionais } from "@/hooks/useHierarchy";
 import { useQuery } from "@tanstack/react-query";
 
+export interface NovoContratoInitialValues {
+  numero?: string;
+  empresa?: string;
+  regional_id?: string;
+  tipo_servico?: string;
+  objeto?: string;
+  valor_total?: string;
+  data_inicio?: string;
+  data_fim?: string;
+  preposto_user_id?: string;
+}
+
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  initialValues?: NovoContratoInitialValues;
 }
 
-export function NovoContratoDialog({ open, onOpenChange }: Props) {
+export function NovoContratoDialog({ open, onOpenChange, initialValues }: Props) {
   const { toast } = useToast();
   const createContrato = useCreateContrato();
   const { data: allRegionais = [] } = useRegionais();
@@ -48,17 +61,18 @@ export function NovoContratoDialog({ open, onOpenChange }: Props) {
   const isGlobal = isGlobalRole(role);
   const userRegionais: any[] = (profile as any)?.regionais || [];
   const regionais = isGlobal ? allRegionais : userRegionais;
-  const [form, setForm] = useState({
-    numero: "",
-    empresa: "",
-    regional_id: "",
-    tipo_servico: "manutencao_predial",
-    objeto: "",
-    valor_total: "",
-    data_inicio: "",
-    data_fim: "",
-    preposto_user_id: "",
-  });
+  const defaultForm = {
+    numero: "", empresa: "", regional_id: "", tipo_servico: "manutencao_predial", objeto: "",
+    valor_total: "", data_inicio: "", data_fim: "", preposto_user_id: "",
+  };
+  const [form, setForm] = useState({ ...defaultForm, ...initialValues });
+
+  // Reset form when dialog opens with new initialValues
+  const [lastOpen, setLastOpen] = useState(false);
+  if (open && !lastOpen) {
+    setForm({ ...defaultForm, ...initialValues });
+  }
+  if (open !== lastOpen) setLastOpen(open);
 
   const set = (field: string, value: string) => setForm((f) => ({ ...f, [field]: value }));
 
@@ -97,10 +111,7 @@ export function NovoContratoDialog({ open, onOpenChange }: Props) {
       });
       toast({ title: "Contrato cadastrado com sucesso" });
       onOpenChange(false);
-      setForm({
-        numero: "", empresa: "", regional_id: "", tipo_servico: "manutencao_predial", objeto: "",
-        valor_total: "", data_inicio: "", data_fim: "", preposto_user_id: "",
-      });
+      setForm(defaultForm);
     } catch {
       toast({ title: "Erro ao cadastrar contrato", variant: "destructive" });
     }

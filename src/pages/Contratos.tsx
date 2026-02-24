@@ -5,12 +5,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { FileText, Plus, Users, Phone, Pencil, Trash2, FileDown, Loader2, FilePlus2 } from "lucide-react";
+import { FileText, Plus, Users, Phone, Pencil, Trash2, FileDown, Loader2, FilePlus2, Copy } from "lucide-react";
 import { useContratos, useContratosSaldo, useDeleteContrato, type Contrato } from "@/hooks/useContratos";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useRegionalFilter } from "@/hooks/useRegionalFilter";
 import { RegionalFilterSelect } from "@/components/RegionalFilterSelect";
-import { NovoContratoDialog } from "@/components/contratos/NovoContratoDialog";
+import { NovoContratoDialog, type NovoContratoInitialValues } from "@/components/contratos/NovoContratoDialog";
 import { EditarContratoDialog } from "@/components/contratos/EditarContratoDialog";
 import { ContratoContatosDialog } from "@/components/contratos/ContratoContatosDialog";
 import { ContratoAditivosDialog } from "@/components/contratos/ContratoAditivosDialog";
@@ -47,6 +47,19 @@ export default function Contratos() {
   const [contatosContrato, setContatosContrato] = useState<{ id: string; empresa: string } | null>(null);
   const [aditivosContrato, setAditivosContrato] = useState<{ id: string; empresa: string } | null>(null);
   const [generatingPdf, setGeneratingPdf] = useState<string | null>(null);
+  const [duplicateValues, setDuplicateValues] = useState<NovoContratoInitialValues | undefined>(undefined);
+
+  const handleDuplicate = (c: any) => {
+    setDuplicateValues({
+      empresa: c.empresa,
+      regional_id: c.regional_id || "",
+      tipo_servico: c.tipo_servico || "cartao_corporativo",
+      objeto: c.objeto || "",
+      valor_total: String(c.valor_total || ""),
+      preposto_user_id: c.preposto_user_id || "",
+    });
+    setNovoOpen(true);
+  };
 
   const handleGenerateReport = async (c: any) => {
     setGeneratingPdf(c.id);
@@ -175,6 +188,11 @@ export default function Contratos() {
                         >
                           {generatingPdf === c.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileDown className="h-3.5 w-3.5" />}
                         </Button>
+                        {c.tipo_servico === "cartao_corporativo" && canManage && (
+                          <Button size="icon" variant="ghost" className="h-8 w-8" title="Duplicar contrato" onClick={() => handleDuplicate(c)}>
+                            <Copy className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
                         {canManage && (
                           <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditContrato(c as Contrato)}>
                             <Pencil className="h-3.5 w-3.5" />
@@ -289,6 +307,16 @@ export default function Contratos() {
                         >
                           {generatingPdf === c.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
                         </Button>
+                        {(c as any).tipo_servico === "cartao_corporativo" && canManage && (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            title="Duplicar contrato"
+                            onClick={() => handleDuplicate(c)}
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        )}
                         {canManage && (
                           <Button
                             size="icon"
@@ -339,7 +367,7 @@ export default function Contratos() {
         </CardContent>
       </Card>
 
-      <NovoContratoDialog open={novoOpen} onOpenChange={setNovoOpen} />
+      <NovoContratoDialog open={novoOpen} onOpenChange={(open) => { setNovoOpen(open); if (!open) setDuplicateValues(undefined); }} initialValues={duplicateValues} />
 
       <EditarContratoDialog
         contrato={editContrato}
