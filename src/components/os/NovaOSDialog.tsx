@@ -35,7 +35,6 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
 
   const [categoria, setCategoria] = useState("");
   const [descricao, setDescricao] = useState("");
-  const [tipo, setTipo] = useState<string>("corretiva");
   const [prioridade, setPrioridade] = useState<string>("media");
   const [selectedRegionalId, setSelectedRegionalId] = useState("");
   const [delegaciaId, setDelegaciaId] = useState("");
@@ -74,7 +73,7 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
   const uops = useUops(delegaciaId || undefined);
 
   const reset = () => {
-    setCategoria(""); setDescricao(""); setTipo("corretiva"); setPrioridade("media");
+    setCategoria(""); setDescricao(""); setPrioridade("media");
     setSelectedRegionalId(""); setDelegaciaId(""); setUopId("");
     setFotoAntes(null); setContratoId("");
   };
@@ -103,7 +102,7 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
       const result = await createOS.mutateAsync({
         titulo: categoriaLabels[categoria] || categoria,
         descricao,
-        tipo: tipo as any,
+        tipo: "corretiva" as any,
         prioridade: prioridade as any,
         uop_id: uopId || null,
         contrato_id: contratoId || null,
@@ -172,29 +171,16 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
             <Textarea value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Descreva o problema detalhadamente..." rows={3} />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label>Tipo</Label>
-              <Select value={tipo} onValueChange={setTipo}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {Constants.public.Enums.os_tipo.map((t) => (
-                    <SelectItem key={t} value={t}>{t === "corretiva" ? "Corretiva" : "Preventiva"}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Prioridade</Label>
-              <Select value={prioridade} onValueChange={setPrioridade}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {Constants.public.Enums.os_prioridade.map((p) => (
-                    <SelectItem key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <div>
+            <Label>Prioridade</Label>
+            <Select value={prioridade} onValueChange={setPrioridade}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {Constants.public.Enums.os_prioridade.map((p) => (
+                  <SelectItem key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
