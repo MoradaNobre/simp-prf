@@ -9,10 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useCreateContrato } from "@/hooks/useContratos";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useUsersByRole } from "@/hooks/useUsersByRole";
+import { useUsersByRole, type UserOption } from "@/hooks/useUsersByRole";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useRegionais } from "@/hooks/useHierarchy";
+import { useQuery } from "@tanstack/react-query";
 
 interface Props {
   open: boolean;
@@ -26,6 +27,23 @@ export function NovoContratoDialog({ open, onOpenChange }: Props) {
   const { data: role } = useUserRole();
   const { data: profile } = useUserProfile();
   const { data: prepostos = [] } = useUsersByRole(["preposto"]);
+  const { data: supridos = [] } = useQuery<UserOption[]>({
+    queryKey: ["users-supridos"],
+    queryFn: async () => {
+      const { data: profiles, error } = await supabase
+        .from("profiles")
+        .select("user_id, full_name, phone")
+        .eq("is_suprido", true)
+        .order("full_name");
+      if (error) throw error;
+      return (profiles || []).map((p) => ({
+        user_id: p.user_id,
+        full_name: p.full_name,
+        phone: p.phone,
+        role: "suprido",
+      }));
+    },
+  });
 
   const isGlobal = isGlobalRole(role);
   const userRegionais: any[] = (profile as any)?.regionais || [];
@@ -44,7 +62,9 @@ export function NovoContratoDialog({ open, onOpenChange }: Props) {
 
   const set = (field: string, value: string) => setForm((f) => ({ ...f, [field]: value }));
 
-  const selectedPreposto = prepostos.find((p) => p.user_id === form.preposto_user_id);
+  const isCartaoCorporativo = form.tipo_servico === "cartao_corporativo";
+  const prepostoOptions = isCartaoCorporativo ? supridos : prepostos;
+  const selectedPreposto = prepostoOptions.find((p) => p.user_id === form.preposto_user_id);
 
   const handleSubmit = async () => {
     if (!form.numero || !form.empresa || !form.data_inicio || !form.data_fim || !form.regional_id) {
@@ -147,23 +167,29 @@ export function NovoContratoDialog({ open, onOpenChange }: Props) {
         </div>
 
         <div className="border-t pt-4 mt-2">
-          <h3 className="text-sm font-semibold mb-3">Preposto da Empresa</h3>
+          <h3 className="text-sm font-semibold mb-3">
+            {isCartaoCorporativo ? "Responsável pelo Cartão (Suprido)" : "Preposto da Empresa"}
+          </h3>
           <div className="space-y-1.5">
-            <Label>Selecionar Preposto</Label>
+            <Label>{isCartaoCorporativo ? "Selecionar Suprido" : "Selecionar Preposto"}</Label>
             <Select value={form.preposto_user_id} onValueChange={(v) => set("preposto_user_id", v)}>
-              <SelectTrigger><SelectValue placeholder="Selecione um usuário com perfil de Preposto..." /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue placeholder={isCartaoCorporativo ? "Selecione um usuário Suprido..." : "Selecione um usuário com perfil de Preposto..."} />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Nenhum</SelectItem>
-                {prepostos.map((p) => (
+                {prepostoOptions.map((p) => (
                   <SelectItem key={p.user_id} value={p.user_id}>
                     {p.full_name}{p.phone ? ` — ${p.phone}` : ""}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            {prepostos.length === 0 && (
+            {prepostoOptions.length === 0 && (
               <p className="text-xs text-muted-foreground mt-1">
-                Nenhum usuário com perfil "Preposto" cadastrado. Cadastre o usuário primeiro em Gestão do Sistema.
+                {isCartaoCorporativo
+                  ? 'Nenhum usuário com flag "Suprido" cadastrado. Marque o checkbox "Suprido" em Gestão → Usuários.'
+                  : 'Nenhum usuário com perfil "Preposto" cadastrado. Cadastre o usuário primeiro em Gestão do Sistema.'}
               </p>
             )}
           </div>
