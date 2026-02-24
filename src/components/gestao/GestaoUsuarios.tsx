@@ -214,6 +214,7 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
   const [editRole, setEditRole] = useState("");
   const [editRegionalIds, setEditRegionalIds] = useState<string[]>([]);
   const [editName, setEditName] = useState("");
+  const [editPhone, setEditPhone] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState<UserWithRole | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [toggling, setToggling] = useState<string | null>(null);
@@ -300,6 +301,7 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
     if (isFiscal && (user.role === "gestor_regional" || user.role === "fiscal_contrato")) return;
     setEditUser(user);
     setEditName(user.full_name);
+    setEditPhone(user.phone || "");
     setEditRole(user.role || "operador");
     setEditRegionalIds(user.regionais.map((r) => r.id));
   };
@@ -315,10 +317,18 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
   const handleSave = async () => {
     if (!editUser) return;
     try {
+      const profileUpdates: Record<string, any> = {};
       if (editName.trim() && editName.trim() !== editUser.full_name) {
+        profileUpdates.full_name = editName.trim();
+      }
+      const phoneDigits = editPhone.replace(/\D/g, "");
+      if (phoneDigits !== (editUser.phone || "").replace(/\D/g, "")) {
+        profileUpdates.phone = phoneDigits || null;
+      }
+      if (Object.keys(profileUpdates).length > 0) {
         const { error } = await supabase
           .from("profiles")
-          .update({ full_name: editName.trim() })
+          .update(profileUpdates)
           .eq("user_id", editUser.user_id);
         if (error) throw error;
       }
@@ -570,8 +580,17 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
               </p>
             </div>
             <div>
-              <Label>Telefone</Label>
-              <p className="text-sm text-muted-foreground mt-1">{editUser?.phone || "Não informado"}</p>
+              <Label>Telefone (com DDD)</Label>
+              <Input
+                value={editPhone}
+                onChange={(e) => {
+                  const digits = e.target.value.replace(/\D/g, "").slice(0, 11);
+                  if (digits.length <= 2) setEditPhone(digits);
+                  else if (digits.length <= 7) setEditPhone(`(${digits.slice(0, 2)}) ${digits.slice(2)}`);
+                  else setEditPhone(`(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`);
+                }}
+                placeholder="(81) 99507-3100"
+              />
             </div>
             <div>
               <Label>Papel</Label>
