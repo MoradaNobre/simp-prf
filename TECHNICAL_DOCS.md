@@ -78,6 +78,7 @@ A aplicação SIMP foi desenvolvida como uma ferramenta interna para otimizar os
 - **Operador:** Abertura e acompanhamento de ordens de serviço na sua regional
 - **Preposto:** Representante da empresa contratada, acesso aos contratos vinculados
 - **Terceirizado:** Acesso limitado às OS e contratos em que está envolvido
+- **Suprido (flag acumulável):** Indicador booleano que identifica o preposto do cartão corporativo, acumulável com perfis de gestor e fiscal
 
 **Controle de Acesso Granular:**
 
@@ -177,7 +178,7 @@ Todos os dados coletados têm como finalidade exclusiva:
 
 | Tabela                | Descrição                                                                     |
 | --------------------- | ----------------------------------------------------------------------------- |
-| `profiles`            | Dados de perfil dos usuários (nome, telefone, regional, status ativo)         |
+| `profiles`            | Dados de perfil dos usuários (nome, telefone, regional, status ativo, flag suprido) |
 | `user_roles`          | Papéis/perfis de acesso dos usuários                                          |
 | `user_regionais`      | Associação de usuários a regionais                                            |
 | `regionais`           | Cadastro das superintendências regionais (nome, sigla, UF)                    |
@@ -318,7 +319,7 @@ Cada transição de status é registrada com timestamp e identificação do resp
 
 _Documento técnico elaborado conforme padrões de documentação da Polícia Rodoviária Federal._
 
-**Versão:** 1.2
+**Versão:** 1.3
 **Data:** 16/02/2026
 **Última Atualização:** 24/02/2026
 **Responsável:** Daniel Nunes de Ávila
@@ -330,3 +331,4 @@ _Documento técnico elaborado conforme padrões de documentação da Polícia Ro
 | 1.0    | 16/02/2026 | Versão inicial da documentação técnica do SIMP |
 | 1.1    | 24/02/2026 | Adição do módulo de Agenda de Visitas e tabela `agendamentos_visita` |
 | 1.2    | 24/02/2026 | Refinamento de UI no módulo de Agenda (Destaque visual de botões) |
+| 1.3    | 24/02/2026 | Adição da flag "Suprido" (preposto do cartão corporativo) como campo booleano acumulável na tabela `profiles` |

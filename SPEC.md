@@ -1,6 +1,6 @@
 # SPEC – Especificação Funcional do SIMP (Sistema de Manutenção Predial)
 
-**Versão:** 1.2  
+**Versão:** 1.3  
 **Data:** 24/02/2026  
 **Responsável:** Daniel Nunes de Ávila  
 
@@ -8,6 +8,7 @@
 
 ## Histórico de Versões
 
+- v1.3 (24/02/2026): Inclusão do perfil Suprido (preposto do cartão corporativo) como flag acumulável.
 - v1.2 (24/02/2026): Destaque visual do botão "Agendar Visita" (vermelho) para maior acessibilidade.
 - v1.1 (24/02/2026): Inclusão do módulo de Agenda de Visitas.
 - v1.0 (16/02/2026): Versão inicial da especificação funcional.
@@ -66,6 +67,12 @@ Regional (Superintendência) → Delegacia → UOP (Unidade Operacional)
 | Operador | `operador` | Restrito à(s) regional(is) atribuída(s) | Interno |
 | Preposto | `preposto` | Restrito aos contratos vinculados | Externo |
 | Terceirizado | `terceirizado` | Restrito aos contratos/OS vinculados | Externo |
+
+**Flag Acumulável:**
+
+| Flag | Campo | Acumulável com | Descrição |
+|---|---|---|---|
+| Suprido | `is_suprido` (boolean em `profiles`) | Gestor Master, Gestor Nacional, Gestor Regional, Fiscal de Contrato | Preposto do cartão corporativo. Gerenciado via checkbox no formulário de edição de usuário. Badge visual "Suprido" na listagem. |
 
 ### 2.2. Regras de Atribuição de Perfis
 
@@ -588,7 +595,7 @@ Saldo = (Valor Total + Σ Aditivos) - Σ Orçamentos de OS em Execução+
 - Listagem de todos os usuários visíveis ao perfil logado
 - Criação de usuário: nome, e-mail, senha, perfil, regional(is)
 - Criação de usuário de contrato (Preposto/Terceirizado): via edge function `create-contract-user`
-- Edição: nome, telefone, perfil, regionais
+- Edição: nome, telefone, perfil, regionais, flag suprido (checkbox visível apenas para gestores e fiscais)
 - Ativar/Desativar usuário
 - Excluir usuário (via edge function `delete-user`)
 - Regras de visibilidade e atribuição conforme [Seção 2](#2-perfis-de-usuário-e-permissões)
@@ -772,3 +779,5 @@ Saldo = Cota Total - Total Consumido
 |--------|------|-----------|
 | 1.0 | 22/02/2026 | Versão inicial da especificação funcional do SIMP |
 | 1.1 | 24/02/2026 | Adição da seção 7 – Agenda de Visitas (calendário de manutenção vinculado a OS) |
+| 1.2 | 24/02/2026 | Destaque visual do botão "Agendar Visita" (vermelho) para maior acessibilidade |
+| 1.3 | 24/02/2026 | Inclusão do perfil Suprido (preposto do cartão corporativo) como flag booleana acumulável com gestores e fiscais |

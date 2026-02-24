@@ -26,6 +26,7 @@ A aplicação SIMP coleta os seguintes dados pessoais:
 **Dados Funcionais e Operacionais:**
 - Regional de lotação do servidor
 - Perfil de acesso (gestor nacional, gestor regional, fiscal de contrato, operador, preposto, terceirizado)
+- Flag "Suprido" (preposto do cartão corporativo) — indicador booleano acumulável com perfis de gestor e fiscal
 - Registros de ordens de serviço (abertura, execução, encerramento)
 - Dados de contratos de manutenção (número, empresa, valores, vigência)
 - Informações de contatos de contratos (nome, função, e-mail, telefone)
@@ -241,7 +242,7 @@ Esta política entra em vigor na data de sua publicação e permanece válida at
 
 **Data de Elaboração:** 16/02/2026
 **Última Atualização:** 24/02/2026
-**Versão:** 1.1
+**Versão:** 1.2
 **Responsável:** Polícia Rodoviária Federal
 
 *Esta Política de Privacidade foi elaborada em conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018) e demais normas aplicáveis à administração pública federal.*
@@ -252,3 +253,4 @@ Esta política entra em vigor na data de sua publicação e permanece válida at
 |--------|------|-----------|
 | 1.0 | 16/02/2026 | Versão inicial da Política de Privacidade do SIMP |
 | 1.1 | 24/02/2026 | Inclusão de dados de agendamentos de visitas técnicas nos itens de coleta e retenção |
+| 1.2 | 24/02/2026 | Inclusão da flag "Suprido" (preposto do cartão corporativo) nos dados funcionais coletados |
