@@ -18,6 +18,7 @@ import { useUpdateOS, useOSCustos, useAddCusto, type OrdemServico } from "@/hook
 import { useContratos, useContratosSaldo } from "@/hooks/useContratos";
 import { useSaldoOrcamentarioRegional, useCreateSolicitacaoCredito } from "@/hooks/useSaldoOrcamentario";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, Camera, DollarSign, User, FileText, Upload, CheckCircle, Download, Undo2, AlertTriangle, ShieldAlert, FilePlus2, Archive } from "lucide-react";
@@ -62,11 +63,13 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   const custos = useOSCustos(os?.id);
   const addCusto = useAddCusto();
   const { data: role } = useUserRole();
+  const { data: profile } = useUserProfile();
   
   const isGestorOrFiscal = isAdminRole(role) || role === "gestor_regional" || role === "fiscal_contrato";
   const isPreposto = role === "preposto";
   const isTerceirizado = role === "terceirizado";
   const isOperador = role === "operador";
+  const isSuprido = !!profile?.is_suprido;
 
   const [uploading, setUploading] = useState(false);
   const [custoDesc, setCustoDesc] = useState("");
@@ -121,6 +124,8 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
 
   const contratoLinked = contratosAll.find(c => c.id === os.contrato_id);
   const tipoServico = contratoLinked?.tipo_servico;
+  const isCartaoCorporativo = tipoServico === "cartao_corporativo";
+  const isSupridoOnCartao = isSuprido && isCartaoCorporativo;
   const statusFlow = getStatusFlowForTipo(tipoServico);
   const currentIdx = statusFlow.indexOf(os.status);
   const nextStatus = currentIdx < statusFlow.length - 1 ? statusFlow[currentIdx + 1] : null;
@@ -134,9 +139,9 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
     }
     switch (nextStatus) {
       case "orcamento": return isGestorOrFiscal; // vincular contrato e encaminhar
-      case "autorizacao": return isPreposto || isTerceirizado; // upload budget
+      case "autorizacao": return isPreposto || isTerceirizado || isSupridoOnCartao; // upload budget (suprido acts as preposto for cartão)
       case "execucao": return isGestorOrFiscal; // authorize execution
-      case "ateste": return isPreposto || isTerceirizado; // submit execution evidence
+      case "ateste": return isPreposto || isTerceirizado || isSupridoOnCartao; // submit execution evidence
       case "faturamento": return isGestorOrFiscal || isOperador; // approve ateste → authorize NF emission
       case "pagamento": return isPreposto || isTerceirizado; // preposto uploads NF and certidões
       default: return false;
