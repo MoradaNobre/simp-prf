@@ -1,6 +1,6 @@
 # Catálogo de Regras de Negócio – SIMP-PRF
 
-**Versão:** 1.3  
+**Versão:** 1.4  
 **Data:** 24/02/2026  
 **Fonte:** SPEC.md  
 
@@ -8,6 +8,7 @@
 
 ## Histórico de Versões
 
+- v1.4 (24/02/2026): Inclusão das regras de Limites de Modalidade (RN-170 a RN-178), duplicação de contratos (RN-179) e reordenação da hierarquia de bloqueios para 4 níveis.
 - v1.3 (24/02/2026): Inclusão das regras do perfil Suprido (RN-165 a RN-169).
 - v1.2 (24/02/2026): Refinamento de UI para destaque de ações críticas (Agendamento).
 - v1.1 (24/02/2026): Inclusão das regras do módulo de Agenda de Visitas (RN-156 a RN-164).
@@ -146,13 +147,15 @@
 
 | # | Regra |
 |---|---|
-| **RN-072** | A transição Autorização → Execução é submetida a bloqueios estritos e sequenciais de saldo. |
-| **RN-073** | **1º Bloqueio – Saldo de Contrato:** O saldo do contrato (valor total + aditivos − custos de OS em execução+) deve ser ≥ valor do orçamento da OS. Se insuficiente, o fluxo é **absolutamente bloqueado** para todos os perfis, incluindo Gestor Master. |
-| **RN-074** | Quando o bloqueio de contrato é ativado, o sistema exibe alerta com link para gestão de contratos e sugere inclusão de aditivo. |
-| **RN-075** | **2º Bloqueio – Valor Empenhado:** O saldo empenhado da regional deve ser suficiente para cobrir o valor do orçamento. |
-| **RN-076** | **3º Bloqueio – Cota Regional:** A cota total da regional (dotação + créditos − reduções) menos o consumo total deve ser ≥ valor do orçamento. |
-| **RN-077** | Quando o bloqueio de cota regional é ativado, o sistema exibe botão para criar solicitação de crédito. |
-| **RN-078** | A OS permanece sobrestada até a recomposição do saldo em qualquer nível de bloqueio. |
+| **RN-072** | A transição Autorização → Execução é submetida a bloqueios estritos e sequenciais de saldo. A interface exibe apenas o bloqueio de maior prioridade ativo. |
+| **RN-073** | **1º Bloqueio – Cota Regional:** A cota total da regional (dotação + créditos − reduções) menos o consumo total deve ser ≥ valor do orçamento. Se insuficiente, o fluxo é **absolutamente bloqueado** para todos os perfis, incluindo Gestor Master. |
+| **RN-074** | Quando o bloqueio de cota regional é ativado, o sistema exibe botão para criar solicitação de crédito. |
+| **RN-075** | **2º Bloqueio – Saldo de Contrato:** O saldo do contrato (valor total + aditivos − custos de OS em execução+) deve ser ≥ valor do orçamento da OS. Se insuficiente, o fluxo é bloqueado com sugestão de inclusão de aditivo. **Exceção:** contratos do tipo "Contrata + Brasil" ignoram este bloqueio. |
+| **RN-076** | Quando o bloqueio de contrato é ativado, o sistema exibe alerta com link para gestão de contratos e sugere inclusão de aditivo. |
+| **RN-077** | **3º Bloqueio – Limite de Modalidade:** Para contratos do tipo "Cartão Corporativo" e "Contrata + Brasil", a soma dos orçamentos de OS autorizadas (status > orçamento) na mesma regional/ano/modalidade + a OS atual não pode ultrapassar o teto cadastrado na tabela `limites_modalidade`. Se não cadastrado, a autorização é bloqueada. |
+| **RN-077a** | A interface de autorização exibe painel informativo com **Teto**, **Consumido** e **Disponível** para a modalidade, além de botão para gerenciar limites. |
+| **RN-078** | **4º Bloqueio – Valor Empenhado:** O saldo empenhado da regional deve ser suficiente para cobrir o valor do orçamento. |
+| **RN-078a** | A OS permanece sobrestada até a recomposição do saldo em qualquer nível de bloqueio. |
 
 ## 10. Exclusão de OS
 
@@ -323,16 +326,36 @@
 | **RN-166** | A flag Suprido pode ser acumulada exclusivamente com os perfis: Gestor Regional, Gestor Nacional, Gestor Master e Fiscal de Contrato. |
 | **RN-167** | A marcação de Suprido é gerenciada via checkbox no formulário de edição de usuário na Gestão do Sistema. |
 | **RN-168** | O checkbox de Suprido é exibido apenas quando o perfil do usuário é gestor ou fiscal. |
-| **RN-169** | Usuários marcados como Suprido exibem badge visual "Suprido" na listagem de usuários (desktop e mobile). |
+| **RN-169** | Usuários marcados como Suprido exibem badge visual "Suprido" na listagem de usuários (desktop e mobile) e na sidebar. |
+
+## 25. Limites de Modalidade
+
+| # | Regra |
+|---|---|
+| **RN-170** | A tabela `limites_modalidade` armazena o teto anual por modalidade (Cartão Corporativo, Contrata + Brasil) e regional. |
+| **RN-171** | A gestão de limites de modalidade é acessível na aba "Limites Modalidade" da Gestão do Sistema. |
+| **RN-172** | A criação de limites é restrita aos perfis: Master, Nacional e Regional. |
+| **RN-173** | A edição inline de limites permite alterar o valor do teto diretamente na tabela, com confirmação por Enter e cancelamento por Escape. |
+| **RN-174** | A exclusão de limites é restrita aos mesmos perfis que podem criá-los. |
+| **RN-175** | O bloqueio de limite de modalidade é aplicado apenas para contratos do tipo "Cartão Corporativo" e "Contrata + Brasil". |
+| **RN-176** | O consumo de modalidade é calculado pela soma dos `valor_orcamento` de todas as OS na mesma regional/ano/modalidade com status além de "orçamento". |
+| **RN-177** | A verificação de limite ocorre na etapa de Autorização, como 3º nível de bloqueio na hierarquia. |
+| **RN-178** | Se nenhum limite estiver cadastrado para a combinação regional/ano/modalidade, a autorização é bloqueada com solicitação de cadastro. |
+
+## 26. Duplicação de Contratos
+
+| # | Regra |
+|---|---|
+| **RN-179** | Contratos do tipo "Cartão Corporativo" possuem a opção de duplicação, que abre o formulário de novo contrato pré-preenchido com os dados do contrato original (exceto número e datas de vigência). |
 
 ---
 
-**Total de Regras de Negócio:** 169
+**Total de Regras de Negócio:** 179
 
 ---
 
 *Catálogo de Regras de Negócio extraído do SPEC.md — SIMP-PRF.*  
-*Versão 1.3 — 24/02/2026*
+*Versão 1.4 — 24/02/2026*
 
 ## Histórico de Versões
 
@@ -342,3 +365,4 @@
 | 1.1 | 24/02/2026 | Adição da seção 23 – Agenda de Visitas (RN-156 a RN-164). Total: 164 regras |
 | 1.2 | 24/02/2026 | Refinamento de UI para destaque de ações críticas (Agendamento) |
 | 1.3 | 24/02/2026 | Inclusão da seção 24 – Perfil Suprido / Cartão Corporativo (RN-165 a RN-169). Total: 169 regras |
+| 1.4 | 24/02/2026 | Inclusão das seções 25 e 26 – Limites de Modalidade (RN-170 a RN-178) e Duplicação de Contratos (RN-179). Reordenação da hierarquia de bloqueios para 4 níveis. Total: 179 regras |
