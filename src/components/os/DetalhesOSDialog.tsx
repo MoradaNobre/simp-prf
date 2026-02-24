@@ -25,6 +25,7 @@ import { generateOSReport } from "@/utils/generateOSReport";
 import { generateOSExecucaoReport } from "@/utils/generateOSExecucaoReport";
 import { useQuery } from "@tanstack/react-query";
 import JSZip from "jszip";
+import { OSAgendamentosTab } from "@/components/os/OSAgendamentosTab";
 
 const statusLabels: Record<string, string> = {
   aberta: "Aberta", orcamento: "Orçamento", autorizacao: "Aguardando Autorização",
@@ -1287,6 +1288,10 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
               </div>
             </>
           )}
+
+          {/* AGENDAMENTOS */}
+          <Separator />
+          <OSAgendamentosTab osId={os.id} osCodigo={os.codigo} osStatus={os.status} />
 
           {/* RESTITUIR: gestor/fiscal can revert to previous stage */}
           {isGestorOrFiscal && currentIdx > 0 && os.status !== "encerrada" && (

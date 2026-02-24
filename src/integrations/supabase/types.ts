@@ -14,6 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      agendamentos_visita: {
+        Row: {
+          created_at: string
+          created_by: string
+          data_agendamento: string
+          descricao: string
+          id: string
+          observacoes_pos_visita: string | null
+          os_id: string
+          responsavel_tecnico: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          data_agendamento: string
+          descricao: string
+          id?: string
+          observacoes_pos_visita?: string | null
+          os_id: string
+          responsavel_tecnico: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          data_agendamento?: string
+          descricao?: string
+          id?: string
+          observacoes_pos_visita?: string | null
+          os_id?: string
+          responsavel_tecnico?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agendamentos_visita_os_id_fkey"
+            columns: ["os_id"]
+            isOneToOne: false
+            referencedRelation: "ordens_servico"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action: string
