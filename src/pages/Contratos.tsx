@@ -151,7 +151,7 @@ export default function Contratos() {
                       </div>
                       {(c as any).preposto_nome && (
                         <div className="text-xs text-muted-foreground">
-                          Preposto: {(c as any).preposto_nome}
+                          {c.tipo_servico === "cartao_corporativo" ? "Suprido" : "Preposto"}: {(c as any).preposto_nome}
                           {(c as any).preposto_telefone && (
                             <a
                               href={`https://wa.me/${(c as any).preposto_telefone.replace(/\D/g, "")}`}
@@ -212,7 +212,7 @@ export default function Contratos() {
                   <TableHead>Valor Global</TableHead>
                   <TableHead>Saldo</TableHead>
                   <TableHead>Vigência</TableHead>
-                  <TableHead>Preposto</TableHead>
+                  <TableHead>Preposto / Suprido</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="w-10"></TableHead>
                 </TableRow>
