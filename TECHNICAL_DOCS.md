@@ -318,7 +318,7 @@ Cada transição de status é registrada com timestamp e identificação do resp
 
 _Documento técnico elaborado conforme padrões de documentação da Polícia Rodoviária Federal._
 
-**Versão:** 1.1
+**Versão:** 1.2
 **Data:** 16/02/2026
 **Última Atualização:** 24/02/2026
 **Responsável:** Daniel Nunes de Ávila
@@ -329,3 +329,4 @@ _Documento técnico elaborado conforme padrões de documentação da Polícia Ro
 | ------ | ---------- | ---------------------------------------------- |
 | 1.0    | 16/02/2026 | Versão inicial da documentação técnica do SIMP |
 | 1.1    | 24/02/2026 | Adição do módulo de Agenda de Visitas e tabela `agendamentos_visita` |
+| 1.2    | 24/02/2026 | Refinamento de UI no módulo de Agenda (Destaque visual de botões) |

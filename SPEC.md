@@ -1,8 +1,16 @@
 # SPEC – Especificação Funcional do SIMP (Sistema de Manutenção Predial)
 
-**Versão:** 1.1  
+**Versão:** 1.2  
 **Data:** 24/02/2026  
 **Responsável:** Daniel Nunes de Ávila  
+
+---
+
+## Histórico de Versões
+
+- v1.2 (24/02/2026): Destaque visual do botão "Agendar Visita" (vermelho) para maior acessibilidade.
+- v1.1 (24/02/2026): Inclusão do módulo de Agenda de Visitas.
+- v1.0 (16/02/2026): Versão inicial da especificação funcional.
 
 ---
 

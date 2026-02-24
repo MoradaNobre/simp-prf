@@ -50,7 +50,7 @@ export function OSAgendamentosTab({ osId, osCodigo, osStatus }: Props) {
           <CalendarClock className="h-4 w-4" /> Agendamentos ({agendamentos.length})
         </h3>
         {canCreate && (
-          <Button size="sm" variant="outline" onClick={handleNew}>
+          <Button size="sm" variant="destructive" onClick={handleNew} className="font-semibold">
             <Plus className="h-3.5 w-3.5 mr-1" /> Agendar Visita
           </Button>
         )}

@@ -1,8 +1,16 @@
 # Catálogo de Regras de Negócio – SIMP-PRF
 
-**Versão:** 1.1  
+**Versão:** 1.2  
 **Data:** 24/02/2026  
 **Fonte:** SPEC.md  
+
+---
+
+## Histórico de Versões
+
+- v1.2 (24/02/2026): Refinamento de UI para destaque de ações críticas (Agendamento).
+- v1.1 (24/02/2026): Inclusão das regras do módulo de Agenda de Visitas (RN-156 a RN-164).
+- v1.0 (16/02/2026): Versão inicial do catálogo de regras.
 
 ---
 
