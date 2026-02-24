@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Loader2, Plus, Trash2 } from "lucide-react";
+import { Loader2, Pencil, Plus, Trash2, Check, X } from "lucide-react";
 
 const modalidadeOptions = [
   { value: "cartao_corporativo", label: "Cartão Corporativo" },
@@ -30,6 +30,8 @@ export default function GestaoLimitesModalidade() {
   const [selectedRegionalId, setSelectedRegionalId] = useState(regionais.length === 1 ? regionais[0]?.id : "");
   const [newModalidade, setNewModalidade] = useState("");
   const [newValor, setNewValor] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingValor, setEditingValor] = useState("");
 
   const { data: limites = [], isLoading } = useLimitesModalidade(selectedRegionalId || null, selectedAno);
   const upsert = useUpsertLimiteModalidade();
@@ -64,6 +66,29 @@ export default function GestaoLimitesModalidade() {
     try {
       await deleteLimite.mutateAsync(id);
       toast.success("Limite removido!");
+    } catch (err: any) {
+      toast.error("Erro: " + err.message);
+    }
+  };
+
+  const handleEdit = (l: { id: string; valor_limite: number }) => {
+    setEditingId(l.id);
+    setEditingValor(String(l.valor_limite));
+  };
+
+  const handleSaveEdit = async (l: { id: string; regional_id: string; modalidade: string; ano: number }) => {
+    if (!editingValor) return;
+    try {
+      await upsert.mutateAsync({
+        id: l.id,
+        regional_id: l.regional_id,
+        modalidade: l.modalidade,
+        ano: l.ano,
+        valor_limite: parseFloat(editingValor),
+      });
+      toast.success("Limite atualizado!");
+      setEditingId(null);
+      setEditingValor("");
     } catch (err: any) {
       toast.error("Erro: " + err.message);
     }
@@ -123,12 +148,45 @@ export default function GestaoLimitesModalidade() {
                       {modalidadeOptions.find(m => m.value === l.modalidade)?.label || l.modalidade}
                     </TableCell>
                     <TableCell>
-                      {Number(l.valor_limite).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                      {editingId === l.id ? (
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={editingValor}
+                          onChange={(e) => setEditingValor(e.target.value)}
+                          className="w-[140px] h-8"
+                          autoFocus
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") handleSaveEdit(l);
+                            if (e.key === "Escape") { setEditingId(null); setEditingValor(""); }
+                          }}
+                        />
+                      ) : (
+                        Number(l.valor_limite).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+                      )}
                     </TableCell>
                     <TableCell>
-                      <Button size="icon" variant="ghost" onClick={() => handleDelete(l.id)} disabled={deleteLimite.isPending}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+                      <div className="flex gap-1">
+                        {editingId === l.id ? (
+                          <>
+                            <Button size="icon" variant="ghost" onClick={() => handleSaveEdit(l)} disabled={upsert.isPending}>
+                              {upsert.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4 text-primary" />}
+                            </Button>
+                            <Button size="icon" variant="ghost" onClick={() => { setEditingId(null); setEditingValor(""); }}>
+                              <X className="h-4 w-4 text-muted-foreground" />
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <Button size="icon" variant="ghost" onClick={() => handleEdit(l)}>
+                              <Pencil className="h-4 w-4 text-muted-foreground" />
+                            </Button>
+                            <Button size="icon" variant="ghost" onClick={() => handleDelete(l.id)} disabled={deleteLimite.isPending}>
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
