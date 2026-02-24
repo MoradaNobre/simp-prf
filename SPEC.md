@@ -541,7 +541,7 @@ Saldo = (Valor Total + Σ Aditivos) - Σ Orçamentos de OS em Execução+
 
 - **Acesso:** Apenas Gestor Nacional e Master
 - Gerencia a portaria orçamentária global (tabela `orcamento_loa`)
-- **Tabela "Distribuição por Regional":** Exibida inicialmente em **ordem decrescente de valor**
+- **Tabela "Limite por Regional":** Exibida inicialmente em **ordem decrescente de valor**
 - Campos: exercício, valor total, observações
 - CRUD completo
 

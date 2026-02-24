@@ -291,7 +291,7 @@ export default function GestaoSolicitacoesCredito({ filtroRegional }: { filtroRe
                          <Landmark className="h-4 w-4 text-muted-foreground shrink-0" />
                          <div className="flex gap-4 flex-wrap">
                            <span>Portaria {currentYear}: <strong>{fmt(loaResumo.valorLOA)}</strong></span>
-                           <span>Distribuído: <strong>{fmt(loaResumo.totalDistribuido)}</strong></span>
+                           <span>Limites: <strong>{fmt(loaResumo.totalDistribuido)}</strong></span>
                            <span className={loaResumo.saldoNaoDistribuido < 0 ? "text-destructive font-semibold" : ""}>
                              Saldo Portaria: <strong>{fmt(loaResumo.saldoNaoDistribuido)}</strong>
                            </span>

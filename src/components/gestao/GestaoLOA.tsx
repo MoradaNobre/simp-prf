@@ -135,7 +135,7 @@ export default function GestaoLOA({ exercicio }: { exercicio: number }) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          Valor total previsto na Portaria Orçamentária para manutenção predial e controle de distribuição às regionais.
+          Valor total previsto na Portaria Orçamentária para manutenção predial e controle de limites às regionais.
         </p>
         <Button size="sm" onClick={() => setShowDialog(true)}>
           {loa ? <Pencil className="mr-1 h-3 w-3" /> : <Plus className="mr-1 h-3 w-3" />}
@@ -153,13 +153,13 @@ export default function GestaoLOA({ exercicio }: { exercicio: number }) {
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-xs text-muted-foreground">Total Distribuído</p>
+            <p className="text-xs text-muted-foreground">Total de Limites</p>
             <p className="text-2xl font-bold">{formatCurrency(resumo.totalDistribuido)}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-xs text-muted-foreground">Saldo Não Distribuído</p>
+            <p className="text-xs text-muted-foreground">Saldo de Limites</p>
             <p className={`text-2xl font-bold ${resumo.saldoNaoDistribuido < 0 ? "text-destructive" : ""}`}>
               {formatCurrency(resumo.saldoNaoDistribuido)}
             </p>
@@ -171,7 +171,7 @@ export default function GestaoLOA({ exercicio }: { exercicio: number }) {
       {resumo.valorLOA > 0 && (
         <div className="space-y-1">
           <div className="flex justify-between text-xs text-muted-foreground">
-            <span>Distribuído</span>
+            <span>Limites Definidos</span>
             <span>{resumo.percentualDistribuido.toFixed(1)}%</span>
           </div>
           <Progress
@@ -195,7 +195,7 @@ export default function GestaoLOA({ exercicio }: { exercicio: number }) {
         return (
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base">Distribuição por Regional</CardTitle>
+              <CardTitle className="text-base">Limite por Regional</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-4 mb-2 text-xs text-muted-foreground">

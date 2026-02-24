@@ -200,7 +200,7 @@
 | # | Regra |
 |---|---|
 | **RN-101** | A aba "Portaria Orçamentária" é acessível apenas ao Gestor Nacional e Gestor Master. |
-| **RN-102** | A tabela "Distribuição por Regional" na aba Portaria Orçamentária é exibida inicialmente em ordem decrescente de valor. |
+| **RN-102** | A tabela "Limite por Regional" na aba Portaria Orçamentária é exibida inicialmente em ordem decrescente de valor. |
 | **RN-103** | A aba "Cotas" permite gerenciar dotações por regional, com créditos (Cota Inicial, Suplementação, Redução) e empenhos. |
 | **RN-104** | O Fiscal possui acesso somente leitura às Cotas, podendo apenas criar e visualizar Solicitações de Crédito. |
 | **RN-105** | Solicitações de crédito podem ser avulsas (sem OS) ou vinculadas a uma OS. |
