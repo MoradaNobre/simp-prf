@@ -5,6 +5,7 @@ import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase
 export type OrdemServico = Tables<"ordens_servico"> & {
   uops?: { nome: string; delegacia_id?: string; delegacias?: { nome: string; regional_id?: string; regionais?: { sigla: string; nome: string } | null } | null } | null;
   regionais?: { sigla: string; nome: string } | null;
+  contratos?: { preposto_nome: string | null; preposto_telefone: string | null } | null;
   solicitante_profile?: { full_name: string; phone: string | null } | null;
 };
 
@@ -19,7 +20,7 @@ export function useOrdensServico(filters?: {
     queryFn: async () => {
       let q = supabase
         .from("ordens_servico")
-        .select("*, uops(nome, delegacia_id, delegacias(nome, regional_id, regionais(sigla, nome))), regionais(sigla, nome)")
+        .select("*, uops(nome, delegacia_id, delegacias(nome, regional_id, regionais(sigla, nome))), regionais(sigla, nome), contratos(preposto_nome, preposto_telefone)")
         .order("data_abertura", { ascending: false });
 
       if (filters?.status) q = q.eq("status", filters.status as any);
