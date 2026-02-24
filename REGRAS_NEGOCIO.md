@@ -1,7 +1,7 @@
 # Catálogo de Regras de Negócio – SIMP-PRF
 
-**Versão:** 1.0  
-**Data:** 22/02/2026  
+**Versão:** 1.1  
+**Data:** 24/02/2026  
 **Fonte:** SPEC.md  
 
 ---
@@ -49,6 +49,7 @@
 | **RN-022** | A página de Gestão do Sistema é acessível aos perfis: Master, Nacional e Regional. |
 | **RN-023** | A página Sobre é acessível a **todos** os perfis. |
 | **RN-024** | Preposto e Terceirizado **não** possuem acesso ao Dashboard. |
+| **RN-024a** | A página Agenda de Visitas é acessível a **todos** os perfis. |
 
 ## 5. Autenticação
 
@@ -291,11 +292,32 @@
 | **RN-154** | A rota `/alterar-senha` é utilizada para alteração obrigatória de senha de terceirizados no primeiro acesso. |
 | **RN-155** | Qualquer rota não mapeada exibe a página 404 (NotFound). |
 
+## 23. Agenda de Visitas
+
+| # | Regra |
+|---|---|
+| **RN-156** | Agendamentos de visita só podem ser criados quando a OS vinculada está no status "Execução". |
+| **RN-157** | A criação e edição de agendamentos é permitida para os perfis: Preposto e Terceirizado. |
+| **RN-158** | O gerenciamento de agendamentos (qualquer OS) é permitido para os perfis: Master, Nacional, Regional e Fiscal. |
+| **RN-159** | O Operador possui acesso somente leitura aos agendamentos. |
+| **RN-160** | Cada agendamento contém obrigatoriamente: data do agendamento, descrição da atividade e responsável técnico. |
+| **RN-161** | O status do agendamento pode ser: agendada (padrão), realizada ou cancelada. |
+| **RN-162** | O campo "observações pós-visita" é opcional e pode ser preenchido após a realização da visita. |
+| **RN-163** | Os agendamentos são exibidos tanto na página dedicada de Agenda (visão mensal com calendário) quanto na aba de Agendamentos dentro dos detalhes da OS. |
+| **RN-164** | As políticas de RLS da tabela `agendamentos_visita` implementam isolamento por regional e contrato, análogo às demais tabelas operacionais. |
+
 ---
 
-**Total de Regras de Negócio:** 155
+**Total de Regras de Negócio:** 164
 
 ---
 
 *Catálogo de Regras de Negócio extraído do SPEC.md — SIMP-PRF.*  
-*Versão 1.0 — 22/02/2026*
+*Versão 1.1 — 24/02/2026*
+
+## Histórico de Versões
+
+| Versão | Data | Descrição |
+|--------|------|-----------|
+| 1.0 | 22/02/2026 | Versão inicial com 155 regras de negócio |
+| 1.1 | 24/02/2026 | Adição da seção 23 – Agenda de Visitas (RN-156 a RN-164). Total: 164 regras |

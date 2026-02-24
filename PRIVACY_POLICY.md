@@ -31,6 +31,7 @@ A aplicação SIMP coleta os seguintes dados pessoais:
 - Informações de contatos de contratos (nome, função, e-mail, telefone)
 - Dados de unidades operacionais (UOPs), delegacias e regionais
 - Dados de equipamentos e seus históricos de manutenção
+- Agendamentos de visitas técnicas (data, descrição, responsável técnico, status, observações)
 - Relatórios de execução e pagamento gerados
 - Registros de orçamento anual, empenhos e créditos
 - Fotografias de antes e depois de serviços executados
@@ -149,6 +150,7 @@ Os dados pessoais são mantidos pelo tempo necessário para:
 
 - **Dados de Acesso e Autenticação:** Mantidos por 5 anos para fins de auditoria e conformidade
 - **Dados de Ordens de Serviço:** Mantidos indefinidamente enquanto o imóvel pertencer à PRF, para histórico de manutenção predial
+- **Dados de Agendamentos de Visitas:** Mantidos pelo mesmo período da OS vinculada
 - **Dados de Contratos:** Mantidos pelo prazo de vigência do contrato, acrescido de 5 anos para fins de auditoria
 - **Dados de Orçamento:** Mantidos indefinidamente para histórico financeiro e prestação de contas
 - **Logs de Auditoria:** Mantidos indefinidamente para rastreabilidade de eventos críticos
@@ -238,8 +240,8 @@ Esta política entra em vigor na data de sua publicação e permanece válida at
 ---
 
 **Data de Elaboração:** 16/02/2026
-**Última Atualização:** 16/02/2026
-**Versão:** 1.0
+**Última Atualização:** 24/02/2026
+**Versão:** 1.1
 **Responsável:** Polícia Rodoviária Federal
 
 *Esta Política de Privacidade foi elaborada em conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018) e demais normas aplicáveis à administração pública federal.*
@@ -249,3 +251,4 @@ Esta política entra em vigor na data de sua publicação e permanece válida at
 | Versão | Data | Descrição |
 |--------|------|-----------|
 | 1.0 | 16/02/2026 | Versão inicial da Política de Privacidade do SIMP |
+| 1.1 | 24/02/2026 | Inclusão de dados de agendamentos de visitas técnicas nos itens de coleta e retenção |
