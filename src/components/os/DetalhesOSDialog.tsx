@@ -816,7 +816,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
             const totalEmpenhado = saldoOrcamento?.total_empenhos ?? 0;
             const creditoNaoEmpenhado = saldoOrcamento?.credito_nao_empenhado ?? 0;
             const empenhoInsuficiente = !skipBudgetBlock && !semOrcamentoCadastrado && !orcamentoInsuficiente && totalEmpenhado < valorOS;
-            const isGestorNacional = isAdminRole(role);
+            
 
             // Blocking priority: 1) Cota Regional, 2) Saldo Contrato, 3) Empenho
             // Only show the first active blocker
@@ -933,14 +933,14 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
 
                   {/* Actions — show only the first active blocker */}
                   {/* 1º Bloqueio: Cota Regional insuficiente */}
-                  {bloqueio1_cota && !isGestorNacional ? (
+                  {bloqueio1_cota ? (
                     <div className="space-y-3">
                       <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3">
                         <p className="text-sm font-medium text-destructive flex items-center gap-1">
                           <AlertTriangle className="h-4 w-4" /> Autorização Bloqueada — Cota Regional Insuficiente
                         </p>
                         <p className="text-xs text-foreground mt-1">
-                          Não é possível autorizar esta OS pois o saldo orçamentário da regional é insuficiente. Solicite crédito suplementar ao Gestor Nacional para prosseguir.
+                          Não é possível autorizar esta OS pois a cota orçamentária da regional é insuficiente. Solicite acréscimo de cota para prosseguir.
                         </p>
                       </div>
 
@@ -951,7 +951,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                           className="w-full"
                         >
                           <ShieldAlert className="mr-2 h-4 w-4" />
-                          Solicitar Crédito Suplementar
+                          Solicitar Acréscimo de Cota
                         </Button>
                       ) : (
                         <div className="space-y-2 border rounded-md p-3">
@@ -981,7 +981,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                                     saldo_orcamento: saldoOrc ?? 0,
                                     motivo: motivoSolicitacao.trim(),
                                   });
-                                  toast.success("Solicitação de crédito suplementar enviada ao Gestor Nacional!");
+                                  toast.success("Solicitação de acréscimo de cota enviada!");
                                   setShowSolicitacao(false);
                                   setMotivoSolicitacao("");
                                 } catch (err: any) {
@@ -996,21 +996,6 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                         </div>
                       )}
                     </div>
-                  ) : bloqueio1_cota && isGestorNacional ? (
-                    <>
-                      <div className="rounded-md border border-orange-300 dark:border-orange-800 bg-orange-50 dark:bg-orange-950/30 p-3">
-                        <p className="text-sm font-medium text-orange-700 dark:text-orange-300 flex items-center gap-1">
-                          <AlertTriangle className="h-4 w-4" /> Atenção: Saldo orçamentário insuficiente
-                        </p>
-                        <p className="text-xs text-foreground mt-1">
-                          Como Gestor Nacional, você pode autorizar mesmo com saldo orçamentário insuficiente.
-                        </p>
-                      </div>
-                      <Button onClick={handleAdvanceStatus} disabled={uploading} className="w-full">
-                        {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Autorizar Execução
-                      </Button>
-                    </>
                   ) : bloqueio2_contrato ? (
                     /* 2º Bloqueio: Saldo do Contrato insuficiente — bloqueia TODOS */
                     <div className="space-y-3">
