@@ -1,6 +1,6 @@
 # Catálogo de Regras de Negócio – SIMP-PRF
 
-**Versão:** 1.4  
+**Versão:** 1.5  
 **Data:** 24/02/2026  
 **Fonte:** SPEC.md  
 
@@ -8,6 +8,7 @@
 
 ## Histórico de Versões
 
+- v1.5 (24/02/2026): Inclusão das regras de fluxo abreviado Cartão Corporativo (RN-180 a RN-182) e renumeração da duplicação de contratos (RN-183). Total: 183 regras.
 - v1.4 (24/02/2026): Inclusão das regras de Limites de Modalidade (RN-170 a RN-178), duplicação de contratos (RN-179) e reordenação da hierarquia de bloqueios para 4 níveis.
 - v1.3 (24/02/2026): Inclusão das regras do perfil Suprido (RN-165 a RN-169).
 - v1.2 (24/02/2026): Refinamento de UI para destaque de ações críticas (Agendamento).
@@ -342,20 +343,28 @@
 | **RN-177** | A verificação de limite ocorre na etapa de Autorização, como 3º nível de bloqueio na hierarquia. |
 | **RN-178** | Se nenhum limite estiver cadastrado para a combinação regional/ano/modalidade, a autorização é bloqueada com solicitação de cadastro. |
 
-## 26. Duplicação de Contratos
+## 26. Fluxo Abreviado – Cartão Corporativo
 
 | # | Regra |
 |---|---|
-| **RN-179** | Contratos do tipo "Cartão Corporativo" possuem a opção de duplicação, que abre o formulário de novo contrato pré-preenchido com os dados do contrato original (exceto número e datas de vigência). |
+| **RN-180** | Para OS vinculadas a contratos do tipo "Cartão Corporativo", o fluxo pula as etapas de Faturamento e Pagamento, indo diretamente do Ateste para Encerrada. |
+| **RN-181** | O Suprido (agente de cartão corporativo) pode avançar as etapas de Orçamento e Execução em OS vinculadas a contratos Cartão Corporativo, atuando como responsável interno pela demanda. |
+| **RN-182** | Em contratos do tipo "Cartão Corporativo", o campo "Preposto" no formulário de contrato é substituído por "Suprido", filtrando automaticamente apenas usuários com a flag `is_suprido = true`. |
+
+## 27. Duplicação de Contratos
+
+| # | Regra |
+|---|---|
+| **RN-183** | Contratos do tipo "Cartão Corporativo" possuem a opção de duplicação, que abre o formulário de novo contrato pré-preenchido com os dados do contrato original (exceto número e datas de vigência). |
 
 ---
 
-**Total de Regras de Negócio:** 179
+**Total de Regras de Negócio:** 183
 
 ---
 
 *Catálogo de Regras de Negócio extraído do SPEC.md — SIMP-PRF.*  
-*Versão 1.4 — 24/02/2026*
+*Versão 1.5 — 24/02/2026*
 
 ## Histórico de Versões
 
@@ -365,4 +374,5 @@
 | 1.1 | 24/02/2026 | Adição da seção 23 – Agenda de Visitas (RN-156 a RN-164). Total: 164 regras |
 | 1.2 | 24/02/2026 | Refinamento de UI para destaque de ações críticas (Agendamento) |
 | 1.3 | 24/02/2026 | Inclusão da seção 24 – Perfil Suprido / Cartão Corporativo (RN-165 a RN-169). Total: 169 regras |
-| 1.4 | 24/02/2026 | Inclusão das seções 25 e 26 – Limites de Modalidade (RN-170 a RN-178) e Duplicação de Contratos (RN-179). Reordenação da hierarquia de bloqueios para 4 níveis. Total: 179 regras |
+| 1.4 | 24/02/2026 | Inclusão das seções 25 e 26 – Limites de Modalidade (RN-170 a RN-178) e Duplicação de Contratos (RN-179). Total: 179 regras |
+| 1.5 | 24/02/2026 | Inclusão da seção 26 – Fluxo Abreviado Cartão Corporativo (RN-180 a RN-182), renumeração (RN-183). Total: 183 regras |
