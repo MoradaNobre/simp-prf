@@ -2,14 +2,20 @@ import { useState } from "react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useContratoAditivos, useCreateContratoAditivo } from "@/hooks/useContratoAditivos";
+import { useContratoAditivos, useCreateContratoAditivo, useDeleteContratoAditivo } from "@/hooks/useContratoAditivos";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserRole } from "@/hooks/useUserRole";
+import { isAdminRole } from "@/utils/roles";
 import { toast } from "sonner";
-import { Loader2, Plus, FilePlus2 } from "lucide-react";
+import { Loader2, Plus, FilePlus2, Trash2 } from "lucide-react";
 
 interface Props {
   contratoId: string;
@@ -22,6 +28,9 @@ export function ContratoAditivosDialog({ contratoId, empresaNome, open, onOpenCh
   const { user } = useAuth();
   const { data: aditivos = [], isLoading } = useContratoAditivos(contratoId);
   const createAditivo = useCreateContratoAditivo();
+  const deleteAditivo = useDeleteContratoAditivo();
+  const { data: role } = useUserRole();
+  const canDelete = isAdminRole(role) || role === "gestor_regional";
   const [showForm, setShowForm] = useState(false);
   const [valor, setValor] = useState("");
   const [descricao, setDescricao] = useState("");
@@ -78,9 +87,43 @@ export function ContratoAditivosDialog({ contratoId, empresaNome, open, onOpenCh
                       {a.numero_aditivo && <span className="text-xs font-mono text-muted-foreground">{a.numero_aditivo} · </span>}
                       <span className="text-sm font-medium">{fmt(a.valor)}</span>
                     </div>
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(a.data_aditivo + "T00:00:00").toLocaleDateString("pt-BR")}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(a.data_aditivo + "T00:00:00").toLocaleDateString("pt-BR")}
+                      </span>
+                      {canDelete && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button size="icon" variant="ghost" className="h-6 w-6">
+                              <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Excluir aditivo?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Esta ação não pode ser desfeita. O aditivo de {fmt(a.valor)} será removido permanentemente.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={async () => {
+                                  try {
+                                    await deleteAditivo.mutateAsync({ id: a.id, contrato_id: contratoId });
+                                    toast.success("Aditivo excluído!");
+                                  } catch (err: any) {
+                                    toast.error("Erro: " + err.message);
+                                  }
+                                }}
+                              >
+                                Excluir
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
+                    </div>
                   </div>
                   <p className="text-xs text-muted-foreground">{a.descricao}</p>
                 </div>

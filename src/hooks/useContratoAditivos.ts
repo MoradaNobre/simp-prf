@@ -54,3 +54,21 @@ export function useCreateContratoAditivo() {
     },
   });
 }
+
+export function useDeleteContratoAditivo() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, contrato_id }: { id: string; contrato_id: string }) => {
+      const { error } = await supabase
+        .from("contrato_aditivos")
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+      return contrato_id;
+    },
+    onSuccess: (contrato_id) => {
+      qc.invalidateQueries({ queryKey: ["contrato-aditivos", contrato_id] });
+      qc.invalidateQueries({ queryKey: ["contratos-saldo"] });
+    },
+  });
+}
