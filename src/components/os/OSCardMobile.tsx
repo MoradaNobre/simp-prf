@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Phone } from "lucide-react";
 
 const statusColors: Record<string, string> = {
   aberta: "bg-info text-info-foreground",
@@ -65,17 +65,42 @@ export function OSCardMobile({ os, canManage, onSelect, onEdit, onDelete }: OSCa
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
-          <span>{regional?.sigla || "—"} · {delegacia?.nome || "—"}</span>
-          <span className="text-right">
-            {new Date(os.data_abertura).toLocaleDateString("pt-BR")}
-          </span>
-          <span>{uop?.nome || "—"}</span>
-          <span className="text-right font-medium text-foreground">
-            {os.valor_orcamento > 0
-              ? `R$ ${Number(os.valor_orcamento).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
-              : "—"}
-          </span>
+        <div className="space-y-1 text-xs text-muted-foreground">
+          <div className="grid grid-cols-2 gap-x-4">
+            <span>{regional?.sigla || "—"} · {delegacia?.nome || "—"}</span>
+            <span className="text-right">
+              {new Date(os.data_abertura).toLocaleDateString("pt-BR")}
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-x-4">
+            <span>{uop?.nome || "—"}</span>
+            <span className="text-right font-medium text-foreground">
+              {os.valor_orcamento > 0
+                ? `R$ ${Number(os.valor_orcamento).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
+                : "—"}
+            </span>
+          </div>
+          {os.solicitante_profile && (
+            <div className="flex items-center gap-1 pt-0.5">
+              <span className="truncate">{os.solicitante_profile.full_name || "—"}</span>
+              {os.solicitante_profile.phone && (
+                <a
+                  href={`https://wa.me/55${os.solicitante_profile.phone.replace(/\D/g, "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary flex items-center gap-0.5 hover:underline shrink-0"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Phone className="h-3 w-3" />
+                  {os.solicitante_profile.phone.length === 11
+                    ? `(${os.solicitante_profile.phone.slice(0, 2)}) ${os.solicitante_profile.phone.slice(2, 7)}-${os.solicitante_profile.phone.slice(7)}`
+                    : os.solicitante_profile.phone.length === 10
+                      ? `(${os.solicitante_profile.phone.slice(0, 2)}) ${os.solicitante_profile.phone.slice(2, 6)}-${os.solicitante_profile.phone.slice(6)}`
+                      : os.solicitante_profile.phone}
+                </a>
+              )}
+            </div>
+          )}
         </div>
 
         {canManage && (
