@@ -8,7 +8,7 @@ A aplicação SIMP foi desenvolvida como uma ferramenta interna para otimizar os
 
 - **Gestão de Ordens de Serviço:** Abertura, acompanhamento e encerramento de ordens de serviço de manutenção corretiva e preventiva
 - **Gestão de Contratos:** Cadastro e controle de contratos de manutenção predial, incluindo saldos e custos
-- **Gestão de Ativos:** Cadastro hierárquico de unidades operacionais (regionais, delegacias, UOPs)
+- **Gestão de Equipamentos:** Cadastro e manutenção de equipamentos das unidades operacionais (ar-condicionado, geradores, elétrica, hidráulica, etc.)
 - **Gestão Orçamentária:** Controle de dotação anual, empenhos e créditos por regional
 - **Dashboards e Relatórios:** Visualização de dados com gráficos interativos e geração de relatórios de execução e pagamento
 - **Controle de Acesso:** Sistema robusto de autenticação e permissões por perfil e regional
@@ -27,6 +27,7 @@ A aplicação SIMP foi desenvolvida como uma ferramenta interna para otimizar os
 ### 1.3. Componentes Técnicos
 
 #### **Frontend**
+
 - **Tecnologia:** React 18, TypeScript, HTML5, CSS3
 - **Build Tool:** Vite com React SWC Plugin
 - **Framework de UI:** Tailwind CSS + Shadcn UI Components
@@ -39,12 +40,14 @@ A aplicação SIMP foi desenvolvida como uma ferramenta interna para otimizar os
 - **Compatibilidade:** Navegadores modernos (Chrome, Firefox, Safari, Edge)
 
 #### **Backend**
+
 - **Tecnologia:** Lovable Cloud (PostgreSQL com Row Level Security)
 - **Framework:** PostgreSQL com Row Level Security (RLS)
 - **API:** REST API automática
 - **Runtime Environment:** Edge Functions (Serverless)
 
 #### **Banco de Dados**
+
 - **Engine:** PostgreSQL
 - **Recursos Utilizados:**
   - Autenticação integrada
@@ -54,6 +57,7 @@ A aplicação SIMP foi desenvolvida como uma ferramenta interna para otimizar os
   - Views materializadas (ex: contratos_saldo)
 
 #### **Hospedagem**
+
 - **Provedor:** Lovable Cloud
 - **Tipo:** Infraestrutura gerenciada em nuvem
 - **Recursos:** Escaláveis conforme demanda
@@ -67,20 +71,23 @@ A aplicação SIMP foi desenvolvida como uma ferramenta interna para otimizar os
 **Processo de Login:** Autenticação via e-mail institucional com validação de credenciais e verificação de status ativo do usuário.
 
 **Perfis de Usuário:**
+
 - **Gestor Nacional:** Acesso completo ao sistema, gestão de todas as regionais e usuários
 - **Gestor Regional:** Gestão das unidades e dados de sua(s) regional(is)
 - **Fiscal de Contrato:** Gestão de contratos e ordens de serviço
 - **Operador:** Abertura e acompanhamento de ordens de serviço na sua regional
 - **Preposto:** Representante da empresa contratada, acesso aos contratos vinculados
 - **Terceirizado:** Acesso limitado às OS e contratos em que está envolvido
+- **Suprido (flag acumulável):** Indicador booleano que identifica o preposto do cartão corporativo, acumulável com perfis de gestor e fiscal
 
 **Controle de Acesso Granular:**
+
 - Implementação de Row Level Security (RLS) em todas as tabelas
 - Políticas específicas por perfil (6 níveis de acesso)
 - Isolamento de dados por regional
 - Proteção contra escalação de privilégios
 - Controle de usuários ativos/inativos
-- Obrigatoriedade de alteração de senha no primeiro acesso
+- Obrigatoriedade de alteração de senha no primeiro acesso, para o perfil terceirizado apenas.
 
 ### 2.2. Segurança de Dados em Trânsito
 
@@ -96,7 +103,7 @@ A aplicação SIMP foi desenvolvida como uma ferramenta interna para otimizar os
 - **RLS (Row Level Security):** Políticas implementadas em todas as tabelas:
   - Isolamento por regional em tabelas de dados operacionais
   - Políticas específicas para cada perfil de usuário
-  - Proteção em cascata em tabelas relacionadas (regionais → delegacias → UOPs)
+  - Proteção em cascata em tabelas relacionadas (regionais → delegacias → UOPs → equipamentos)
   - Controle granular de operações (SELECT, INSERT, UPDATE, DELETE) por perfil
 - **Proteção de Funções:** Todas as funções PostgreSQL utilizam `search_path` explícito prevenindo ataques de manipulação de schema
 
@@ -124,14 +131,16 @@ A aplicação não armazena dados classificados como sensíveis pela LGPD. Os da
 A aplicação coleta os seguintes tipos de dados:
 
 **Dados de Identificação:**
+
 - Nome completo, E-mail institucional, Telefone de contato
 
 **Dados Funcionais:**
+
 - Regional de lotação do servidor
 - Perfil de acesso no sistema
 - Ordens de serviço (abertura, execução, ateste, pagamento, encerramento)
 - Contratos de manutenção (número, empresa, valores, vigência, contatos)
-
+- Equipamentos (categoria, marca, modelo, número de série)
 - Unidades operacionais (UOPs), delegacias e regionais
 - Relatórios de execução e pagamento gerados
 - Dados orçamentários (dotação, empenhos, créditos)
@@ -139,6 +148,7 @@ A aplicação coleta os seguintes tipos de dados:
 - Documentos de orçamento e pagamento
 
 **Dados Técnicos:**
+
 - Endereço IP (para fins de segurança)
 - Logs de acesso e auditoria
 - Timestamps de operações
@@ -146,6 +156,7 @@ A aplicação coleta os seguintes tipos de dados:
 ### 3.2. Finalidade da Coleta
 
 Todos os dados coletados têm como finalidade exclusiva:
+
 - Autenticação e controle de acesso à aplicação
 - Execução das funcionalidades de gestão de manutenção predial
 - Auditoria e segurança da informação
@@ -156,6 +167,7 @@ Todos os dados coletados têm como finalidade exclusiva:
 **Princípio Geral:** Os dados não são compartilhados com terceiros para fins comerciais, publicitários ou não relacionados à finalidade institucional.
 
 **Operadores de Dados:**
+
 - **Lovable Cloud (Hospedagem e Banco de Dados):** Acesso limitado aos dados necessários para manutenção da infraestrutura, atuando como operador de dados
 
 **Contratos de Operação:** Os provedores operam sob contratos que garantem confidencialidade e uso adequado dos dados conforme LGPD.
@@ -164,31 +176,29 @@ Todos os dados coletados têm como finalidade exclusiva:
 
 ### 4.1. Tabelas Principais
 
-| Tabela | Descrição |
-|--------|-----------|
-| `profiles` | Dados de perfil dos usuários (nome, telefone, regional, status ativo) |
-| `user_roles` | Papéis/perfis de acesso dos usuários |
-| `user_regionais` | Associação de usuários a regionais |
-| `regionais` | Cadastro das superintendências regionais (nome, sigla, UF) |
-| `delegacias` | Cadastro de delegacias vinculadas às regionais |
-| `uops` | Unidades Operacionais Policiais (endereço, área, coordenadas) |
-
-| `ordens_servico` | Ordens de serviço de manutenção (título, descrição, status, prioridade, tipo) |
-| `os_custos` | Custos associados às ordens de serviço |
-| `contratos` | Contratos de manutenção predial |
-| `contrato_contatos` | Contatos vinculados aos contratos |
-| `contrato_aditivos` | Aditivos contratuais (valor, descrição, número, data) |
-| `contratos_saldo` | View com saldo disponível dos contratos (inclui aditivos) |
-| `solicitacoes_credito` | Solicitações de crédito suplementar por regional |
-| `orcamento_anual` | Dotação orçamentária anual por regional |
-| `orcamento_empenhos` | Empenhos realizados |
-| `orcamento_creditos` | Créditos orçamentários |
-| `relatorios_execucao` | Relatórios de execução de OS |
-| `relatorios_os` | Relatórios de ateste/pagamento de OS |
-| `planos_manutencao` | Planos de manutenção preventiva |
-| `agendamentos_visita` | Agendamentos de visitas técnicas vinculadas a OS |
-| `audit_logs` | Logs de auditoria do sistema |
-| `regional_os_seq` | Sequencial de numeração de OS por regional |
+| Tabela                | Descrição                                                                     |
+| --------------------- | ----------------------------------------------------------------------------- |
+| `profiles`            | Dados de perfil dos usuários (nome, telefone, regional, status ativo, flag suprido) |
+| `user_roles`          | Papéis/perfis de acesso dos usuários                                          |
+| `user_regionais`      | Associação de usuários a regionais                                            |
+| `regionais`           | Cadastro das superintendências regionais (nome, sigla, UF)                    |
+| `delegacias`          | Cadastro de delegacias vinculadas às regionais                                |
+| `uops`                | Unidades Operacionais Policiais (endereço, área, coordenadas)                 |
+| `equipamentos`        | Equipamentos das UOPs (categoria, marca, modelo, série)                       |
+| `ordens_servico`      | Ordens de serviço de manutenção (título, descrição, status, prioridade, tipo) |
+| `os_custos`           | Custos associados às ordens de serviço                                        |
+| `contratos`           | Contratos de manutenção predial                                               |
+| `contrato_contatos`   | Contatos vinculados aos contratos                                             |
+| `contratos_saldo`     | View com saldo disponível dos contratos                                       |
+| `orcamento_anual`     | Dotação orçamentária anual por regional                                       |
+| `orcamento_empenhos`  | Empenhos realizados                                                           |
+| `orcamento_creditos`  | Créditos orçamentários                                                        |
+| `relatorios_execucao` | Relatórios de execução de OS                                                  |
+| `relatorios_os`       | Relatórios de ateste/pagamento de OS                                          |
+| `planos_manutencao`   | Planos de manutenção preventiva                                               |
+| `agendamentos_visita` | Agendamentos de visitas técnicas vinculadas a OS                              |
+| `audit_logs`          | Logs de auditoria do sistema                                                  |
+| `regional_os_seq`     | Sequencial de numeração de OS por regional                                    |
 
 ### 4.2. Fluxo de Status das Ordens de Serviço
 
@@ -238,6 +248,7 @@ Cada transição de status é registrada com timestamp e identificação do resp
 ## 6. Funcionalidades Principais
 
 ### 6.1. Módulo de Ordens de Serviço
+
 - Abertura de OS corretivas e preventivas
 - Fluxo completo de status (aberta → encerrada) com 7 etapas
 - Atribuição de responsáveis (fiscal, preposto, terceirizado)
@@ -246,35 +257,31 @@ Cada transição de status é registrada com timestamp e identificação do resp
 - Assinatura digital para ateste
 - Controle de prioridade (baixa, média, alta, urgente)
 - Notificações por e-mail nas transições de status
-- **Bloqueio estrito por saldo de contrato:** Quando o saldo do contrato vinculado é insuficiente, a autorização da OS é sobrestada para todos os perfis (incluindo Gestor Nacional), permanecendo bloqueada até a recomposição do saldo via aditivo contratual
-- **Bloqueio por saldo orçamentário regional:** O Gestor Nacional possui permissão exclusiva para ignorar o bloqueio por falta de orçamento regional e prosseguir com a autorização mediante aviso visual
-- **Link direto para gestão de contratos:** Quando identificado impedimento contratual, a interface apresenta botão de acesso direto à página de contratos para registro de aditivo
-- **Solicitação de Crédito Suplementar:** Gestores Regionais e Fiscais podem submeter solicitações quando o saldo orçamentário é insuficiente
 
 ### 6.2. Módulo de Contratos
+
 - Cadastro de contratos com dados completos (número, empresa, valor, vigência)
 - Gestão de contatos vinculados ao contrato
 - Vinculação de preposto e terceirizados
-- Controle de saldo (valor total + aditivos – custos das OS em execução)
+- Controle de saldo (valor total – custos das OS)
 - Geração de relatórios por contrato
-- **Aditivos contratuais:** Registro de termos aditivos com valor, número, data e descrição, recompondo o saldo do contrato em tempo real (tabela `contrato_aditivos`)
-- **Gestão de terceirizados pelo Preposto:** O perfil Preposto pode adicionar e gerenciar terceirizados vinculados aos seus contratos, com criação automática de conta de acesso via Edge Function
 
 ### 6.3. Módulo de Gestão
+
 - Cadastro de regionais, delegacias e UOPs
 - Gestão de usuários (criação, perfis, ativação/desativação)
-
+- Gestão de equipamentos por UOP
 - Logs de auditoria do sistema
-- **Solicitações de Crédito Suplementar:** Aba centralizada para análise e decisão pelo Gestor Nacional sobre solicitações de crédito submetidas por Gestores Regionais e Fiscais
 
 ### 6.4. Módulo Orçamentário
+
 - Cadastro de dotação orçamentária anual por regional
 - Registro de empenhos e créditos
 - Visualização de saldo disponível
 - Controle por exercício financeiro
-- **Cálculo de saldo:** Considera dotação inicial + créditos − consumo real das OS (contabilizado a partir da etapa de Execução); empenhos são registros informativos e não reduzem o saldo disponível
 
 ### 6.5. Módulo de Relatórios
+
 - Relatórios de execução de OS
 - Relatórios de pagamento/ateste
 - Exportação em PDF
@@ -290,6 +297,7 @@ Cada transição de status é registrada com timestamp e identificação do resp
 - Controle de permissões: Preposto/Terceirizado criam; Gestores/Fiscais gerenciam
 
 ### 6.7. Dashboard
+
 - Visão geral de OS por status e prioridade
 - Gráficos de execução orçamentária
 - Filtros por regional
@@ -297,19 +305,19 @@ Cada transição de status é registrada com timestamp e identificação do resp
 
 ## 7. Edge Functions (Backend Functions)
 
-| Função | Descrição |
-|--------|-----------|
+| Função                 | Descrição                                                       |
+| ---------------------- | --------------------------------------------------------------- |
 | `create-contract-user` | Criação de usuário vinculado a contrato (preposto/terceirizado) |
-| `delete-user` | Exclusão de usuário do sistema |
-| `import-csv` | Importação de dados via arquivo CSV |
-| `list-user-emails` | Listagem de e-mails de usuários |
-| `notify-os-transition` | Notificação por e-mail nas transições de status de OS |
-| `notify-preposto` | Notificação ao preposto sobre eventos do contrato |
-| `send-os-execucao` | Envio de relatório de execução por e-mail |
+| `delete-user`          | Exclusão de usuário do sistema                                  |
+| `import-csv`           | Importação de dados via arquivo CSV                             |
+| `list-user-emails`     | Listagem de e-mails de usuários                                 |
+| `notify-os-transition` | Notificação por e-mail nas transições de status de OS           |
+| `notify-preposto`      | Notificação ao preposto sobre eventos do contrato               |
+| `send-os-execucao`     | Envio de relatório de execução por e-mail                       |
 
 ---
 
-*Documento técnico elaborado conforme padrões de documentação da Polícia Rodoviária Federal.*
+_Documento técnico elaborado conforme padrões de documentação da Polícia Rodoviária Federal._
 
 **Versão:** 1.3
 **Data:** 16/02/2026
@@ -318,9 +326,9 @@ Cada transição de status é registrada com timestamp e identificação do resp
 
 ## Histórico de Versões
 
-| Versão | Data | Descrição |
-|--------|------|-----------|
-| 1.0 | 16/02/2026 | Versão inicial da documentação técnica do SIMP |
-| 1.1 | 20/02/2026 | Adição de aditivos contratuais, bloqueio estrito de autorização por saldo de contrato, solicitações de crédito suplementar, gestão de terceirizados pelo preposto |
-| 1.2 | 24/02/2026 | Adição do módulo de Agenda de Visitas e tabela `agendamentos_visita` |
-| 1.3 | 24/02/2026 | Refinamento de UI no módulo de Agenda (Destaque visual de botões) |
+| Versão | Data       | Descrição                                      |
+| ------ | ---------- | ---------------------------------------------- |
+| 1.0    | 16/02/2026 | Versão inicial da documentação técnica do SIMP |
+| 1.1    | 24/02/2026 | Adição do módulo de Agenda de Visitas e tabela `agendamentos_visita` |
+| 1.2    | 24/02/2026 | Refinamento de UI no módulo de Agenda (Destaque visual de botões) |
+| 1.3    | 24/02/2026 | Adição da flag "Suprido" (preposto do cartão corporativo) como campo booleano acumulável na tabela `profiles` |

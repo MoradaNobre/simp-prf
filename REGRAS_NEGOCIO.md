@@ -1,6 +1,6 @@
 # Catálogo de Regras de Negócio – SIMP-PRF
 
-**Versão:** 1.2  
+**Versão:** 1.3  
 **Data:** 24/02/2026  
 **Fonte:** SPEC.md  
 
@@ -8,6 +8,7 @@
 
 ## Histórico de Versões
 
+- v1.3 (24/02/2026): Inclusão das regras do perfil Suprido (RN-165 a RN-169).
 - v1.2 (24/02/2026): Refinamento de UI para destaque de ações críticas (Agendamento).
 - v1.1 (24/02/2026): Inclusão das regras do módulo de Agenda de Visitas (RN-156 a RN-164).
 - v1.0 (16/02/2026): Versão inicial do catálogo de regras.
@@ -18,7 +19,7 @@
 
 | # | Regra |
 |---|---|
-| **RN-001** | O sistema possui 7 perfis de acesso: Gestor Master, Gestor Nacional, Gestor Regional, Fiscal de Contrato, Operador, Preposto e Terceirizado. |
+| **RN-001** | O sistema possui 7 perfis de acesso: Gestor Master, Gestor Nacional, Gestor Regional, Fiscal de Contrato, Operador, Preposto e Terceirizado. Adicionalmente, existe a flag "Suprido" que pode ser acumulada com perfis de gestor e fiscal. |
 | **RN-002** | O Gestor Master possui acesso global irrestrito a todas as regionais e funcionalidades do sistema. |
 | **RN-003** | O Gestor Nacional possui acesso administrativo restrito às regionais vinculadas ao seu perfil. |
 | **RN-004** | Os perfis Gestor Regional, Fiscal de Contrato e Operador possuem acesso restrito à(s) regional(is) atribuída(s). |
@@ -314,14 +315,24 @@
 | **RN-163** | Os agendamentos são exibidos tanto na página dedicada de Agenda (visão mensal com calendário) quanto na aba de Agendamentos dentro dos detalhes da OS. |
 | **RN-164** | As políticas de RLS da tabela `agendamentos_visita` implementam isolamento por regional e contrato, análogo às demais tabelas operacionais. |
 
+## 24. Perfil Suprido (Cartão Corporativo)
+
+| # | Regra |
+|---|---|
+| **RN-165** | O "Suprido" é uma flag booleana (`is_suprido`) na tabela `profiles`, não um perfil de acesso independente. |
+| **RN-166** | A flag Suprido pode ser acumulada exclusivamente com os perfis: Gestor Regional, Gestor Nacional, Gestor Master e Fiscal de Contrato. |
+| **RN-167** | A marcação de Suprido é gerenciada via checkbox no formulário de edição de usuário na Gestão do Sistema. |
+| **RN-168** | O checkbox de Suprido é exibido apenas quando o perfil do usuário é gestor ou fiscal. |
+| **RN-169** | Usuários marcados como Suprido exibem badge visual "Suprido" na listagem de usuários (desktop e mobile). |
+
 ---
 
-**Total de Regras de Negócio:** 164
+**Total de Regras de Negócio:** 169
 
 ---
 
 *Catálogo de Regras de Negócio extraído do SPEC.md — SIMP-PRF.*  
-*Versão 1.1 — 24/02/2026*
+*Versão 1.3 — 24/02/2026*
 
 ## Histórico de Versões
 
@@ -329,3 +340,5 @@
 |--------|------|-----------|
 | 1.0 | 22/02/2026 | Versão inicial com 155 regras de negócio |
 | 1.1 | 24/02/2026 | Adição da seção 23 – Agenda de Visitas (RN-156 a RN-164). Total: 164 regras |
+| 1.2 | 24/02/2026 | Refinamento de UI para destaque de ações críticas (Agendamento) |
+| 1.3 | 24/02/2026 | Inclusão da seção 24 – Perfil Suprido / Cartão Corporativo (RN-165 a RN-169). Total: 169 regras |
