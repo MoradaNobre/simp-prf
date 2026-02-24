@@ -820,7 +820,10 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
             const semOrcamentoCadastrado = !skipBudgetBlock && saldoOrc === null;
             const totalEmpenhado = saldoOrcamento?.total_empenhos ?? 0;
             const creditoNaoEmpenhado = saldoOrcamento?.credito_nao_empenhado ?? 0;
-            const empenhoInsuficiente = !skipBudgetBlock && !semOrcamentoCadastrado && !orcamentoInsuficiente && totalEmpenhado < valorOS;
+            // Empenho is required for ALL modalities including cartão_corporativo
+            // Only skip if there's no budget registered at all (and budget blocking is active)
+            const skipEmpenhoCheck = !skipBudgetBlock && (semOrcamentoCadastrado || orcamentoInsuficiente);
+            const empenhoInsuficiente = !skipEmpenhoCheck && totalEmpenhado < valorOS;
             
 
             // Blocking priority: 1) Cota Regional, 2) Saldo Contrato, 3) Empenho
