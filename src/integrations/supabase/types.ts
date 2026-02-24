@@ -290,6 +290,44 @@ export type Database = {
           },
         ]
       }
+      limites_modalidade: {
+        Row: {
+          ano: number
+          created_at: string
+          id: string
+          modalidade: string
+          regional_id: string
+          updated_at: string
+          valor_limite: number
+        }
+        Insert: {
+          ano?: number
+          created_at?: string
+          id?: string
+          modalidade: string
+          regional_id: string
+          updated_at?: string
+          valor_limite?: number
+        }
+        Update: {
+          ano?: number
+          created_at?: string
+          id?: string
+          modalidade?: string
+          regional_id?: string
+          updated_at?: string
+          valor_limite?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "limites_modalidade_regional_id_fkey"
+            columns: ["regional_id"]
+            isOneToOne: false
+            referencedRelation: "regionais"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orcamento_anual: {
         Row: {
           created_at: string

@@ -145,6 +145,8 @@ export function EditarContratoDialog({ contrato, open, onOpenChange }: Props) {
               <SelectContent>
                 <SelectItem value="manutencao_predial">Manutenção Predial</SelectItem>
                 <SelectItem value="manutencao_ar_condicionado">Manutenção de Ar Condicionado</SelectItem>
+                <SelectItem value="cartao_corporativo">Cartão Corporativo</SelectItem>
+                <SelectItem value="contrata_brasil">Contrata + Brasil</SelectItem>
               </SelectContent>
             </Select>
           </div>

@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { isAdminRole } from "@/utils/roles";
+import { getStatusFlowForTipo, bypassesContractBalance, bypassesBudgetBlocking, tipoServicoLabel } from "@/utils/modalidade";
 import { OSStatusStepper } from "@/components/os/OSStatusStepper";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
@@ -31,7 +32,6 @@ const statusLabels: Record<string, string> = {
   aberta: "Aberta", orcamento: "Orçamento", autorizacao: "Aguardando Autorização",
   execucao: "Execução", ateste: "Ateste", faturamento: "Faturamento", pagamento: "Pagamento", encerrada: "Encerrada",
 };
-const statusFlow = ["aberta", "orcamento", "autorizacao", "execucao", "ateste", "faturamento", "pagamento", "encerrada"];
 const prioridadeLabels: Record<string, string> = {
   baixa: "Baixa", media: "Média", alta: "Alta", urgente: "Urgente",
 };
@@ -115,12 +115,19 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
 
   if (!os) return null;
 
+  const contratoLinked = contratosAll.find(c => c.id === os.contrato_id);
+  const tipoServico = contratoLinked?.tipo_servico;
+  const statusFlow = getStatusFlowForTipo(tipoServico);
   const currentIdx = statusFlow.indexOf(os.status);
   const nextStatus = currentIdx < statusFlow.length - 1 ? statusFlow[currentIdx + 1] : null;
 
   // Permission logic per step
   const canAdvance = (() => {
     if (!nextStatus) return false;
+    // For cartao_corporativo: ateste → encerrada (gestor/fiscal/operador)
+    if (nextStatus === "encerrada" && os.status === "ateste") {
+      return isGestorOrFiscal || isOperador;
+    }
     switch (nextStatus) {
       case "orcamento": return isGestorOrFiscal; // vincular contrato e encaminhar
       case "autorizacao": return isPreposto || isTerceirizado; // upload budget
@@ -505,7 +512,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
 
         <div className="space-y-4">
           {/* Stepper */}
-          <OSStatusStepper currentStatus={os.status} />
+          <OSStatusStepper currentStatus={os.status} tipoServico={tipoServico} />
 
           {/* Status & Priority */}
           <div className="flex items-center gap-3 flex-wrap">
@@ -513,6 +520,9 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
               {prioridadeLabels[os.prioridade]}
             </Badge>
             <Badge variant="outline">{os.tipo === "corretiva" ? "Corretiva" : "Preventiva"}</Badge>
+            {tipoServico && (tipoServico === "cartao_corporativo" || tipoServico === "contrata_brasil") && (
+              <Badge variant="secondary">{tipoServicoLabel(tipoServico)}</Badge>
+            )}
             {os.status === "pagamento" && paymentDocs.length > 0 && (
               <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 border-yellow-300">
                 Aguardando Pagamento
@@ -765,12 +775,14 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
               return s ? Number((s as any).saldo) : null;
             })();
             const saldoOrc = saldoOrcamento?.saldo_disponivel ?? null;
-            const contratoInsuficiente = saldoContrato !== null && saldoContrato < valorOS;
-            const orcamentoInsuficiente = saldoOrc !== null && saldoOrc < valorOS;
-            const semOrcamentoCadastrado = saldoOrc === null;
+            const skipContractBalance = bypassesContractBalance(tipoServico);
+            const skipBudgetBlock = bypassesBudgetBlocking(tipoServico);
+            const contratoInsuficiente = !skipContractBalance && saldoContrato !== null && saldoContrato < valorOS;
+            const orcamentoInsuficiente = !skipBudgetBlock && saldoOrc !== null && saldoOrc < valorOS;
+            const semOrcamentoCadastrado = !skipBudgetBlock && saldoOrc === null;
             const totalEmpenhado = saldoOrcamento?.total_empenhos ?? 0;
             const creditoNaoEmpenhado = saldoOrcamento?.credito_nao_empenhado ?? 0;
-            const empenhoInsuficiente = !semOrcamentoCadastrado && totalEmpenhado < valorOS;
+            const empenhoInsuficiente = !skipBudgetBlock && !semOrcamentoCadastrado && totalEmpenhado < valorOS;
             const bloqueado = contratoInsuficiente || orcamentoInsuficiente || semOrcamentoCadastrado || empenhoInsuficiente;
             const isGestorNacional = isAdminRole(role);
 
@@ -1023,7 +1035,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
             </>
           )}
 
-          {/* ATESTE → FATURAMENTO: gestor/fiscal/operador approves ateste */}
+          {/* ATESTE → FATURAMENTO: gestor/fiscal/operador approves ateste (standard flow) */}
           {canAdvance && nextStatus === "faturamento" && (
             <>
               <Separator />
@@ -1037,6 +1049,46 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                 <Button onClick={handleAdvanceStatus} disabled={uploading} className="w-full">
                   {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Aprovar e Autorizar Emissão da Nota Fiscal
+                </Button>
+              </div>
+            </>
+          )}
+
+          {/* ATESTE → ENCERRADA: cartao_corporativo (skips faturamento/pagamento) */}
+          {canAdvance && nextStatus === "encerrada" && os.status === "ateste" && (
+            <>
+              <Separator />
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium flex items-center gap-1">
+                  <CheckCircle className="h-4 w-4" /> Ateste e Encerramento (Cartão Corporativo)
+                </h4>
+                <p className="text-sm text-muted-foreground">
+                  Como esta OS está vinculada a um contrato de Cartão Corporativo, ao aprovar o ateste a OS será encerrada diretamente (sem faturamento/pagamento).
+                </p>
+                <Button
+                  onClick={async () => {
+                    setUploading(true);
+                    try {
+                      await updateOS.mutateAsync({
+                        id: os.id,
+                        status: "encerrada" as any,
+                        data_encerramento: new Date().toISOString(),
+                      });
+                      toast.success("OS encerrada com sucesso!");
+                      const emailOk = await sendTransitionNotification("ateste", "encerrada");
+                      if (!emailOk) toast.warning("A notificação por e-mail pode não ter sido enviada.", { duration: 8000 });
+                      onOpenChange(false);
+                    } catch (err: any) {
+                      toast.error("Erro: " + err.message);
+                    } finally {
+                      setUploading(false);
+                    }
+                  }}
+                  disabled={uploading}
+                  className="w-full"
+                >
+                  {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Aprovar Ateste e Encerrar OS
                 </Button>
               </div>
             </>
