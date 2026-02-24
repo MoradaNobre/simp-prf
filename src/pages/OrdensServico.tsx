@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Loader2, Pencil, Trash2, CalendarIcon, ArrowUp, ArrowDown, ArrowUpDown, Info, Filter, RefreshCw } from "lucide-react";
+import { Plus, Search, Loader2, Pencil, Trash2, CalendarIcon, ArrowUp, ArrowDown, ArrowUpDown, Info, Filter, RefreshCw, Phone } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
@@ -387,7 +387,25 @@ export default function OrdensServico() {
                   <TableRow key={os.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedOS(os)}>
                     <TableCell className="font-mono text-sm">{os.codigo}</TableCell>
                     <TableCell>{os.titulo}</TableCell>
-                    <TableCell className="text-muted-foreground text-sm">{os.solicitante_profile?.full_name || "—"}</TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      <div>{os.solicitante_profile?.full_name || "—"}</div>
+                      {os.solicitante_profile?.phone && (
+                        <a
+                          href={`https://wa.me/55${os.solicitante_profile.phone.replace(/\D/g, "")}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-primary flex items-center gap-0.5 hover:underline mt-0.5"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Phone className="h-3 w-3" />
+                          {os.solicitante_profile.phone.length === 11
+                            ? `(${os.solicitante_profile.phone.slice(0, 2)}) ${os.solicitante_profile.phone.slice(2, 7)}-${os.solicitante_profile.phone.slice(7)}`
+                            : os.solicitante_profile.phone.length === 10
+                              ? `(${os.solicitante_profile.phone.slice(0, 2)}) ${os.solicitante_profile.phone.slice(2, 6)}-${os.solicitante_profile.phone.slice(6)}`
+                              : os.solicitante_profile.phone}
+                        </a>
+                      )}
+                    </TableCell>
                     <TableCell className="text-muted-foreground">{regional?.sigla || "—"}</TableCell>
                     <TableCell className="text-muted-foreground">{delegacia?.nome || "—"}</TableCell>
                     <TableCell className="text-muted-foreground">{uop?.nome || "—"}</TableCell>
