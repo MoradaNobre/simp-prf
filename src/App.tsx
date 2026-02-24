@@ -10,6 +10,7 @@ import Dashboard from "@/pages/Dashboard";
 import LandingPage from "@/pages/LandingPage";
 import OrdensServico from "@/pages/OrdensServico";
 import Preventiva from "@/pages/Preventiva";
+import Agenda from "@/pages/Agenda";
 import Contratos from "@/pages/Contratos";
 import Login from "@/pages/Login";
 import AlterarSenha from "@/pages/AlterarSenha";
@@ -40,6 +41,7 @@ const App = () => (
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="ordens" element={<OrdensServico />} />
                 <Route path="preventiva" element={<Preventiva />} />
+                <Route path="agenda" element={<Agenda />} />
                 <Route path="contratos" element={<Contratos />} />
                 <Route path="gestao" element={<Gestao />} />
                 <Route path="orcamento" element={<GestaoOrcamento />} />
