@@ -39,6 +39,7 @@ type UserWithRole = {
   regionais: UserRegional[];
   role: string | null;
   ativo: boolean;
+  is_suprido: boolean;
 };
 
 function useAdminUsers() {
@@ -81,6 +82,7 @@ function useAdminUsers() {
         regionais: regionaisMap.get(p.user_id) || [],
         role: roleMap.get(p.user_id) || "operador",
         ativo: (p as any).ativo ?? true,
+        is_suprido: (p as any).is_suprido ?? false,
       })) as UserWithRole[];
     },
   });
@@ -215,6 +217,7 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
   const [editRegionalIds, setEditRegionalIds] = useState<string[]>([]);
   const [editName, setEditName] = useState("");
   const [editPhone, setEditPhone] = useState("");
+  const [editSuprido, setEditSuprido] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<UserWithRole | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [toggling, setToggling] = useState<string | null>(null);
@@ -306,6 +309,7 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
     else if (rawPhone.length === 10) setEditPhone(`(${rawPhone.slice(0, 2)}) ${rawPhone.slice(2, 6)}-${rawPhone.slice(6)}`);
     else setEditPhone(rawPhone);
     setEditRole(user.role || "operador");
+    setEditSuprido(user.is_suprido);
     setEditRegionalIds(user.regionais.map((r) => r.id));
   };
 
@@ -327,6 +331,9 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
       const phoneDigits = editPhone.replace(/\D/g, "");
       if (phoneDigits !== (editUser.phone || "").replace(/\D/g, "")) {
         profileUpdates.phone = phoneDigits || null;
+      }
+      if (editSuprido !== editUser.is_suprido) {
+        profileUpdates.is_suprido = editSuprido;
       }
       if (Object.keys(profileUpdates).length > 0) {
         const { error } = await supabase
@@ -446,6 +453,11 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
                   <Badge variant={roleColors[u.role || "operador"] as any} className="text-xs mt-1">
                     {roleLabels[u.role || "operador"]}
                   </Badge>
+                  {u.is_suprido && (
+                    <Badge variant="outline" className="text-[10px] ml-1 mt-1 border-amber-500 text-amber-600 dark:text-amber-400">
+                      Suprido
+                    </Badge>
+                  )}
                 </div>
                 <Badge variant={u.ativo ? "default" : "destructive"} className="text-xs shrink-0">
                   {u.ativo ? "Ativo" : "Inativo"}
@@ -501,9 +513,16 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
                   )}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={roleColors[u.role || "operador"] as any}>
-                    {roleLabels[u.role || "operador"]}
-                  </Badge>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <Badge variant={roleColors[u.role || "operador"] as any}>
+                      {roleLabels[u.role || "operador"]}
+                    </Badge>
+                    {u.is_suprido && (
+                      <Badge variant="outline" className="text-[10px] border-amber-500 text-amber-600 dark:text-amber-400">
+                        Suprido
+                      </Badge>
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell className="text-muted-foreground">
                   {u.regionais.length > 0
@@ -606,6 +625,18 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
                 </SelectContent>
               </Select>
             </div>
+            {["gestor_regional", "gestor_nacional", "gestor_master", "fiscal_contrato"].includes(editRole) && (
+              <div className="flex items-center gap-2 border rounded-md p-3">
+                <Checkbox
+                  id="suprido-check"
+                  checked={editSuprido}
+                  onCheckedChange={(checked) => setEditSuprido(!!checked)}
+                />
+                <label htmlFor="suprido-check" className="text-sm cursor-pointer leading-none">
+                  Suprido (preposto do cartão corporativo)
+                </label>
+              </div>
+            )}
             <div>
               <Label>Regionais</Label>
               <div className="mt-2 max-h-48 overflow-y-auto space-y-2 border rounded-md p-3">
