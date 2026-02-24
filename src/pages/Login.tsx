@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Shield, Loader2, ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { Shield, Loader2, ArrowLeft, Eye, EyeOff, HelpCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -125,7 +125,16 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-primary/5 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-primary/5 p-4 relative">
+      <a
+        href="https://notebooklm.google.com/notebook/500f6b8a-cf93-44f3-a522-29b0ab49e608"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
+        title="Ajuda"
+      >
+        <HelpCircle className="h-6 w-6" />
+      </a>
       <Card className="w-full max-w-md">
         <CardHeader className="text-center space-y-3 pb-2">
           <div className="flex justify-center">
