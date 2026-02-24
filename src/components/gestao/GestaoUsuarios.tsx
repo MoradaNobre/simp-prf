@@ -301,7 +301,10 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
     if (isFiscal && (user.role === "gestor_regional" || user.role === "fiscal_contrato")) return;
     setEditUser(user);
     setEditName(user.full_name);
-    setEditPhone(user.phone || "");
+    const rawPhone = (user.phone || "").replace(/\D/g, "");
+    if (rawPhone.length === 11) setEditPhone(`(${rawPhone.slice(0, 2)}) ${rawPhone.slice(2, 7)}-${rawPhone.slice(7)}`);
+    else if (rawPhone.length === 10) setEditPhone(`(${rawPhone.slice(0, 2)}) ${rawPhone.slice(2, 6)}-${rawPhone.slice(6)}`);
+    else setEditPhone(rawPhone);
     setEditRole(user.role || "operador");
     setEditRegionalIds(user.regionais.map((r) => r.id));
   };
