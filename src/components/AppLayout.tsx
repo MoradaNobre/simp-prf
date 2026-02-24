@@ -3,7 +3,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { Outlet, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { LogOut, Loader2 } from "lucide-react";
+import { LogOut, Loader2, HelpCircle } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -57,6 +57,16 @@ export function AppLayout() {
                 {user.email}
               </span>
               <ThemeToggle />
+              <a
+                href="https://notebooklm.google.com/notebook/500f6b8a-cf93-44f3-a522-29b0ab49e608"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Ajuda"
+              >
+                <Button variant="ghost" size="icon">
+                  <HelpCircle className="h-4 w-4" />
+                </Button>
+              </a>
               <Button variant="ghost" size="icon" onClick={signOut} title="Sair">
                 <LogOut className="h-4 w-4" />
               </Button>

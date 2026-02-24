@@ -11,7 +11,6 @@ import {
   ChevronRight,
   Play,
   ArrowRight,
-  HelpCircle,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import logoImg from "@/assets/logo.jpg";
@@ -89,15 +88,6 @@ export default function LandingPage() {
             <Button onClick={() => navigate("/login")} className="gap-2">
               Acessar Sistema <ArrowRight className="h-4 w-4" />
             </Button>
-            <a
-              href="https://notebooklm.google.com/notebook/500f6b8a-cf93-44f3-a522-29b0ab49e608"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-muted-foreground hover:text-foreground transition-colors"
-              title="Ajuda"
-            >
-              <HelpCircle className="h-5 w-5" />
-            </a>
           </div>
         </div>
       </nav>
