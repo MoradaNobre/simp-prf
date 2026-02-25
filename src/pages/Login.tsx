@@ -16,6 +16,7 @@ type Mode = "login" | "signup" | "forgot" | "reset";
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [regionalId, setRegionalId] = useState("");
@@ -62,6 +63,11 @@ export default function Login() {
 
     try {
       if (mode === "signup") {
+        if (password !== confirmPassword) {
+          toast.error("As senhas não coincidem.");
+          setLoading(false);
+          return;
+        }
         if (!isValidPhone(phone)) {
           toast.error("Informe um telefone válido com DDD. Ex: (81) 99507-3100");
           setLoading(false);
@@ -87,6 +93,7 @@ export default function Login() {
         toast.success("Conta criada! Verifique seu e-mail para confirmar o cadastro.");
         setEmail("");
         setPassword("");
+        setConfirmPassword("");
         setFullName("");
         setPhone("");
         setRegionalId("");
@@ -295,6 +302,23 @@ export default function Login() {
                     </button>
                   </div>
                 </div>
+                {mode === "signup" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword">Confirmar Senha</Label>
+                    <div className="relative">
+                      <Input
+                        id="confirmPassword"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="••••••••"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        required
+                        minLength={6}
+                        className="pr-10"
+                      />
+                    </div>
+                  </div>
+                )}
                 <Button className="w-full" size="lg" type="submit" disabled={loading}>
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   {mode === "signup" ? "Criar Conta" : "Entrar"}
