@@ -16,6 +16,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { isAdminRole } from "@/utils/roles";
 import {
   Sidebar,
@@ -63,11 +64,13 @@ const allMenuItems = [
 export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { data: role } = useUserRole();
   const { data: profile } = useUserProfile();
   const isAdmin = isAdminRole(role);
   const isRegional = role === "gestor_regional";
   const canManage = isAdmin || isRegional;
+  const isPrfEmail = user?.email?.toLowerCase().endsWith("@prf.gov.br") ?? false;
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -189,23 +192,25 @@ export function AppSidebar() {
           </div>
         )}
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              isActive={location.pathname === "/app/sobre"}
-              tooltip="Sobre o Sistema"
-            >
-              <NavLink
-                to="/app/sobre"
-                end
-                className="hover:bg-sidebar-accent/50"
-                activeClassName="bg-sidebar-accent text-yellow-400 font-medium"
+          {isPrfEmail && (
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={location.pathname === "/app/sobre"}
+                tooltip="Sobre o Sistema"
               >
-                <Info className="h-4 w-4" />
-                <span>Sobre</span>
-              </NavLink>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+                <NavLink
+                  to="/app/sobre"
+                  end
+                  className="hover:bg-sidebar-accent/50"
+                  activeClassName="bg-sidebar-accent text-yellow-400 font-medium"
+                >
+                  <Info className="h-4 w-4" />
+                  <span>Sobre</span>
+                </NavLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
               <button onClick={handleLogout} className="w-full flex items-center gap-2 text-sidebar-foreground/70 hover:text-sidebar-foreground">
