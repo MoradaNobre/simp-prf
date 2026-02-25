@@ -173,15 +173,19 @@ export function AppSidebar() {
               <span className="text-sm font-medium text-sidebar-foreground truncate">
                 {profile.full_name || "Sem nome"}
               </span>
-              {role && (
-                <Badge variant={(roleColors[role] || "secondary") as any} className="text-[10px] w-fit px-1.5 py-0">
-                  {roleLabels[role] || role}
-                </Badge>
-              )}
-              {profile.is_suprido && (
-                <Badge variant="outline" className="text-[10px] w-fit px-1.5 py-0 border-amber-500 text-amber-600 dark:text-amber-400">
-                  Suprido
-                </Badge>
+              {(role || profile.is_suprido) && (
+                <div className="flex items-center gap-1 flex-wrap">
+                  {role && (
+                    <Badge variant={(roleColors[role] || "secondary") as any} className="text-[10px] w-fit px-1.5 py-0">
+                      {roleLabels[role] || role}
+                    </Badge>
+                  )}
+                  {profile.is_suprido && (
+                    <Badge variant="outline" className="text-[10px] w-fit px-1.5 py-0 border-amber-500 text-amber-600 dark:text-amber-400">
+                      Suprido
+                    </Badge>
+                  )}
+                </div>
               )}
               {profile.regionais && profile.regionais.length > 0 && (
                 <span className="text-[10px] text-sidebar-foreground/50 truncate mt-0.5" title={profile.regionais.map((r: any) => r.sigla).join(", ")}>
