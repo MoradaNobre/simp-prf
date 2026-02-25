@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { Resend } from "npm:resend@4.0.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -30,8 +31,10 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY");
-    if (!BREVO_API_KEY) throw new Error("BREVO_API_KEY not configured");
+    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+    if (!RESEND_API_KEY) throw new Error("RESEND_API_KEY not configured");
+
+    const resend = new Resend(RESEND_API_KEY);
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -173,28 +176,19 @@ Deno.serve(async (req) => {
 
     const { subject, html } = buildEmail(os, from_status, to_status, isRestitution ? motivo_restituicao : undefined);
 
-    // Send via Brevo
-    const emailRes = await fetch("https://api.brevo.com/v3/smtp/email", {
-      method: "POST",
-      headers: {
-        "api-key": BREVO_API_KEY,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        sender: { name: "SIMP-PRF", email: "noreply@simp.estudioai.site" },
-        to: recipientEmails.map(e => ({ email: e })),
-        subject,
-        htmlContent: html,
-      }),
+    // Send via Resend
+    const { data: emailData, error: emailError } = await resend.emails.send({
+      from: "SIMP-PRF <noreply@simp.estudioai.site>",
+      to: recipientEmails,
+      subject,
+      html,
     });
 
-    const emailData = await emailRes.json();
-
-    if (!emailRes.ok) {
-      console.error("Brevo error:", emailData);
+    if (emailError) {
+      console.error("Resend error:", emailError);
       return new Response(JSON.stringify({
         success: false,
-        warning: "Email não enviado: " + (emailData.message ?? JSON.stringify(emailData)),
+        warning: "Email não enviado: " + (emailError.message ?? JSON.stringify(emailError)),
         recipients: recipientEmails,
       }), {
         status: 200,
@@ -202,7 +196,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    return new Response(JSON.stringify({ success: true, email_id: emailData.messageId, recipients: recipientEmails }), {
+    return new Response(JSON.stringify({ success: true, email_id: emailData?.id, recipients: recipientEmails }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error: unknown) {
@@ -226,16 +220,13 @@ async function addPrepostoEmails(supabase: any, contratoId: string | null, email
     .single();
   if (!contrato) return;
 
-  // Try preposto_email first (may be plain string or JSON object)
   let email: string | null = null;
   if (contrato.preposto_email) {
     if (typeof contrato.preposto_email === "string") {
-      // Could be a JSON string like {"email":"...","confirmed":true}
       try {
         const parsed = JSON.parse(contrato.preposto_email);
         email = parsed.email || null;
       } catch {
-        // Plain email string
         email = contrato.preposto_email;
       }
     } else if (typeof contrato.preposto_email === "object" && contrato.preposto_email.email) {
@@ -243,7 +234,6 @@ async function addPrepostoEmails(supabase: any, contratoId: string | null, email
     }
   }
 
-  // Fallback: look up email via preposto_user_id from auth
   if (!email && contrato.preposto_user_id) {
     const { data: userData } = await supabase.auth.admin.getUserById(contrato.preposto_user_id);
     if (userData?.user?.email) {

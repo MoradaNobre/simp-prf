@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { Resend } from "npm:resend@4.0.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -81,8 +82,10 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY");
-    if (!BREVO_API_KEY) throw new Error("BREVO_API_KEY not configured");
+    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+    if (!RESEND_API_KEY) throw new Error("RESEND_API_KEY not configured");
+
+    const resend = new Resend(RESEND_API_KEY);
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -145,33 +148,23 @@ Deno.serve(async (req) => {
 
     const html = buildEmailHtml(template, actionUrl);
 
-    // Send via Brevo
-    const emailRes = await fetch("https://api.brevo.com/v3/smtp/email", {
-      method: "POST",
-      headers: {
-        "api-key": BREVO_API_KEY,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        sender: { name: "SIMP-PRF", email: "noreply@simp.estudioai.site" },
-        to: [{ email: email.trim().toLowerCase() }],
-        subject: template.subject,
-        htmlContent: html,
-      }),
+    const { data: emailData, error: emailError } = await resend.emails.send({
+      from: "SIMP-PRF <noreply@simp.estudioai.site>",
+      to: [email.trim().toLowerCase()],
+      subject: template.subject,
+      html,
     });
 
-    const emailData = await emailRes.json();
-
-    if (!emailRes.ok) {
-      console.error("Brevo error:", emailData);
+    if (emailError) {
+      console.error("Resend error:", emailError);
       return new Response(
-        JSON.stringify({ error: "Falha ao enviar e-mail: " + (emailData.message ?? JSON.stringify(emailData)) }),
+        JSON.stringify({ error: "Falha ao enviar e-mail: " + (emailError.message ?? JSON.stringify(emailError)) }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     return new Response(
-      JSON.stringify({ success: true, email_id: emailData.messageId }),
+      JSON.stringify({ success: true, email_id: emailData?.id }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: unknown) {
