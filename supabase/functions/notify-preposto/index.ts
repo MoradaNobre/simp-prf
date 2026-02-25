@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { Resend } from "npm:resend@4.0.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,8 +13,10 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY");
-    if (!BREVO_API_KEY) throw new Error("BREVO_API_KEY not configured");
+    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+    if (!RESEND_API_KEY) throw new Error("RESEND_API_KEY not configured");
+
+    const resend = new Resend(RESEND_API_KEY);
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -72,50 +75,41 @@ Deno.serve(async (req) => {
 
     const selectionUrl = `${app_url}/definir-responsavel/${os_id}`;
 
-    // Send via Brevo
-    const emailRes = await fetch("https://api.brevo.com/v3/smtp/email", {
-      method: "POST",
-      headers: {
-        "api-key": BREVO_API_KEY,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        sender: { name: "SIMP-PRF", email: "noreply@simp.estudioai.site" },
-        to: [{ email: contrato.preposto_email }],
-        subject: `[SIMP-PRF] Definir responsável - ${os.codigo}`,
-        htmlContent: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #1e3a5f;">SIMP-PRF — Nova Ordem de Serviço Encaminhada</h2>
-            <p>Olá, <strong>${contrato.preposto_nome ?? "Preposto"}</strong>!</p>
-            <p>A Ordem de Serviço <strong>${os.codigo} — ${os.titulo}</strong> foi vinculada ao contrato 
-            <strong>${contrato.numero} (${contrato.empresa})</strong> e está aguardando orçamento.</p>
-            <p>Por favor, defina o responsável pela execução clicando no botão abaixo:</p>
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${selectionUrl}" 
-                 style="background-color: #1e3a5f; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold;">
-                Definir Responsável
-              </a>
-            </div>
-            <p style="color: #666; font-size: 13px;">Se você não reconhece esta solicitação, ignore este email.</p>
+    const { data: emailData, error: emailError } = await resend.emails.send({
+      from: "SIMP-PRF <noreply@simp.estudioai.site>",
+      to: [contrato.preposto_email],
+      subject: `[SIMP-PRF] Definir responsável - ${os.codigo}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #1e3a5f;">SIMP-PRF — Nova Ordem de Serviço Encaminhada</h2>
+          <p>Olá, <strong>${contrato.preposto_nome ?? "Preposto"}</strong>!</p>
+          <p>A Ordem de Serviço <strong>${os.codigo} — ${os.titulo}</strong> foi vinculada ao contrato 
+          <strong>${contrato.numero} (${contrato.empresa})</strong> e está aguardando orçamento.</p>
+          <p>Por favor, defina o responsável pela execução clicando no botão abaixo:</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${selectionUrl}" 
+               style="background-color: #1e3a5f; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+              Definir Responsável
+            </a>
           </div>
-        `,
-      }),
+          <p style="color: #666; font-size: 13px;">Se você não reconhece esta solicitação, ignore este email.</p>
+        </div>
+      `,
     });
 
-    const emailData = await emailRes.json();
-    if (!emailRes.ok) {
-      console.error("Brevo error:", emailData);
+    if (emailError) {
+      console.error("Resend error:", emailError);
       return new Response(JSON.stringify({ 
         success: false, 
-        warning: "Email não enviado: " + (emailData.message ?? JSON.stringify(emailData)),
-        details: emailData,
+        warning: "Email não enviado: " + (emailError.message ?? JSON.stringify(emailError)),
+        details: emailError,
       }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    return new Response(JSON.stringify({ success: true, email_id: emailData.messageId }), {
+    return new Response(JSON.stringify({ success: true, email_id: emailData?.id }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error: unknown) {

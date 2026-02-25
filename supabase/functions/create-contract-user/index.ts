@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { Resend } from "npm:resend@4.0.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -23,7 +24,7 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY");
+    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
     // Verify caller using getClaims
     const callerClient = createClient(supabaseUrl, anonKey, {
@@ -175,7 +176,7 @@ Deno.serve(async (req) => {
     }
 
     // Create contrato_contato link
-    const { data: contato, error: contatoErr } = await adminClient
+    const { data: contatoData, error: contatoErr } = await adminClient
       .from("contrato_contatos")
       .insert({
         contrato_id,
@@ -197,46 +198,39 @@ Deno.serve(async (req) => {
 
     // Send welcome email with credentials if user was just created
     let emailSent = false;
-    if (userCreated && tempPassword && BREVO_API_KEY) {
+    if (userCreated && tempPassword && RESEND_API_KEY) {
+      const resend = new Resend(RESEND_API_KEY);
       const loginUrl = app_url ? `${app_url}/login` : "https://simp-prf.lovable.app/login";
       try {
-        const emailRes = await fetch("https://api.brevo.com/v3/smtp/email", {
-          method: "POST",
-          headers: {
-            "api-key": BREVO_API_KEY,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            sender: { name: "SIMP-PRF", email: "noreply@simp.estudioai.site" },
-            to: [{ email: trimmedEmail }],
-            subject: "[SIMP-PRF] Sua conta foi criada — Acesse o sistema",
-            htmlContent: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #1e3a5f;">SIMP-PRF — Bem-vindo(a) ao Sistema</h2>
-                <p>Olá, <strong>${trimmedName}</strong>!</p>
-                <p>Uma conta foi criada para você no <strong>SIMP-PRF</strong> (Sistema de Manutenção Predial da PRF).</p>
-                <p>Utilize as credenciais abaixo para acessar o sistema:</p>
-                <div style="background-color: #f4f4f5; border-radius: 8px; padding: 20px; margin: 20px 0;">
-                  <p style="margin: 4px 0;"><strong>E-mail:</strong> ${trimmedEmail}</p>
-                  <p style="margin: 4px 0;"><strong>Senha temporária:</strong> ${tempPassword}</p>
-                </div>
-                <p style="color: #dc2626; font-weight: bold;">⚠️ Por segurança, você deverá trocar sua senha no primeiro acesso.</p>
-                <div style="text-align: center; margin: 30px 0;">
-                  <a href="${loginUrl}" 
-                     style="background-color: #1e3a5f; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold;">
-                    Acessar o Sistema
-                  </a>
-                </div>
-                <p style="color: #666; font-size: 13px;">Se você não reconhece esta solicitação, ignore este e-mail.</p>
+        const { error: emailError } = await resend.emails.send({
+          from: "SIMP-PRF <noreply@simp.estudioai.site>",
+          to: [trimmedEmail],
+          subject: "[SIMP-PRF] Sua conta foi criada — Acesse o sistema",
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #1e3a5f;">SIMP-PRF — Bem-vindo(a) ao Sistema</h2>
+              <p>Olá, <strong>${trimmedName}</strong>!</p>
+              <p>Uma conta foi criada para você no <strong>SIMP-PRF</strong> (Sistema de Manutenção Predial da PRF).</p>
+              <p>Utilize as credenciais abaixo para acessar o sistema:</p>
+              <div style="background-color: #f4f4f5; border-radius: 8px; padding: 20px; margin: 20px 0;">
+                <p style="margin: 4px 0;"><strong>E-mail:</strong> ${trimmedEmail}</p>
+                <p style="margin: 4px 0;"><strong>Senha temporária:</strong> ${tempPassword}</p>
               </div>
-            `,
-          }),
+              <p style="color: #dc2626; font-weight: bold;">⚠️ Por segurança, você deverá trocar sua senha no primeiro acesso.</p>
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${loginUrl}" 
+                   style="background-color: #1e3a5f; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                  Acessar o Sistema
+                </a>
+              </div>
+              <p style="color: #666; font-size: 13px;">Se você não reconhece esta solicitação, ignore este e-mail.</p>
+            </div>
+          `,
         });
 
-        const emailData = await emailRes.json();
-        emailSent = emailRes.ok;
-        if (!emailRes.ok) {
-          console.error("Brevo error:", emailData);
+        emailSent = !emailError;
+        if (emailError) {
+          console.error("Resend error:", emailError);
         }
       } catch (emailErr) {
         console.error("Email send error:", emailErr);
@@ -246,7 +240,7 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        contato,
+        contato: contatoData,
         user_created: userCreated,
         user_id: userId,
         email_sent: emailSent,
