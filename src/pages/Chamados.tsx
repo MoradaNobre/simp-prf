@@ -327,7 +327,7 @@ export default function Chamados() {
                   <div className="flex gap-1">
                     {/* Analyze button: gestors/fiscais can analyze "aberto" chamados */}
                     {isGestorOrFiscal && chamado.status === "aberto" && (
-                      <Button size="icon" variant="ghost" title="Analisar (Matriz GUT)" onClick={() => { setAnalyzeChamado(chamado); setGutValues(null); }}>
+                      <Button size="icon" variant="ghost" title="Analisar (Matriz GUT)" className="text-destructive hover:text-destructive" onClick={() => { setAnalyzeChamado(chamado); setGutValues(null); }}>
                         <ClipboardCheck className="h-4 w-4" />
                       </Button>
                     )}
