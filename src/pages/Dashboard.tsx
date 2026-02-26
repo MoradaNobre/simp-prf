@@ -13,6 +13,7 @@ import { useRegionalFilter } from "@/hooks/useRegionalFilter";
 import { RegionalFilterSelect } from "@/components/RegionalFilterSelect";
 import { useUserRole } from "@/hooks/useUserRole";
 import DashboardOrcamento from "@/components/dashboard/DashboardOrcamento";
+import DashboardChamados from "@/components/dashboard/DashboardChamados";
 import { useContratos } from "@/hooks/useContratos";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -195,22 +196,24 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {canSeeOrcamento ? (
         <Tabs defaultValue="operacional">
           <TabsList>
             <TabsTrigger value="operacional">Ordens de Serviço</TabsTrigger>
-            <TabsTrigger value="orcamento">Orçamento</TabsTrigger>
+            <TabsTrigger value="chamados">Chamados</TabsTrigger>
+            {canSeeOrcamento && <TabsTrigger value="orcamento">Orçamento</TabsTrigger>}
           </TabsList>
           <TabsContent value="operacional" className="space-y-6 mt-4">
             <DashboardOperacional data={data} isLoading={isLoading} />
           </TabsContent>
-          <TabsContent value="orcamento" className="mt-4">
-            <DashboardOrcamento regionalId={effectiveRegionalId} userRole={role} />
+          <TabsContent value="chamados" className="mt-4">
+            <DashboardChamados regionalId={effectiveRegionalId} />
           </TabsContent>
+          {canSeeOrcamento && (
+            <TabsContent value="orcamento" className="mt-4">
+              <DashboardOrcamento regionalId={effectiveRegionalId} userRole={role} />
+            </TabsContent>
+          )}
         </Tabs>
-      ) : (
-        <DashboardOperacional data={data} isLoading={isLoading} />
-      )}
     </div>
   );
 }
