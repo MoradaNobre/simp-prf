@@ -279,7 +279,7 @@ export default function Chamados() {
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-[160px]"><SelectValue placeholder="Status" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="all">Todos os Status</SelectItem>
             <SelectItem value="aberto">Abertos</SelectItem>
             <SelectItem value="analisado">Analisados</SelectItem>
             <SelectItem value="vinculado">Vinculados</SelectItem>

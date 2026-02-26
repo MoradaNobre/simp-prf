@@ -198,7 +198,7 @@ export default function OrdensServico() {
           <Select value={statusFilter || "all"} onValueChange={(v) => setStatusFilter(v === "all" ? "" : v)}>
             <SelectTrigger className="w-full sm:w-40"><SelectValue placeholder="Status" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="all">Todos os Status</SelectItem>
               {Constants.public.Enums.os_status.map((s) => (
                 <SelectItem key={s} value={s}>{statusLabels[s]}</SelectItem>
               ))}
@@ -207,7 +207,7 @@ export default function OrdensServico() {
           <Select value={prioridadeFilter || "all"} onValueChange={(v) => setPrioridadeFilter(v === "all" ? "" : v)}>
             <SelectTrigger className="w-full sm:w-40"><SelectValue placeholder="Prioridade" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todas</SelectItem>
+              <SelectItem value="all">Todas as Prioridades</SelectItem>
               {Constants.public.Enums.os_prioridade.map((p) => (
                 <SelectItem key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</SelectItem>
               ))}
