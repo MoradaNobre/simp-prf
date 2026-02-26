@@ -97,10 +97,15 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
       }
 
       const categoriaLabels: Record<string, string> = {
-        eletrica: "Elétrica",
-        hidraulica: "Hidráulica",
+        hidraulico: "Sistema Hidráulico",
+        eletrico: "Sistema Elétrico",
+        iluminacao: "Iluminação",
+        incendio: "Incêndio",
+        estrutura: "Estrutura",
+        rede_logica: "Rede Lógica",
+        elevadores: "Elevadores",
         ar_condicionado: "Ar Condicionado",
-        outro: "Outros",
+        instalacoes_diversas: "Instalações Diversas",
       };
 
       const descricaoFinal = `[Local: ${localServico.trim()}]\n\n${prioridade === "urgente"
@@ -162,14 +167,19 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
 
         <div className="space-y-4">
           <div>
-            <Label>Categoria de Manutenção *</Label>
+            <Label>Tipo de Demanda *</Label>
             <Select value={categoria} onValueChange={setCategoria}>
-              <SelectTrigger><SelectValue placeholder="Selecione a categoria..." /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder="Selecione o tipo de demanda..." /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="eletrica">Elétrica</SelectItem>
-                <SelectItem value="hidraulica">Hidráulica</SelectItem>
-                <SelectItem value="ar_condicionado">Ar Condicionado</SelectItem>
-                <SelectItem value="outro">Outros</SelectItem>
+                <SelectItem value="hidraulico">Sistema Hidráulico — Falta de água, vazamentos, etc.</SelectItem>
+                <SelectItem value="eletrico">Sistema Elétrico — Curto circuito, tomadas com defeito, etc.</SelectItem>
+                <SelectItem value="iluminacao">Iluminação — Lâmpadas queimadas, não ligam, etc.</SelectItem>
+                <SelectItem value="incendio">Incêndio — Extintores vencidos, equipamentos defeituosos, etc.</SelectItem>
+                <SelectItem value="estrutura">Estrutura — Goteiras, rachaduras, concreto desplacando, etc.</SelectItem>
+                <SelectItem value="rede_logica">Rede Lógica — Instalações de pontos de rede, etc.</SelectItem>
+                <SelectItem value="elevadores">Elevadores — Elevador parado, com degrau, etc.</SelectItem>
+                <SelectItem value="ar_condicionado">Ar Condicionado — Não funciona, pingando, etc.</SelectItem>
+                <SelectItem value="instalacoes_diversas">Instalações Diversas — Divisórias, forro, suportes, dispensers, etc.</SelectItem>
               </SelectContent>
             </Select>
           </div>
