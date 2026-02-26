@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Search, PackagePlus, Trash2, Eye, ClipboardCheck, ArrowUpDown, Pencil } from "lucide-react";
+import { Plus, Search, PackagePlus, Trash2, Eye, ClipboardCheck, ArrowUpDown, Pencil, Info } from "lucide-react";
 import { NovoChamadoDialog } from "@/components/chamados/NovoChamadoDialog";
 import { useChamados, useUpdateChamado, useDeleteChamado, type Chamado } from "@/hooks/useChamados";
 import { useCreateOS } from "@/hooks/useOrdensServico";
@@ -225,12 +225,46 @@ export default function Chamados() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold">Chamados</h1>
-          <p className="text-muted-foreground text-sm">Abra chamados, analise com a Matriz GUT e agrupe-os em Ordens de Serviço.</p>
+          <p className="text-muted-foreground text-sm">
+            {role === "operador"
+              ? "Registre chamados de manutenção para sua regional. Após análise, eles serão agrupados em Ordens de Serviço."
+              : "Abra chamados, analise com a Matriz GUT e agrupe-os em Ordens de Serviço."}
+          </p>
         </div>
         <Button onClick={() => setDialogOpen(true)}>
           <Plus className="h-4 w-4 mr-2" /> Novo Chamado
         </Button>
       </div>
+
+      {/* Role-based workflow guide */}
+      {role === "operador" && (
+        <div className="flex items-start gap-3 p-3 rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/40 text-sm">
+          <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
+          <div className="text-blue-800 dark:text-blue-300">
+            <p className="font-medium mb-1">Como funciona o fluxo de chamados?</p>
+            <ol className="list-decimal list-inside space-y-0.5 text-blue-700 dark:text-blue-400">
+              <li>Você abre um chamado descrevendo o problema.</li>
+              <li>Um <strong>Gestor</strong> ou <strong>Fiscal</strong> analisa o chamado com a Matriz GUT (priorização técnica).</li>
+              <li>Após análise, o chamado é agrupado em uma <strong>Ordem de Serviço</strong> para execução.</li>
+            </ol>
+            <p className="mt-1 text-xs text-blue-600 dark:text-blue-500">Você pode editar seus chamados enquanto estiverem com status <strong>Aberto</strong>.</p>
+          </div>
+        </div>
+      )}
+
+      {isGestorOrFiscal && !isMaster && (
+        <div className="flex items-start gap-3 p-3 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/40 text-sm">
+          <Info className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+          <div className="text-amber-800 dark:text-amber-300">
+            <p className="font-medium mb-1">Ações disponíveis:</p>
+            <ul className="list-disc list-inside space-y-0.5 text-amber-700 dark:text-amber-400">
+              <li><strong className="text-destructive">📋 Analisar</strong> — Clique no ícone vermelho para avaliar chamados <strong>Abertos</strong> com a Matriz GUT.</li>
+              <li><strong>☑️ Selecionar + Gerar OS</strong> — Marque chamados <strong>Analisados</strong> (checkbox) e clique em <strong>Gerar OS</strong> para agrupá-los em uma Ordem de Serviço.</li>
+              <li>Você pode selecionar vários chamados analisados para criar uma OS consolidada.</li>
+            </ul>
+          </div>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
@@ -284,7 +318,18 @@ export default function Chamados() {
       {isLoading ? (
         <div className="text-center py-10 text-muted-foreground">Carregando...</div>
       ) : sortedChamados.length === 0 ? (
-        <div className="text-center py-10 text-muted-foreground">Nenhum chamado encontrado.</div>
+        <div className="text-center py-10 text-muted-foreground space-y-2">
+          <p>Nenhum chamado encontrado.</p>
+          {statusFilter === "aberto" && isGestorOrFiscal && (
+            <p className="text-xs">Não há chamados aguardando análise no momento.</p>
+          )}
+          {statusFilter === "analisado" && isGestor && (
+            <p className="text-xs">Não há chamados analisados aguardando vinculação a uma OS.</p>
+          )}
+          {role === "operador" && (
+            <p className="text-xs">Clique em <strong>+ Novo Chamado</strong> para registrar uma demanda de manutenção.</p>
+          )}
+        </div>
       ) : (
         <div className="space-y-3">
           {sortedChamados.map((chamado) => (
