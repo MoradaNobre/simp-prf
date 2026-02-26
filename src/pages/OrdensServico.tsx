@@ -323,7 +323,9 @@ export default function OrdensServico() {
       ) : !ordens?.length ? (
         <Card>
           <CardContent className="text-center py-8 text-muted-foreground text-sm">
-            Nenhuma OS encontrada. Crie uma nova OS para começar.
+            {isExternalUser
+              ? "Nenhuma OS vinculada ao seu contrato no momento."
+              : "Nenhuma OS encontrada. Crie uma nova OS para começar."}
           </CardContent>
         </Card>
       ) : isMobile ? (
