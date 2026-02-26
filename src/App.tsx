@@ -17,6 +17,7 @@ import Login from "@/pages/Login";
 import AlterarSenha from "@/pages/AlterarSenha";
 import Gestao from "@/pages/Gestao";
 import Sobre from "@/pages/Sobre";
+import DocumentoViewer from "@/pages/DocumentoViewer";
 import { AppRedirect } from "@/components/AppRedirect";
 import Relatorios from "@/pages/Relatorios";
 import GestaoOrcamento from "@/pages/GestaoOrcamento";
@@ -50,6 +51,7 @@ const App = () => (
                 
                 <Route path="relatorios" element={<Relatorios />} />
                 <Route path="sobre" element={<Sobre />} />
+                <Route path="documento" element={<DocumentoViewer />} />
               </Route>
               <Route path="/definir-responsavel/:osId" element={<DefinirResponsavel />} />
               <Route path="*" element={<NotFound />} />
