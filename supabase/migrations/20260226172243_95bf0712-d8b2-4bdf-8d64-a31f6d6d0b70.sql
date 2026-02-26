@@ -1,0 +1,1 @@
+ALTER TABLE public.chamados ADD COLUMN motivo_cancelamento text;

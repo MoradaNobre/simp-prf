@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Search, PackagePlus, Trash2, Eye, ClipboardCheck, ArrowUpDown, Pencil, Info } from "lucide-react";
+import { Plus, Search, PackagePlus, Trash2, Eye, ClipboardCheck, ArrowUpDown, Pencil, Info, Ban } from "lucide-react";
 import { NovoChamadoDialog } from "@/components/chamados/NovoChamadoDialog";
 import { useChamados, useUpdateChamado, useDeleteChamado, type Chamado } from "@/hooks/useChamados";
 import { useCreateOS } from "@/hooks/useOrdensServico";
@@ -76,6 +78,8 @@ export default function Chamados() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [sortByScore, setSortByScore] = useState(false);
   const [editChamado, setEditChamado] = useState<Chamado | null>(null);
+  const [cancelChamado, setCancelChamado] = useState<Chamado | null>(null);
+  const [motivoCancelamento, setMotivoCancelamento] = useState("");
 
   const { data: chamados = [], isLoading } = useChamados({
     status: statusFilter || undefined,
@@ -385,6 +389,12 @@ export default function Chamados() {
                     <Button size="icon" variant="ghost" onClick={() => setViewChamado(chamado)}>
                       <Eye className="h-4 w-4" />
                     </Button>
+                    {/* Cancel button: gestors/fiscais can cancel "aberto" chamados */}
+                    {isGestorOrFiscal && chamado.status === "aberto" && (
+                      <Button size="icon" variant="ghost" title="Cancelar chamado" className="text-amber-600 hover:text-amber-600" onClick={() => { setCancelChamado(chamado); setMotivoCancelamento(""); }}>
+                        <Ban className="h-4 w-4" />
+                      </Button>
+                    )}
                     {(isMaster || (isGestor && chamado.status === "aberto")) && (
                       <Button size="icon" variant="ghost" className="text-destructive" onClick={() => setDeleteId(chamado.id)}>
                         <Trash2 className="h-4 w-4" />
@@ -504,6 +514,55 @@ export default function Chamados() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Cancel chamado dialog */}
+      <Dialog open={!!cancelChamado} onOpenChange={() => setCancelChamado(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Cancelar Chamado {cancelChamado?.codigo}</DialogTitle>
+            <DialogDescription>Informe o motivo do cancelamento. Esta ação não pode ser desfeita.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label className="text-sm font-medium">Motivo do cancelamento *</Label>
+              <Textarea
+                value={motivoCancelamento}
+                onChange={(e) => setMotivoCancelamento(e.target.value)}
+                placeholder="Descreva o motivo do cancelamento..."
+                rows={3}
+              />
+              {motivoCancelamento.length === 0 && (
+                <p className="text-xs text-destructive mt-1">O motivo é obrigatório.</p>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCancelChamado(null)}>Voltar</Button>
+            <Button
+              variant="destructive"
+              disabled={!motivoCancelamento.trim()}
+              onClick={async () => {
+                if (!cancelChamado || !motivoCancelamento.trim()) return;
+                try {
+                  await updateChamado.mutateAsync({
+                    id: cancelChamado.id,
+                    status: "cancelado",
+                    motivo_cancelamento: motivoCancelamento.trim(),
+                  });
+                  toast.success("Chamado cancelado.");
+                  setCancelChamado(null);
+                  setMotivoCancelamento("");
+                } catch (err: any) {
+                  toast.error("Erro: " + (err.message || err));
+                }
+              }}
+            >
+              <Ban className="h-4 w-4 mr-2" />
+              Confirmar Cancelamento
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
