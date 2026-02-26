@@ -1,13 +1,14 @@
 # Catálogo de Regras de Negócio – SIMP-PRF
 
-**Versão:** 1.5  
-**Data:** 24/02/2026  
+**Versão:** 1.6  
+**Data:** 26/02/2026  
 **Fonte:** SPEC.md  
 
 ---
 
 ## Histórico de Versões
 
+- v1.6 (26/02/2026): Inclusão das regras do módulo de Chamados (RN-184 a RN-197) e reestruturação de relatórios PDF. Total: 197 regras.
 - v1.5 (24/02/2026): Inclusão das regras de fluxo abreviado Cartão Corporativo (RN-180 a RN-182) e renumeração da duplicação de contratos (RN-183). Total: 183 regras.
 - v1.4 (24/02/2026): Inclusão das regras de Limites de Modalidade (RN-170 a RN-178), duplicação de contratos (RN-179) e reordenação da hierarquia de bloqueios para 4 níveis.
 - v1.3 (24/02/2026): Inclusão das regras do perfil Suprido (RN-165 a RN-169).
@@ -54,6 +55,7 @@
 |---|---|
 | **RN-017** | O Dashboard é acessível aos perfis: Master, Nacional, Regional, Fiscal e Operador. |
 | **RN-018** | A página de Ordens de Serviço é acessível a **todos** os perfis. |
+| **RN-018a** | A página de Chamados é acessível aos perfis: Master, Nacional, Regional, Fiscal e Operador. |
 | **RN-019** | A página de Relatórios OS é acessível a todos os perfis, **exceto** Operador. |
 | **RN-020** | A página de Contratos é acessível aos perfis: Master, Nacional, Regional, Fiscal, Operador e Preposto. |
 | **RN-021** | A página de Gestão do Orçamento é acessível aos perfis: Master, Nacional, Regional. O Fiscal possui acesso somente leitura. |
@@ -357,14 +359,38 @@
 |---|---|
 | **RN-183** | Contratos do tipo "Cartão Corporativo" possuem a opção de duplicação, que abre o formulário de novo contrato pré-preenchido com os dados do contrato original (exceto número e datas de vigência). |
 
+## 28. Chamados
+
+| # | Regra |
+|---|---|
+| **RN-184** | Chamados podem ser criados por todos os perfis, exceto Preposto e Terceirizado. |
+| **RN-185** | O fluxo de status do chamado é: Aberto → Analisado → Vinculado (a uma OS) ou Cancelado. |
+| **RN-186** | A análise de chamados (Matriz GUT) é restrita aos perfis: Master, Nacional, Regional e Fiscal. |
+| **RN-187** | A Matriz GUT consiste em notas de 1 a 5 para Gravidade, Urgência e Tendência. O score é G × U × T (mín: 1, máx: 125). |
+| **RN-188** | A geração de OS a partir de chamados é restrita aos perfis: Master, Nacional, Regional e Fiscal. |
+| **RN-189** | Múltiplos chamados analisados podem ser agrupados em uma única OS corretiva. |
+| **RN-190** | A prioridade da OS gerada é derivada do maior score GUT: ≥64 urgente, ≥27 alta, ≥8 média, <8 baixa. |
+| **RN-191** | Ao gerar a OS, todos os chamados selecionados são vinculados automaticamente (campo `os_id`) e passam para status "Vinculado". |
+| **RN-192** | O cancelamento de chamados requer motivo obrigatório e é restrito a Gestores e Fiscais. |
+| **RN-193** | Chamados com status "Vinculado" não podem ser cancelados. |
+| **RN-194** | O Operador pode editar apenas seus próprios chamados enquanto estiverem com status "Aberto". |
+| **RN-195** | O código do chamado é gerado automaticamente pelo banco de dados (tabela `chamados`, campo `codigo`). |
+
+## 29. Relatórios PDF – Chamados Vinculados
+
+| # | Regra |
+|---|---|
+| **RN-196** | Os relatórios PDF de OS (Execução e Pagamento) incluem seção "Chamados Vinculados" com: código, tipo de demanda, local, solicitante e Matriz GUT (G×U×T=Score). |
+| **RN-197** | O relatório PDF de Contrato inclui resumo de chamados (total e OS originadas) e coluna "CH" (chamados vinculados) na tabela de OS por ano. |
+
 ---
 
-**Total de Regras de Negócio:** 183
+**Total de Regras de Negócio:** 197
 
 ---
 
 *Catálogo de Regras de Negócio extraído do SPEC.md — SIMP-PRF.*  
-*Versão 1.5 — 24/02/2026*
+*Versão 1.6 — 26/02/2026*
 
 ## Histórico de Versões
 
@@ -376,3 +402,4 @@
 | 1.3 | 24/02/2026 | Inclusão da seção 24 – Perfil Suprido / Cartão Corporativo (RN-165 a RN-169). Total: 169 regras |
 | 1.4 | 24/02/2026 | Inclusão das seções 25 e 26 – Limites de Modalidade (RN-170 a RN-178) e Duplicação de Contratos (RN-179). Total: 179 regras |
 | 1.5 | 24/02/2026 | Inclusão da seção 26 – Fluxo Abreviado Cartão Corporativo (RN-180 a RN-182), renumeração (RN-183). Total: 183 regras |
+| 1.6 | 26/02/2026 | Inclusão das seções 28 e 29 – Chamados (RN-184 a RN-195) e Relatórios PDF com chamados (RN-196 a RN-197). Total: 197 regras |

@@ -2,8 +2,8 @@
 
 ## SIMP-PRF – Sistema Integrado de Manutenção Predial
 
-**Versão:** 1.2  
-**Data:** 24/02/2026  
+**Versão:** 1.3  
+**Data:** 26/02/2026  
 **Classificação:** Documento Institucional
 
 ---
@@ -66,6 +66,7 @@ O sistema atende a hierarquia organizacional da PRF, desde a administração cen
 | Autenticação e Autorização | Login por e-mail/senha, 7 perfis hierárquicos, RLS por regional |
 | Gestão de Usuários | Criação, edição, inativação e exclusão com regras hierárquicas |
 | Gestão de Contratos | Cadastro, aditivos, contatos, vinculação de preposto, cálculo de saldo |
+| Chamados | Registro de demandas de manutenção com análise GUT, agrupamento e vinculação a OS |
 | Ordens de Serviço | Ciclo completo de 8 etapas com bloqueios, uploads e notificações |
 | Controle Orçamentário | Portaria orçamentária (LOA), cotas regionais, créditos, empenhos |
 | Solicitações de Crédito | Criação avulsa ou vinculada a OS, aprovação total ou parcial |
@@ -302,6 +303,24 @@ Cada transição:
 | RF-REL-03 | Ambos os relatórios em formato PDF. |
 | RF-REL-04 | Preposto e Terceirizado visualizam apenas a aba "Execução" e somente de seus contratos. |
 | RF-REL-05 | Aba "Pagamento" ocultada para Preposto e Terceirizado. |
+| RF-REL-06 | Relatórios de OS (Execução e Pagamento) incluem seção "Chamados Vinculados" com código, tipo de demanda, local, solicitante e Matriz GUT. |
+| RF-REL-07 | Relatório de Contrato inclui resumo de chamados (total e OS originadas) e coluna "CH" (quantidade de chamados) na tabela de OS. |
+
+### 7.10 Chamados (RF-CHM)
+
+| ID | Requisito |
+|---|---|
+| RF-CHM-01 | Registro de chamados de manutenção por todos os perfis, exceto Preposto e Terceirizado. |
+| RF-CHM-02 | Cada chamado possui: tipo de demanda, descrição, local do serviço, prioridade, regional, delegacia, UOP e foto opcional. |
+| RF-CHM-03 | Código do chamado gerado automaticamente pelo banco de dados. |
+| RF-CHM-04 | Análise de chamados com Matriz GUT (Gravidade × Urgência × Tendência) por Gestores e Fiscais. |
+| RF-CHM-05 | Agrupamento de chamados analisados em Ordem de Serviço com vinculação automática. |
+| RF-CHM-06 | Prioridade da OS gerada é derivada do maior score GUT entre os chamados agrupados. |
+| RF-CHM-07 | Fluxo de status do chamado: Aberto → Analisado → Vinculado (a uma OS). |
+| RF-CHM-08 | Cancelamento de chamados com motivo obrigatório. |
+| RF-CHM-09 | Tipos de demanda: Hidráulico, Elétrico, Iluminação, Incêndio, Estrutura, Rede Lógica, Elevadores, Ar Condicionado, Instalações Diversas. |
+| RF-CHM-10 | Seleção múltipla de chamados para geração de OS consolidada. |
+| RF-CHM-11 | Ordenação por score GUT (toggle) para priorização visual. |
 
 ### 7.9 Dashboard (RF-DASH)
 
@@ -323,6 +342,7 @@ Cada transição:
 | Página | Master | Nacional | Regional | Fiscal | Operador | Preposto | Terceirizado |
 |---|---|---|---|---|---|---|---|
 | Dashboard | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Chamados | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
 | Ordens de Serviço | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Relatórios OS | ✅ | ✅ | ✅ | ✅ | ❌ | ✅* | ✅* |
 | Contratos | ✅ | ✅ | ✅ | ✅ | ✅ | ✅* | ❌ |
@@ -396,7 +416,7 @@ Cada transição:
 | Documento | Localização | Descrição |
 |---|---|---|
 | SPEC.md | Raiz do projeto | Especificação técnica completa de funcionalidades |
-| REGRAS_NEGOCIO.md | Raiz do projeto | Catálogo formal com 179 regras numeradas (RN-001 a RN-179) |
+| REGRAS_NEGOCIO.md | Raiz do projeto | Catálogo formal com 197 regras numeradas (RN-001 a RN-197) |
 | TECHNICAL_DOCS.md | Raiz e `/public` | Documentação técnica do sistema (v1.1) |
 | PRIVACY_POLICY.md | Raiz e `/public` | Política de privacidade |
 | DEVELOPER.md | Raiz do projeto | Créditos e informações do desenvolvedor |
@@ -417,7 +437,7 @@ Não se trata apenas de ferramenta operacional, mas de **mecanismo institucional
 ---
 
 *PRD – Product Requirements Document — SIMP-PRF*  
-*Versão 1.1 — 24/02/2026*
+*Versão 1.3 — 26/02/2026*
 
 ## Histórico de Versões
 
@@ -426,3 +446,4 @@ Não se trata apenas de ferramenta operacional, mas de **mecanismo institucional
 | 1.0 | 22/02/2026 | Versão inicial do PRD |
 | 1.1 | 24/02/2026 | Atualização para 4 níveis de bloqueio na autorização, duplicação de contratos, limites de modalidade, 179 regras de negócio |
 | 1.2 | 24/02/2026 | Inclusão do perfil Suprido (flag acumulável), comportamento em contratos Cartão Corporativo, fluxo abreviado (Ateste → Encerrada) |
+| 1.3 | 26/02/2026 | Inclusão do módulo de Chamados (RF-CHM), reestruturação dos relatórios PDF com seção de chamados vinculados, 197 regras de negócio |

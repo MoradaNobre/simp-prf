@@ -185,6 +185,7 @@ Todos os dados coletados têm como finalidade exclusiva:
 | `delegacias`          | Cadastro de delegacias vinculadas às regionais                                |
 | `uops`                | Unidades Operacionais Policiais (endereço, área, coordenadas)                 |
 | `equipamentos`        | Equipamentos das UOPs (categoria, marca, modelo, série)                       |
+| `chamados`            | Chamados de manutenção (tipo demanda, descrição, local, GUT, status, OS vinculada) |
 | `ordens_servico`      | Ordens de serviço de manutenção (título, descrição, status, prioridade, tipo) |
 | `os_custos`           | Custos associados às ordens de serviço                                        |
 | `contratos`           | Contratos de manutenção predial                                               |
@@ -248,9 +249,19 @@ Cada transição de status é registrada com timestamp e identificação do resp
 
 ## 6. Funcionalidades Principais
 
-### 6.1. Módulo de Ordens de Serviço
+### 6.1. Módulo de Chamados
+
+- Registro de chamados de manutenção por servidores (9 tipos de demanda)
+- Análise com Matriz GUT (Gravidade × Urgência × Tendência, score 1-125)
+- Fluxo: Aberto → Analisado → Vinculado (a uma OS) ou Cancelado
+- Agrupamento de múltiplos chamados analisados em uma OS corretiva
+- Prioridade da OS derivada automaticamente do maior score GUT
+- Cancelamento com motivo obrigatório
+
+### 6.2. Módulo de Ordens de Serviço
 
 - Abertura de OS corretivas e preventivas com fluxo de 8 etapas
+- Origem: criação direta ou a partir de chamados vinculados
 - Fluxo completo de status (aberta → encerrada) com bloqueios em 4 níveis na autorização
 - Atribuição de responsáveis (fiscal, preposto, terceirizado)
 - Upload de fotos (antes/depois) e documentos de orçamento
@@ -259,7 +270,7 @@ Cada transição de status é registrada com timestamp e identificação do resp
 - Controle de prioridade (baixa, média, alta, urgente)
 - Notificações por e-mail nas transições de status
 
-### 6.2. Módulo de Contratos
+### 6.3. Módulo de Contratos
 
 - Cadastro de contratos com dados completos (número, empresa, valor, vigência, tipo de serviço)
 - Tipos de serviço: Manutenção Predial, Ar Condicionado, Cartão Corporativo, Contrata + Brasil
@@ -267,30 +278,31 @@ Cada transição de status é registrada com timestamp e identificação do resp
 - Gestão de contatos vinculados ao contrato
 - Vinculação de preposto (ou suprido para cartão corporativo) e terceirizados
 - Controle de saldo (valor total – custos das OS)
-- Geração de relatórios por contrato
+- Geração de relatórios por contrato (inclui resumo de chamados)
 
-### 6.3. Módulo de Gestão
+### 6.4. Módulo de Gestão
 
 - Cadastro de regionais, delegacias e UOPs
 - Gestão de usuários (criação, perfis, ativação/desativação, flag Suprido)
 - Gestão de limites de modalidade (Cartão Corporativo, Contrata + Brasil) por regional e ano com edição inline
 - Logs de auditoria do sistema
 
-### 6.4. Módulo Orçamentário
+### 6.5. Módulo Orçamentário
 
 - Cadastro de dotação orçamentária anual por regional
 - Registro de empenhos e créditos
 - Visualização de saldo disponível
 - Controle por exercício financeiro
 
-### 6.5. Módulo de Relatórios
+### 6.6. Módulo de Relatórios
 
-- Relatórios de execução de OS
-- Relatórios de pagamento/ateste
+- Relatórios de execução de OS (inclui chamados vinculados com Matriz GUT)
+- Relatórios de pagamento/ateste (inclui chamados vinculados)
+- Relatório de contrato com resumo de chamados e coluna CH
 - Exportação em PDF
 - Envio por e-mail aos destinatários
 
-### 6.6. Módulo de Agenda de Visitas
+### 6.7. Módulo de Agenda de Visitas
 
 - Calendário mensal de agendamentos de visitas técnicas
 - Vinculação obrigatória a uma Ordem de Serviço em execução
@@ -299,7 +311,7 @@ Cada transição de status é registrada com timestamp e identificação do resp
 - Visualização na página dedicada e na aba de detalhes da OS
 - Controle de permissões: Preposto/Terceirizado criam; Gestores/Fiscais gerenciam
 
-### 6.7. Dashboard
+### 6.8. Dashboard
 
 - Visão geral de OS por status e prioridade
 - Gráficos de execução orçamentária
@@ -322,9 +334,9 @@ Cada transição de status é registrada com timestamp e identificação do resp
 
 _Documento técnico elaborado conforme padrões de documentação da Polícia Rodoviária Federal._
 
-**Versão:** 1.4
+**Versão:** 1.5
 **Data:** 16/02/2026
-**Última Atualização:** 24/02/2026
+**Última Atualização:** 26/02/2026
 **Responsável:** Daniel Nunes de Ávila
 
 ## Histórico de Versões
@@ -336,3 +348,4 @@ _Documento técnico elaborado conforme padrões de documentação da Polícia Ro
 | 1.2    | 24/02/2026 | Refinamento de UI no módulo de Agenda (Destaque visual de botões) |
 | 1.3    | 24/02/2026 | Adição da flag "Suprido" (preposto do cartão corporativo) como campo booleano acumulável na tabela `profiles` |
 | 1.4    | 24/02/2026 | Limites de Modalidade (`limites_modalidade`), 4 níveis de bloqueio na autorização, duplicação de contratos Cartão Corporativo, edição inline de limites |
+| 1.5    | 26/02/2026 | Módulo de Chamados (`chamados`), reestruturação de relatórios PDF com seção de chamados vinculados e Matriz GUT |
