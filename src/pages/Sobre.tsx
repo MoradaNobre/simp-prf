@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
+  ClipboardList,
   Shield,
   User,
   Mail,
@@ -178,6 +179,24 @@ export default function Sobre() {
                 </p>
                 <p className="text-xs text-muted-foreground">
                   LGPD, dados coletados e seus direitos
+                </p>
+              </div>
+              <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+            </Link>
+
+            <Link
+              to="/app/documento?doc=prd"
+              className="flex items-center gap-3 p-4 rounded-lg border border-border hover:border-primary/50 hover:bg-accent/50 transition-all group"
+            >
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                <ClipboardList className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-foreground">
+                  Requisitos do Produto (PRD)
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Requisitos funcionais e não funcionais
                 </p>
               </div>
               <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
