@@ -2,7 +2,7 @@
 
 ## SIMP-PRF – Sistema Integrado de Manutenção Predial
 
-**Versão:** 1.3  
+**Versão:** 1.4  
 **Data:** 26/02/2026  
 **Classificação:** Documento Institucional
 
@@ -14,12 +14,15 @@
 
 O SIMP-PRF é um sistema corporativo destinado à gestão integrada da manutenção predial no âmbito da Polícia Rodoviária Federal, contemplando:
 
+- Registro e triagem de chamados de manutenção com análise de prioridade por Matriz GUT
 - Controle de contratos de manutenção vinculados a regionais
 - Gestão orçamentária descentralizada por regional (dotação, cotas, empenhos)
 - Formalização e rastreabilidade completa de Ordens de Serviço (OS) em 8 etapas
 - Controle preventivo da execução da despesa com bloqueios automáticos em 4 níveis
 - Monitoramento gerencial por indicadores em tempo real
 - Gestão de ativos prediais e planos de manutenção preventiva (PMOC)
+
+O fluxo operacional do sistema segue a sequência: **Chamado → Análise GUT → Agrupamento → Ordem de Serviço**, garantindo que toda demanda de manutenção seja formalmente registrada, priorizada e rastreada antes de gerar uma OS.
 
 O sistema atua como ferramenta de governança administrativa e mitigação de riscos orçamentários, garantindo segregação de funções e trilha de auditoria completa.
 
@@ -159,9 +162,46 @@ A autorização de execução de uma OS está sujeita a **quatro bloqueios seque
 
 ---
 
-## 6. Fluxo Funcional Principal – Ordem de Serviço
+## 6. Fluxos Funcionais Principais
 
-### 6.1 Ciclo de Vida (8 Etapas)
+### 6.0 Ciclo de Vida do Chamado (Pré-OS)
+
+O chamado é a etapa inicial do fluxo de manutenção, servindo como porta de entrada formal para todas as demandas prediais antes da geração de uma Ordem de Serviço.
+
+#### 6.0.1 Fluxo de Status
+
+```
+Aberto → Analisado (GUT) → Vinculado (a uma OS)
+```
+
+#### 6.0.2 Detalhamento das Etapas
+
+| Etapa | Descrição | Responsável |
+|---|---|---|
+| **Aberto** | Chamado registrado com tipo de demanda, descrição, local, prioridade e foto opcional. | Operador, Fiscal, Gestor Regional, Gestor Nacional, Gestor Master |
+| **Analisado** | Avaliação da criticidade via Matriz GUT (Gravidade × Urgência × Tendência), atribuindo scores de 1 a 5 para cada dimensão. Score final = G × U × T (1 a 125). | Gestor Regional, Fiscal, Gestor Nacional, Gestor Master |
+| **Vinculado** | Chamado(s) agrupados em uma Ordem de Serviço. A prioridade da OS é derivada do maior score GUT entre os chamados selecionados. | Gestor Regional, Fiscal, Gestor Nacional, Gestor Master |
+
+#### 6.0.3 Derivação de Prioridade da OS
+
+| Score GUT | Prioridade da OS |
+|---|---|
+| ≥ 64 | Urgente |
+| ≥ 27 | Alta |
+| ≥ 8 | Média |
+| < 8 | Baixa |
+
+#### 6.0.4 Regras do Chamado
+
+- Um chamado só pode ser vinculado a uma OS após análise GUT.
+- Múltiplos chamados podem ser agrupados em uma única OS.
+- Após vinculação, o chamado recebe status "Vinculado" e referência à OS gerada.
+- O cancelamento de chamados exige motivo obrigatório e é restrito a: Operador (apenas seus próprios chamados), Fiscal e Gestores.
+- A exclusão definitiva é restrita ao Gestor Master.
+
+---
+
+### 6.1 Ciclo de Vida da Ordem de Serviço (8 Etapas)
 
 ```
 Aberta → Orçamento → Autorização → Execução → Ateste → Faturamento → Pagamento → Encerrada
@@ -437,7 +477,7 @@ Não se trata apenas de ferramenta operacional, mas de **mecanismo institucional
 ---
 
 *PRD – Product Requirements Document — SIMP-PRF*  
-*Versão 1.3 — 26/02/2026*
+*Versão 1.4 — 26/02/2026*
 
 ## Histórico de Versões
 
@@ -447,3 +487,4 @@ Não se trata apenas de ferramenta operacional, mas de **mecanismo institucional
 | 1.1 | 24/02/2026 | Atualização para 4 níveis de bloqueio na autorização, duplicação de contratos, limites de modalidade, 179 regras de negócio |
 | 1.2 | 24/02/2026 | Inclusão do perfil Suprido (flag acumulável), comportamento em contratos Cartão Corporativo, fluxo abreviado (Ateste → Encerrada) |
 | 1.3 | 26/02/2026 | Inclusão do módulo de Chamados (RF-CHM), reestruturação dos relatórios PDF com seção de chamados vinculados, 197 regras de negócio |
+| 1.4 | 26/02/2026 | Inclusão do fluxo funcional de Chamados (seção 6.0) como etapa pré-OS, atualização do Propósito com sequência Chamado → OS |
