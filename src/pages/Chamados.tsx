@@ -294,7 +294,7 @@ export default function Chamados() {
       </div>
 
       {/* Gestor action bar */}
-      {(isGestor || isMaster) && selectedChamados.size > 0 && (
+      {(isGestorOrFiscal || isMaster) && selectedChamados.size > 0 && (
         <div className="flex items-center gap-3 p-3 bg-muted rounded-lg border">
           <span className="text-sm font-medium">{selectedChamados.size} chamado(s) selecionado(s)</span>
           {/* Only show Gerar OS if there are analisado chamados selected */}
@@ -323,7 +323,7 @@ export default function Chamados() {
           {statusFilter === "aberto" && isGestorOrFiscal && (
             <p className="text-xs">Não há chamados aguardando análise no momento.</p>
           )}
-          {statusFilter === "analisado" && isGestor && (
+          {statusFilter === "analisado" && isGestorOrFiscal && (
             <p className="text-xs">Não há chamados analisados aguardando vinculação a uma OS.</p>
           )}
           {role === "operador" && (
@@ -336,8 +336,8 @@ export default function Chamados() {
             <Card key={chamado.id} className={`${selectedChamados.has(chamado.id) ? "ring-2 ring-primary" : ""}`}>
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
-                  {/* Checkbox: master can select any, other gestors only analisado */}
-                  {(isMaster || (isGestor && chamado.status === "analisado")) && (
+                  {/* Checkbox: master can select any, gestors/fiscais only analisado */}
+                  {(isMaster || (isGestorOrFiscal && chamado.status === "analisado")) && (
                     <Checkbox
                       checked={selectedChamados.has(chamado.id)}
                       onCheckedChange={() => toggleSelect(chamado.id)}
