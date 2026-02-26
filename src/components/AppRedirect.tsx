@@ -17,5 +17,9 @@ export function AppRedirect() {
     return <Navigate to="/app/orcamento" replace />;
   }
 
+  if (role === "operador" || role === "fiscal_contrato" || role === "gestor_regional") {
+    return <Navigate to="/app/chamados" replace />;
+  }
+
   return <Navigate to="/app/ordens" replace />;
 }
