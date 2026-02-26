@@ -91,6 +91,21 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   const [downloadingZip, setDownloadingZip] = useState(false);
   
 
+  // Check if this OS was created from chamados
+  const { data: linkedChamados = [] } = useQuery({
+    queryKey: ["os-linked-chamados-detalhes", os?.id],
+    queryFn: async () => {
+      if (!os) return [];
+      const { data } = await supabase
+        .from("chamados")
+        .select("id, gut_score")
+        .eq("os_id", os.id);
+      return data || [];
+    },
+    enabled: !!os?.id,
+  });
+  const hasLinkedChamados = linkedChamados.length > 0;
+
   const { data: contratosAll = [] } = useContratos();
   const { data: saldos = [] } = useContratosSaldo();
 
@@ -777,15 +792,22 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label>Prioridade</Label>
-                    <Select value={selectedPrioridade} onValueChange={setSelectedPrioridade}>
-                      <SelectTrigger><SelectValue placeholder="Selecione a prioridade" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="baixa">Baixa</SelectItem>
-                        <SelectItem value="media">Média</SelectItem>
-                        <SelectItem value="alta">Alta</SelectItem>
-                        <SelectItem value="urgente">Urgente</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    {hasLinkedChamados ? (
+                      <div className="text-sm text-muted-foreground bg-muted rounded px-3 py-2">
+                        {selectedPrioridade.charAt(0).toUpperCase() + selectedPrioridade.slice(1)}
+                        <p className="text-xs mt-1">Definida pela Matriz GUT do chamado.</p>
+                      </div>
+                    ) : (
+                      <Select value={selectedPrioridade} onValueChange={setSelectedPrioridade}>
+                        <SelectTrigger><SelectValue placeholder="Selecione a prioridade" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="baixa">Baixa</SelectItem>
+                          <SelectItem value="media">Média</SelectItem>
+                          <SelectItem value="alta">Alta</SelectItem>
+                          <SelectItem value="urgente">Urgente</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
                   <div className="space-y-1.5">
                     <Label>Tipo de Manutenção</Label>
