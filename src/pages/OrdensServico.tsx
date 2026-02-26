@@ -205,7 +205,7 @@ export default function OrdensServico() {
             </SelectContent>
           </Select>
           <Select value={prioridadeFilter || "all"} onValueChange={(v) => setPrioridadeFilter(v === "all" ? "" : v)}>
-            <SelectTrigger className="w-full sm:w-40"><SelectValue placeholder="Prioridade" /></SelectTrigger>
+            <SelectTrigger className="w-full sm:w-52"><SelectValue placeholder="Prioridade" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas as Prioridades</SelectItem>
               {Constants.public.Enums.os_prioridade.map((p) => (
