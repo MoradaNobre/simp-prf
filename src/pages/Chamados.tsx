@@ -66,7 +66,7 @@ export default function Chamados() {
   const isGestorOrFiscal = isGestor || role === "fiscal_contrato";
 
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("aberto");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedChamados, setSelectedChamados] = useState<Set<string>>(new Set());
   const [viewChamado, setViewChamado] = useState<Chamado | null>(null);
