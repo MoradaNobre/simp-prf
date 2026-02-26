@@ -9,6 +9,9 @@ import { Plus, Search, PackagePlus, Trash2, Eye } from "lucide-react";
 import { NovoChamadoDialog } from "@/components/chamados/NovoChamadoDialog";
 import { useChamados, useUpdateChamado, useDeleteChamado, type Chamado } from "@/hooks/useChamados";
 import { useCreateOS } from "@/hooks/useOrdensServico";
+import { ChamadoStatusTimeline } from "@/components/chamados/ChamadoStatusTimeline";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useRegionalFilter } from "@/hooks/useRegionalFilter";
 import { RegionalFilterSelect } from "@/components/RegionalFilterSelect";
@@ -69,6 +72,23 @@ export default function Chamados() {
     status: statusFilter || undefined,
     regionalId,
     search: search || undefined,
+  });
+
+  // Fetch OS data for viewed chamado
+  const viewOsId = viewChamado?.os_id;
+  const { data: viewOsData } = useQuery({
+    queryKey: ["os-for-chamado", viewOsId],
+    queryFn: async () => {
+      if (!viewOsId) return null;
+      const { data, error } = await supabase
+        .from("ordens_servico")
+        .select("codigo, status, titulo")
+        .eq("id", viewOsId)
+        .single();
+      if (error) return null;
+      return data;
+    },
+    enabled: !!viewOsId,
   });
 
   const createOS = useCreateOS();
@@ -274,6 +294,11 @@ export default function Chamados() {
                   <img src={viewChamado.foto} alt="Foto do chamado" className="mt-2 rounded-lg max-h-60 object-contain" />
                 </div>
               )}
+
+              {/* Painel de acompanhamento */}
+              <div className="border-t pt-4 mt-4">
+                <ChamadoStatusTimeline chamado={viewChamado} osData={viewOsData} />
+              </div>
             </div>
           )}
         </DialogContent>
