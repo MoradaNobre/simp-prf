@@ -389,8 +389,8 @@ export default function Chamados() {
                     <Button size="icon" variant="ghost" onClick={() => setViewChamado(chamado)}>
                       <Eye className="h-4 w-4" />
                     </Button>
-                    {/* Cancel button: gestors/fiscais can cancel "aberto" chamados */}
-                    {isGestorOrFiscal && chamado.status === "aberto" && (
+                    {/* Cancel button: gestors/fiscais can cancel any "aberto", operador can cancel own "aberto" */}
+                    {chamado.status === "aberto" && (isGestorOrFiscal || (role === "operador" && chamado.solicitante_id === user?.id)) && (
                       <Button size="icon" variant="ghost" title="Cancelar chamado" className="text-amber-600 hover:text-amber-600" onClick={() => { setCancelChamado(chamado); setMotivoCancelamento(""); }}>
                         <Ban className="h-4 w-4" />
                       </Button>
