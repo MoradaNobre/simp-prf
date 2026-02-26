@@ -60,6 +60,7 @@ export default function Chamados() {
   const { user } = useAuth();
   const { data: role } = useUserRole();
   const { selectedRegionalId: regionalId, setSelectedRegionalId: setRegionalId } = useRegionalFilter();
+  const isMaster = role === "gestor_master";
   const isGestor = isAdminRole(role) || role === "gestor_regional";
   const isGestorOrFiscal = isGestor || role === "fiscal_contrato";
 
@@ -197,6 +198,26 @@ export default function Chamados() {
     setDeleteId(null);
   };
 
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [confirmBulkDelete, setConfirmBulkDelete] = useState(false);
+
+  const handleBulkDelete = async () => {
+    if (selectedChamados.size === 0) return;
+    setBulkDeleting(true);
+    try {
+      for (const id of selectedChamados) {
+        await deleteChamado.mutateAsync(id);
+      }
+      toast.success(`${selectedChamados.size} chamado(s) excluído(s).`);
+      setSelectedChamados(new Set());
+    } catch (err: any) {
+      toast.error("Erro: " + (err.message || err));
+    } finally {
+      setBulkDeleting(false);
+      setConfirmBulkDelete(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -237,13 +258,22 @@ export default function Chamados() {
       </div>
 
       {/* Gestor action bar */}
-      {isGestor && selectedChamados.size > 0 && (
+      {(isGestor || isMaster) && selectedChamados.size > 0 && (
         <div className="flex items-center gap-3 p-3 bg-muted rounded-lg border">
           <span className="text-sm font-medium">{selectedChamados.size} chamado(s) selecionado(s)</span>
-          <Button size="sm" onClick={handleCreateOSFromChamados} disabled={creatingOS}>
-            {creatingOS ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <PackagePlus className="h-4 w-4 mr-2" />}
-            Gerar OS
-          </Button>
+          {/* Only show Gerar OS if there are analisado chamados selected */}
+          {[...selectedChamados].some(id => chamados.find(c => c.id === id)?.status === "analisado") && (
+            <Button size="sm" onClick={handleCreateOSFromChamados} disabled={creatingOS}>
+              {creatingOS ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <PackagePlus className="h-4 w-4 mr-2" />}
+              Gerar OS
+            </Button>
+          )}
+          {isMaster && (
+            <Button size="sm" variant="destructive" onClick={() => setConfirmBulkDelete(true)} disabled={bulkDeleting}>
+              {bulkDeleting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Trash2 className="h-4 w-4 mr-2" />}
+              Excluir Selecionados
+            </Button>
+          )}
           <Button size="sm" variant="ghost" onClick={() => setSelectedChamados(new Set())}>Limpar</Button>
         </div>
       )}
@@ -259,8 +289,8 @@ export default function Chamados() {
             <Card key={chamado.id} className={`${selectedChamados.has(chamado.id) ? "ring-2 ring-primary" : ""}`}>
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
-                  {/* Checkbox only for analisado chamados */}
-                  {isGestor && chamado.status === "analisado" && (
+                  {/* Checkbox: master can select any, other gestors only analisado */}
+                  {(isMaster || (isGestor && chamado.status === "analisado")) && (
                     <Checkbox
                       checked={selectedChamados.has(chamado.id)}
                       onCheckedChange={() => toggleSelect(chamado.id)}
@@ -302,7 +332,7 @@ export default function Chamados() {
                     <Button size="icon" variant="ghost" onClick={() => setViewChamado(chamado)}>
                       <Eye className="h-4 w-4" />
                     </Button>
-                    {(isGestor || chamado.solicitante_id === user?.id) && chamado.status === "aberto" && (
+                    {(isMaster || ((isGestor || chamado.solicitante_id === user?.id) && chamado.status === "aberto")) && (
                       <Button size="icon" variant="ghost" className="text-destructive" onClick={() => setDeleteId(chamado.id)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -403,6 +433,20 @@ export default function Chamados() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete}>Excluir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk delete confirm */}
+      <AlertDialog open={confirmBulkDelete} onOpenChange={setConfirmBulkDelete}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir {selectedChamados.size} chamado(s)?</AlertDialogTitle>
+            <AlertDialogDescription>Esta ação não pode ser desfeita. Todos os chamados selecionados serão permanentemente excluídos.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleBulkDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Excluir Todos</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
