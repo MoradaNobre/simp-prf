@@ -595,6 +595,10 @@ export type Database = {
           equipamento_id: string | null
           foto_antes: string | null
           foto_depois: string | null
+          gut_gravidade: number | null
+          gut_score: number | null
+          gut_tendencia: number | null
+          gut_urgencia: number | null
           id: string
           motivo_restituicao: string | null
           prioridade: Database["public"]["Enums"]["os_prioridade"]
@@ -623,6 +627,10 @@ export type Database = {
           equipamento_id?: string | null
           foto_antes?: string | null
           foto_depois?: string | null
+          gut_gravidade?: number | null
+          gut_score?: number | null
+          gut_tendencia?: number | null
+          gut_urgencia?: number | null
           id?: string
           motivo_restituicao?: string | null
           prioridade?: Database["public"]["Enums"]["os_prioridade"]
@@ -651,6 +659,10 @@ export type Database = {
           equipamento_id?: string | null
           foto_antes?: string | null
           foto_depois?: string | null
+          gut_gravidade?: number | null
+          gut_score?: number | null
+          gut_tendencia?: number | null
+          gut_urgencia?: number | null
           id?: string
           motivo_restituicao?: string | null
           prioridade?: Database["public"]["Enums"]["os_prioridade"]
