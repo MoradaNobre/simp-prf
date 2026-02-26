@@ -1,13 +1,14 @@
 # SPEC – Especificação Funcional do SIMP (Sistema de Manutenção Predial)
 
-**Versão:** 1.5  
-**Data:** 24/02/2026  
+**Versão:** 1.6  
+**Data:** 26/02/2026  
 **Responsável:** Daniel Nunes de Ávila  
 
 ---
 
 ## Histórico de Versões
 
+- v1.6 (26/02/2026): Inclusão do módulo de Chamados (seção 6A), reestruturação dos relatórios PDF com chamados vinculados.
 - v1.5 (24/02/2026): Fluxo abreviado do Cartão Corporativo (Ateste → Encerrada), permissões especiais do Suprido no fluxo de OS.
 - v1.4 (24/02/2026): Limites de Modalidade (4º bloqueio), edição inline, duplicação de contratos Cartão Corporativo, reordenação de bloqueios.
 - v1.3 (24/02/2026): Inclusão do perfil Suprido (preposto do cartão corporativo) como flag acumulável.
@@ -24,15 +25,16 @@
 3. [Página Inicial (Landing Page)](#3-página-inicial-landing-page)
 4. [Autenticação (Login)](#4-autenticação-login)
 5. [Dashboard](#5-dashboard)
-6. [Ordens de Serviço](#6-ordens-de-serviço)
-7. [Agenda de Visitas](#7-agenda-de-visitas)
-8. [Contratos](#8-contratos)
-9. [Relatórios OS](#9-relatórios-os)
-10. [Gestão do Orçamento](#10-gestão-do-orçamento)
-11. [Gestão do Sistema](#11-gestão-do-sistema)
-12. [Sobre](#12-sobre)
-13. [Navegação e Layout](#13-navegação-e-layout)
-14. [Regras de Negócio Transversais](#14-regras-de-negócio-transversais)
+6. [Chamados](#6-chamados)
+7. [Ordens de Serviço](#7-ordens-de-serviço)
+8. [Agenda de Visitas](#8-agenda-de-visitas)
+9. [Contratos](#9-contratos)
+10. [Relatórios OS](#10-relatórios-os)
+11. [Gestão do Orçamento](#11-gestão-do-orçamento)
+12. [Gestão do Sistema](#12-gestão-do-sistema)
+13. [Sobre](#13-sobre)
+14. [Navegação e Layout](#14-navegação-e-layout)
+15. [Regras de Negócio Transversais](#15-regras-de-negócio-transversais)
 
 ---
 
@@ -102,6 +104,7 @@ Regional (Superintendência) → Delegacia → UOP (Unidade Operacional)
 | Página | Perfis com Acesso |
 |---|---|
 | Dashboard | Master, Nacional, Regional, Fiscal, Operador |
+| Chamados | Master, Nacional, Regional, Fiscal, Operador |
 | Ordens de Serviço | **Todos** os perfis |
 | Agenda de Visitas | **Todos** os perfis |
 | Relatórios OS | Master, Nacional, Regional, Fiscal, Preposto, Terceirizado |
@@ -225,7 +228,98 @@ Regional (Superintendência) → Delegacia → UOP (Unidade Operacional)
 
 ---
 
-## 6. Ordens de Serviço
+## 6. Chamados
+
+**Rota:** `/app/chamados`
+
+### 6.1. Acesso
+
+| Ação | Perfis |
+|---|---|
+| Visualizar / Criar chamado | Master, Nacional, Regional, Fiscal, Operador |
+| Analisar (Matriz GUT) | Master, Nacional, Regional, Fiscal |
+| Gerar OS a partir de chamados | Master, Nacional, Regional, Fiscal |
+| Editar chamado (status "Aberto") | Solicitante, Master |
+| Excluir chamado | Master |
+| Cancelar chamado | Gestores, Fiscais |
+
+### 6.2. Fluxo de Status
+
+```
+Aberto → Analisado → Vinculado (a uma OS)
+         ↘ Cancelado
+```
+
+### 6.3. Dados do Chamado
+
+| Campo | Tipo | Obrigatório |
+|---|---|---|
+| Tipo de Demanda | Select (9 categorias) | Sim |
+| Descrição | Texto | Sim |
+| Setor / Andar / Sala | Texto | Sim |
+| Prioridade | Select (baixa/média/alta/urgente) | Sim (padrão: média) |
+| Justificativa de Urgência | Texto | Sim (se urgente) |
+| Regional | Select / Automático | Sim |
+| Delegacia | Select | Não |
+| UOP | Select | Não |
+| Foto | Upload (imagem) | Não |
+| Patrimônio Ar Condicionado | Texto | Não (visível apenas para tipo "Ar Condicionado") |
+
+### 6.4. Tipos de Demanda
+
+| Valor | Label |
+|---|---|
+| `hidraulico` | Sistema Hidráulico |
+| `eletrico` | Sistema Elétrico |
+| `iluminacao` | Iluminação |
+| `incendio` | Incêndio |
+| `estrutura` | Estrutura |
+| `rede_logica` | Rede Lógica |
+| `elevadores` | Elevadores |
+| `ar_condicionado` | Ar Condicionado |
+| `instalacoes_diversas` | Instalações Diversas |
+
+### 6.5. Análise com Matriz GUT
+
+- Gestores e Fiscais podem analisar chamados com status "Aberto"
+- A análise consiste em atribuir notas de 1 a 5 para:
+  - **G** (Gravidade): Impacto se o problema não for resolvido
+  - **U** (Urgência): Prazo para resolução
+  - **T** (Tendência): Evolução do problema com o tempo
+- Score GUT = G × U × T (mín: 1, máx: 125)
+- Ao concluir a análise, o chamado avança para status "Analisado"
+
+### 6.6. Geração de OS a partir de Chamados
+
+- Gestores e Fiscais podem selecionar múltiplos chamados "Analisados" via checkboxes
+- Ao clicar em "Gerar OS", cria-se uma OS corretiva com:
+  - **Título:** Label do tipo de demanda (se 1 chamado) ou "{N} chamados agrupados" (se múltiplos)
+  - **Descrição:** Concatenação de todos os chamados selecionados com código, tipo, GUT score, local e descrição
+  - **Prioridade:** Derivada do maior score GUT entre os chamados (≥64: urgente, ≥27: alta, ≥8: média, <8: baixa)
+  - **UOP e Regional:** Do primeiro chamado selecionado
+  - **Foto "antes":** Do primeiro chamado (se existir)
+- Todos os chamados selecionados são vinculados à OS e passam para status "Vinculado"
+
+### 6.7. Cancelamento
+
+- Gestores e Fiscais podem cancelar chamados com status ≠ "vinculado"
+- O motivo do cancelamento é obrigatório
+
+### 6.8. Filtros e Ordenação
+
+- Busca textual (código, descrição, tipo)
+- Filtro por status (Aberto, Analisado, Vinculado, Cancelado)
+- Filtro por regional
+- Toggle de ordenação por score GUT (descendente)
+
+### 6.9. Cards Informativos
+
+- **Para Operadores:** Guia explicativo do fluxo (abrir → analisar → gerar OS)
+- **Para Gestores/Fiscais:** Lista de ações disponíveis (analisar, selecionar, gerar OS)
+
+---
+
+## 7. Ordens de Serviço
 
 **Rota:** `/app/ordens`
 
@@ -539,6 +633,7 @@ Saldo = (Valor Total + Σ Aditivos) - Σ Orçamentos de OS em Execução+
 - Download em PDF
 - Reenvio por e-mail
 - **Preposto/Terceirizado:** Veem apenas relatórios dos seus contratos
+- **Conteúdo do PDF:** Inclui seção "Chamados Vinculados" com código, tipo de demanda, local, solicitante e Matriz GUT (G×U×T=Score)
 
 #### 8.2.2. Relatórios de Pagamento (`RelatoriosPagamento`)
 
@@ -546,11 +641,20 @@ Saldo = (Valor Total + Σ Aditivos) - Σ Orçamentos de OS em Execução+
 - Listagem de relatórios de ateste/pagamento
 - Dados: código OS, título, contrato, valor atestado, data
 - Download em PDF
+- **Conteúdo do PDF:** Inclui seção "Chamados Vinculados" com dados GUT
 
 ### 8.3. Geração de Relatórios
 
 - **Relatório de Execução:** Gerado automaticamente na transição Autorização → Execução
 - **Relatório de Pagamento:** Gerado manualmente pelo Gestor/Fiscal na fase de Pagamento/Encerramento
+
+### 8.4. Relatório PDF de Contrato
+
+- Download individual por contrato via `generateContratoReport`
+- Inclui seção "Resumo de Chamados" com total de chamados e OS originadas de chamados
+- Tabela de OS por ano inclui coluna "CH" (quantidade de chamados vinculados por OS)
+- Inclui todos os tipos de serviço: Manutenção Predial, Ar Condicionado, Cartão Corporativo, Contrata + Brasil
+- Inclui status "Faturamento" na distribuição por status
 
 ---
 
@@ -818,3 +922,4 @@ Saldo = Cota Total - Total Consumido
 | 1.3 | 24/02/2026 | Inclusão do perfil Suprido (preposto do cartão corporativo) como flag booleana acumulável com gestores e fiscais |
 | 1.4 | 24/02/2026 | Limites de Modalidade com 4 níveis de bloqueio na autorização, edição inline de limites, duplicação de contratos Cartão Corporativo |
 | 1.5 | 24/02/2026 | Fluxo abreviado Cartão Corporativo (Ateste → Encerrada), permissões especiais do Suprido no fluxo de OS |
+| 1.6 | 26/02/2026 | Módulo de Chamados (seção 6) com Matriz GUT, agrupamento em OS, e reestruturação de relatórios PDF com chamados vinculados |
