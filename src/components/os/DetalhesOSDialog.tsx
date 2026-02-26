@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { isAdminRole } from "@/utils/roles";
 import { getStatusFlowForTipo, bypassesContractBalance, bypassesBudgetBlocking, tipoServicoLabel } from "@/utils/modalidade";
 import { OSStatusStepper } from "@/components/os/OSStatusStepper";
-import { GUTMatrixPanel } from "@/components/os/GUTMatrixPanel";
+
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
@@ -89,7 +89,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   const [motivoSolicitacao, setMotivoSolicitacao] = useState("");
   const [showSolicitacao, setShowSolicitacao] = useState(false);
   const [downloadingZip, setDownloadingZip] = useState(false);
-  const [gutValues, setGutValues] = useState<{ gut_gravidade: number; gut_urgencia: number; gut_tendencia: number } | null>(null);
+  
 
   const { data: contratosAll = [] } = useContratos();
   const { data: saldos = [] } = useContratosSaldo();
@@ -245,7 +245,9 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
 
       if (nextStatus === "orcamento") {
         if (selectedContratoId) updates.contrato_id = selectedContratoId;
-        // Prioridade is now set by GUT trigger in the DB
+        if (selectedPrioridade && selectedPrioridade !== os.prioridade) {
+          updates.prioridade = selectedPrioridade;
+        }
         if (selectedTipo && selectedTipo !== os.tipo) {
           updates.tipo = selectedTipo;
         }
@@ -253,13 +255,6 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
           const existing = os.descricao || "";
           const separator = existing ? "\n\n--- Descrição complementar ---\n" : "";
           updates.descricao = existing + separator + descricaoDetalhada.trim();
-        }
-        // Include GUT values if filled
-        if (gutValues) {
-          updates.gut_gravidade = gutValues.gut_gravidade;
-          updates.gut_urgencia = gutValues.gut_urgencia;
-          updates.gut_tendencia = gutValues.gut_tendencia;
-          // Score and prioridade are auto-calculated by the DB trigger
         }
       }
 
@@ -597,15 +592,6 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
             {os.uops && <span className="text-sm text-muted-foreground">{(os.uops as any).nome}</span>}
           </div>
 
-          {/* GUT Matrix read-only display (when already filled and not in editable section) */}
-          {(os as any).gut_score != null && os.status !== "aberta" && (
-            <GUTMatrixPanel
-              gravidade={(os as any).gut_gravidade}
-              urgencia={(os as any).gut_urgencia}
-              tendencia={(os as any).gut_tendencia}
-              score={(os as any).gut_score}
-            />
-          )}
 
           {/* Restitution alert */}
           {(os as any).motivo_restituicao && (
@@ -788,15 +774,29 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                     </div>
                   );
                 })()}
-                <div className="space-y-1.5">
-                  <Label>Tipo de Manutenção</Label>
-                  <Select value={selectedTipo} onValueChange={setSelectedTipo}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="corretiva">Corretiva</SelectItem>
-                      <SelectItem value="preventiva">Preventiva</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label>Prioridade</Label>
+                    <Select value={selectedPrioridade} onValueChange={setSelectedPrioridade}>
+                      <SelectTrigger><SelectValue placeholder="Selecione a prioridade" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="baixa">Baixa</SelectItem>
+                        <SelectItem value="media">Média</SelectItem>
+                        <SelectItem value="alta">Alta</SelectItem>
+                        <SelectItem value="urgente">Urgente</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Tipo de Manutenção</Label>
+                    <Select value={selectedTipo} onValueChange={setSelectedTipo}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="corretiva">Corretiva</SelectItem>
+                        <SelectItem value="preventiva">Preventiva</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 <div className="space-y-1.5">
                   <Label>Descrição Detalhada</Label>
@@ -807,16 +807,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                     rows={3}
                   />
                 </div>
-                {/* GUT Matrix - editable */}
-                <GUTMatrixPanel
-                  gravidade={(os as any).gut_gravidade}
-                  urgencia={(os as any).gut_urgencia}
-                  tendencia={(os as any).gut_tendencia}
-                  score={(os as any).gut_score}
-                  editable
-                  onChange={setGutValues}
-                />
-                <p className="text-sm text-muted-foreground">Preencha a matriz GUT para definir a prioridade técnica, vincule o contrato e encaminhe para orçamento.</p>
+                <p className="text-sm text-muted-foreground">Vincule o contrato, ajuste o tipo se necessário, e encaminhe para que o preposto/terceirizado elabore o orçamento.</p>
                 <Button onClick={handleAdvanceStatus} disabled={uploading} className="w-full">
                   {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Encaminhar para Orçamento

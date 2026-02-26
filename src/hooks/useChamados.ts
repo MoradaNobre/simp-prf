@@ -18,6 +18,10 @@ export interface Chamado {
   status: string;
   created_at: string;
   updated_at: string;
+  gut_gravidade: number | null;
+  gut_urgencia: number | null;
+  gut_tendencia: number | null;
+  gut_score: number | null;
   // joined
   solicitante_profile?: { full_name: string; phone: string | null } | null;
   regionais?: { sigla: string; nome: string } | null;
