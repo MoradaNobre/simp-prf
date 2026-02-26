@@ -45,6 +45,22 @@ export function EditarOSDialog({ os, open, onOpenChange }: Props) {
     enabled: !!user,
   });
 
+  // Check if this OS was created from chamados (has linked chamados)
+  const { data: linkedChamados = [] } = useQuery({
+    queryKey: ["os-linked-chamados", os?.id],
+    queryFn: async () => {
+      if (!os) return [];
+      const { data } = await supabase
+        .from("chamados")
+        .select("id, gut_score")
+        .eq("os_id", os.id);
+      return data || [];
+    },
+    enabled: !!os?.id,
+  });
+
+  const hasLinkedChamados = linkedChamados.length > 0;
+
   const isNacional = isGlobalRole(role);
   const regionais = isNacional ? allRegionais : userRegionaisData;
 
@@ -133,14 +149,21 @@ export function EditarOSDialog({ os, open, onOpenChange }: Props) {
             </div>
             <div className="space-y-1.5">
               <Label>Prioridade</Label>
-              <Select value={form.prioridade} onValueChange={(v) => set("prioridade", v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {Constants.public.Enums.os_prioridade.map((p) => (
-                    <SelectItem key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {hasLinkedChamados ? (
+                <div className="text-sm text-muted-foreground bg-muted rounded px-3 py-2">
+                  {form.prioridade.charAt(0).toUpperCase() + form.prioridade.slice(1)}
+                  <p className="text-xs text-muted-foreground mt-1">Definida automaticamente pela Matriz GUT do chamado vinculado.</p>
+                </div>
+              ) : (
+                <Select value={form.prioridade} onValueChange={(v) => set("prioridade", v)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {Constants.public.Enums.os_prioridade.map((p) => (
+                      <SelectItem key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
           </div>
 
