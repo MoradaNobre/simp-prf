@@ -36,6 +36,7 @@ export function useChamados(filters?: { status?: string; regionalId?: string | n
       let q = supabase
         .from("chamados")
         .select("*, regionais(sigla, nome), delegacias(nome), uops(nome)")
+        .order("gut_score", { ascending: false, nullsFirst: false })
         .order("created_at", { ascending: false });
 
       if (filters?.status && filters.status !== "all") q = q.eq("status", filters.status);
