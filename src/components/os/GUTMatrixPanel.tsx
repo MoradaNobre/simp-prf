@@ -72,7 +72,7 @@ function ScaleSelector({
       <Label className="text-xs font-semibold flex items-center gap-1.5">
         <span>{icon}</span> {label}
       </Label>
-      <div className="flex gap-1">
+      <div className="flex gap-1 overflow-x-auto">
         {items.map((item) => {
           const isSelected = value === item.value;
           return (
@@ -83,7 +83,7 @@ function ScaleSelector({
               onClick={() => onChange(item.value)}
               title={`${item.value} — ${item.label}: ${item.desc}`}
               className={cn(
-                "flex-1 rounded-md py-2 px-1 text-center transition-all border text-xs font-medium",
+                "flex-1 min-w-[3.5rem] rounded-md py-2 px-1 text-center transition-all border text-xs font-medium",
                 isSelected
                   ? `${color} border-transparent shadow-sm`
                   : "bg-muted/50 border-border hover:bg-muted text-muted-foreground",
@@ -134,7 +134,7 @@ export function GUTMatrixPanel({
   const displayScore = editable ? computedScore : (score ?? computedScore);
 
   return (
-    <div className="rounded-lg border bg-card p-4 space-y-3">
+    <div className="rounded-lg border bg-card p-4 space-y-3 overflow-hidden">
       <div className="flex items-center justify-between">
         <h4 className="text-sm font-semibold flex items-center gap-1.5">
           📊 Matriz GUT — Priorização
