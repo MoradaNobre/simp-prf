@@ -38,7 +38,7 @@ export function useChamados(filters?: { status?: string; regionalId?: string | n
         .select("*, regionais(sigla, nome), delegacias(nome), uops(nome)")
         .order("created_at", { ascending: false });
 
-      if (filters?.status) q = q.eq("status", filters.status);
+      if (filters?.status && filters.status !== "all") q = q.eq("status", filters.status);
       if (filters?.regionalId) q = q.eq("regional_id", filters.regionalId);
       if (filters?.search) q = q.or(`codigo.ilike.%${filters.search}%,descricao.ilike.%${filters.search}%,tipo_demanda.ilike.%${filters.search}%`);
 
