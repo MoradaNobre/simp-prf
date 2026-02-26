@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -145,10 +146,8 @@ export default function Sobre() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <a
-              href="/TECHNICAL_DOCS.md"
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              to="/app/documento?doc=tecnico"
               className="flex items-center gap-3 p-4 rounded-lg border border-border hover:border-primary/50 hover:bg-accent/50 transition-all group"
             >
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
@@ -163,12 +162,10 @@ export default function Sobre() {
                 </p>
               </div>
               <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-            </a>
+            </Link>
 
-            <a
-              href="/PRIVACY_POLICY.md"
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              to="/app/documento?doc=privacidade"
               className="flex items-center gap-3 p-4 rounded-lg border border-border hover:border-primary/50 hover:bg-accent/50 transition-all group"
             >
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
@@ -183,7 +180,7 @@ export default function Sobre() {
                 </p>
               </div>
               <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-            </a>
+            </Link>
           </div>
         </CardContent>
       </Card>
