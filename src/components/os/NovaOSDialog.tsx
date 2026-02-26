@@ -42,6 +42,7 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
   const [fotoAntes, setFotoAntes] = useState<File | null>(null);
   const [contratoId, setContratoId] = useState("");
   const [justificativaUrgente, setJustificativaUrgente] = useState("");
+  const [localServico, setLocalServico] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const isGestorGlobal = isGlobalRole(role);
@@ -77,10 +78,11 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
     setCategoria(""); setDescricao(""); setPrioridade("media");
     setSelectedRegionalId(""); setDelegaciaId(""); setUopId("");
     setFotoAntes(null); setContratoId(""); setJustificativaUrgente("");
+    setLocalServico("");
   };
 
   const handleSubmit = async () => {
-    if (!categoria || !descricao.trim() || !user) return;
+    if (!categoria || !descricao.trim() || !localServico.trim() || !user) return;
     if (prioridade === "urgente" && !justificativaUrgente.trim()) return;
     setSubmitting(true);
     try {
@@ -101,9 +103,9 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
         outro: "Outros",
       };
 
-      const descricaoFinal = prioridade === "urgente"
+      const descricaoFinal = `[Local: ${localServico.trim()}]\n\n${prioridade === "urgente"
         ? `${descricao}\n\n[Justificativa de urgência]: ${justificativaUrgente.trim()}`
-        : descricao;
+        : descricao}`;
 
       const result = await createOS.mutateAsync({
         titulo: categoriaLabels[categoria] || categoria,
@@ -177,6 +179,13 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
             <Textarea value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Descreva o problema detalhadamente..." rows={3} />
           </div>
 
+          <div>
+            <Label>Setor / Andar / Sala *</Label>
+            <Input value={localServico} onChange={(e) => setLocalServico(e.target.value)} placeholder="Ex: Bloco A, 2º andar, Sala 205" />
+            {!localServico.trim() && localServico !== "" && (
+              <p className="text-xs text-destructive mt-1">Este campo é obrigatório.</p>
+            )}
+          </div>
           <div>
             <Label>Prioridade</Label>
             <Select value={prioridade} onValueChange={setPrioridade}>
@@ -261,7 +270,7 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={handleSubmit} disabled={submitting || !categoria || !descricao.trim() || !regionalId || (prioridade === "urgente" && !justificativaUrgente.trim())}>
+          <Button onClick={handleSubmit} disabled={submitting || !categoria || !descricao.trim() || !localServico.trim() || !regionalId || (prioridade === "urgente" && !justificativaUrgente.trim())}>
             {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Criar OS
           </Button>
