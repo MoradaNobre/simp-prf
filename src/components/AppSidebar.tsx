@@ -56,7 +56,7 @@ const roleColors: Record<string, string> = {
 
 const allMenuItems = [
   { title: "Dashboard", url: "/app/dashboard", icon: LayoutDashboard, roles: ["gestor_master", "gestor_nacional", "gestor_regional", "fiscal_contrato", "operador"] },
-  { title: "Chamados", url: "/app/chamados", icon: MessageSquarePlus, roles: null }, // all roles
+  { title: "Chamados", url: "/app/chamados", icon: MessageSquarePlus, roles: ["gestor_master", "gestor_nacional", "gestor_regional", "fiscal_contrato", "operador"] },
   { title: "Ordens de Serviço", url: "/app/ordens", icon: ClipboardList, roles: null }, // all roles
   { title: "Agenda de Visitas", url: "/app/agenda", icon: CalendarClock, roles: null }, // all roles
   { title: "Relatórios OS", url: "/app/relatorios", icon: FileBarChart, roles: ["gestor_master", "gestor_nacional", "gestor_regional", "fiscal_contrato", "preposto", "terceirizado"] },
