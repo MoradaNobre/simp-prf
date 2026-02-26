@@ -332,6 +332,12 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
             .eq("user_id", currentUser?.id || "")
             .single();
 
+          // Fetch linked chamados for report
+          const { data: chamadosExec } = await supabase
+            .from("chamados")
+            .select("codigo, tipo_demanda, local_servico, gut_score")
+            .eq("os_id", os.id);
+
           const reportData = {
             codigo: os.codigo,
             titulo: os.titulo,
@@ -348,6 +354,13 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
             dataAbertura: new Date(os.data_abertura).toLocaleDateString("pt-BR"),
             dataAutorizacao: new Date().toLocaleDateString("pt-BR"),
             fiscalNome: fiscalProfile?.full_name || undefined,
+            prioridade: os.prioridade,
+            chamados: (chamadosExec || []).map((ch: any) => ({
+              codigo: ch.codigo,
+              gut_score: ch.gut_score,
+              tipo_demanda: ch.tipo_demanda,
+              local_servico: ch.local_servico,
+            })),
           };
 
           // Save to relatorios_execucao
@@ -521,6 +534,10 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
               .from("os_custos")
               .select("descricao, tipo, valor")
               .eq("os_id", rel.os_id);
+            const { data: chData } = await supabase
+              .from("chamados")
+              .select("codigo, tipo_demanda, local_servico, descricao, gut_gravidade, gut_urgencia, gut_tendencia, gut_score, prioridade, created_at, status")
+              .eq("os_id", rel.os_id);
 
             const pdfDoc = generateOSReport({
               os: osData as any,
@@ -530,6 +547,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
               valorAtestado: rel.valor_atestado,
               geradoPor: dados.gerado_por_nome || "",
               historicoFluxo: dados.historicoFluxo || [],
+              chamados: (chData || []).map((ch: any) => ({ ...ch, solicitante_nome: "—" })),
             }, { skipSave: true });
             const pdfBlob = pdfDoc.output("blob");
             zip.file(`relatorio_pagamento_${rel.codigo_os}.pdf`, pdfBlob);
@@ -1476,6 +1494,40 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                         usuario: log.user_id ? (auditProfileMap[log.user_id] || "Não identificado") : "Sistema",
                       }));
 
+                      // Fetch linked chamados for report
+                      const { data: chamadosForReport } = await supabase
+                        .from("chamados")
+                        .select("codigo, tipo_demanda, local_servico, descricao, gut_gravidade, gut_urgencia, gut_tendencia, gut_score, prioridade, created_at, status, solicitante_id")
+                        .eq("os_id", os.id);
+
+                      // Resolve chamado solicitante names
+                      const chamadoSolIds = [...new Set((chamadosForReport || []).map((c: any) => c.solicitante_id).filter(Boolean))];
+                      let chamadoSolMap: Record<string, string> = {};
+                      if (chamadoSolIds.length > 0) {
+                        const { data: chamadoProfiles } = await supabase
+                          .from("profiles")
+                          .select("user_id, full_name")
+                          .in("user_id", chamadoSolIds);
+                        if (chamadoProfiles) {
+                          chamadoSolMap = Object.fromEntries(chamadoProfiles.map(p => [p.user_id, p.full_name]));
+                        }
+                      }
+
+                      const chamadosData = (chamadosForReport || []).map((ch: any) => ({
+                        codigo: ch.codigo,
+                        tipo_demanda: ch.tipo_demanda,
+                        local_servico: ch.local_servico,
+                        descricao: ch.descricao,
+                        gut_gravidade: ch.gut_gravidade,
+                        gut_urgencia: ch.gut_urgencia,
+                        gut_tendencia: ch.gut_tendencia,
+                        gut_score: ch.gut_score,
+                        prioridade: ch.prioridade,
+                        created_at: ch.created_at,
+                        status: ch.status,
+                        solicitante_nome: chamadoSolMap[ch.solicitante_id] || "—",
+                      }));
+
                       // Generate PDF report
                       generateOSReport({
                         os,
@@ -1485,6 +1537,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
                         valorAtestado,
                         geradoPor: geradoPorNome,
                         historicoFluxo,
+                        chamados: chamadosData,
                       });
 
                       // Get regional_id

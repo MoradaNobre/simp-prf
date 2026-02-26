@@ -26,6 +26,7 @@ interface ContratoContato {
 }
 
 interface OSResumo {
+  id: string;
   codigo: string;
   titulo: string;
   status: string;
@@ -34,11 +35,14 @@ interface OSResumo {
   data_abertura: string;
   data_encerramento: string | null;
   valor_orcamento: number | null;
+  chamados_count?: number;
 }
 
 const TIPO_LABELS: Record<string, string> = {
   manutencao_predial: "Manutenção Predial",
   manutencao_ar_condicionado: "Ar Condicionado",
+  cartao_corporativo: "Cartão Corporativo",
+  contrata_brasil: "Contrata + Brasil",
 };
 
 const statusLabels: Record<string, string> = {
@@ -47,6 +51,7 @@ const statusLabels: Record<string, string> = {
   autorizacao: "Aguard. Autorização",
   execucao: "Execução",
   ateste: "Ateste",
+  faturamento: "Faturamento",
   pagamento: "Pagamento",
   encerrada: "Encerrada",
 };
@@ -71,7 +76,7 @@ export async function generateContratoReport(contrato: ContratoData) {
       .order("created_at"),
     supabase
       .from("ordens_servico")
-      .select("codigo, titulo, status, prioridade, tipo, data_abertura, data_encerramento, valor_orcamento")
+      .select("id, codigo, titulo, status, prioridade, tipo, data_abertura, data_encerramento, valor_orcamento")
       .eq("contrato_id", contrato.id)
       .order("data_abertura", { ascending: false }),
     supabase
@@ -89,8 +94,32 @@ export async function generateContratoReport(contrato: ContratoData) {
   ]);
 
   const contatos: ContratoContato[] = contatosRes.data ?? [];
-  const ordens: OSResumo[] = osRes.data ?? [];
+  const ordensRaw = osRes.data ?? [];
   const custos = custosRes.data ?? [];
+
+  // Fetch chamados count per OS
+  const osIds = ordensRaw.map(o => o.id);
+  let chamadosCounts: Record<string, number> = {};
+  let totalChamados = 0;
+
+  if (osIds.length > 0) {
+    const { data: chamadosData } = await supabase
+      .from("chamados")
+      .select("os_id")
+      .in("os_id", osIds);
+
+    if (chamadosData) {
+      chamadosData.forEach((ch: any) => {
+        chamadosCounts[ch.os_id] = (chamadosCounts[ch.os_id] ?? 0) + 1;
+      });
+      totalChamados = chamadosData.length;
+    }
+  }
+
+  const ordens: OSResumo[] = ordensRaw.map(o => ({
+    ...o,
+    chamados_count: chamadosCounts[o.id] ?? 0,
+  }));
 
   // Group OS by year
   const osByYear: Record<number, OSResumo[]> = {};
@@ -190,10 +219,7 @@ export async function generateContratoReport(contrato: ContratoData) {
   addSection("2. Resumo Financeiro");
   addLine("Valor Global:", fmt(contrato.valor_total));
   addLine("Total Executado:", fmt(totalCustos));
-  addLine(
-    "Saldo Disponível:",
-    fmt(saldo)
-  );
+  addLine("Saldo Disponível:", fmt(saldo));
   const pctUsado =
     contrato.valor_total > 0
       ? Math.round((totalCustos / contrato.valor_total) * 100)
@@ -236,8 +262,19 @@ export async function generateContratoReport(contrato: ContratoData) {
     });
   }
 
-  // ---- 4. Resumo de OS por Ano ----
-  addSection("4. Ordens de Serviço por Ano");
+  // ---- 4. Chamados ----
+  addSection("4. Resumo de Chamados");
+  if (totalChamados > 0) {
+    const osComChamados = ordens.filter(o => (o.chamados_count ?? 0) > 0).length;
+    addLine("Total de Chamados:", `${totalChamados}`);
+    addLine("OS originadas de Chamados:", `${osComChamados} de ${ordens.length}`);
+    addLine("OS criadas diretamente:", `${ordens.length - osComChamados}`);
+  } else {
+    addLine("Chamados vinculados:", "Nenhum — todas as OS foram criadas diretamente");
+  }
+
+  // ---- 5. Resumo de OS por Ano ----
+  addSection("5. Ordens de Serviço por Ano");
 
   if (ordens.length === 0) {
     doc.setFont("helvetica", "italic");
@@ -255,7 +292,7 @@ export async function generateContratoReport(contrato: ContratoData) {
     years.forEach((year) => {
       const list = osByYear[year];
       const totalAno = list.reduce(
-        (s, o) => s + (custosPorOS[(o as any).id] ?? Number(o.valor_orcamento ?? 0)),
+        (s, o) => s + (custosPorOS[o.id] ?? Number(o.valor_orcamento ?? 0)),
         0
       );
 
@@ -274,11 +311,13 @@ export async function generateContratoReport(contrato: ContratoData) {
       doc.setFillColor(230, 230, 230);
       doc.rect(14, y - 3.5, pw - 28, 5, "F");
       doc.text("Código", 16, y);
-      doc.text("Título", 50, y);
-      doc.text("Tipo", 108, y);
-      doc.text("Status", 124, y);
-      doc.text("Valor", 155, y);
-      doc.text("Data", 182, y);
+      doc.text("Título", 48, y);
+      doc.text("Tipo", 100, y);
+      doc.text("Status", 116, y);
+      doc.text("Prio.", 146, y);
+      doc.text("Valor", 160, y);
+      doc.text("CH", 186, y);
+      doc.text("Data", 192, y);
       y += 6;
 
       doc.setFont("helvetica", "normal");
@@ -289,15 +328,17 @@ export async function generateContratoReport(contrato: ContratoData) {
           os.codigo.length > 18 ? os.codigo.substring(0, 18) + "…" : os.codigo;
         doc.text(codigoTrunc, 16, y);
         const tituloTrunc =
-          os.titulo.length > 28 ? os.titulo.substring(0, 28) + "…" : os.titulo;
-        doc.text(tituloTrunc, 50, y);
-        doc.text(os.tipo === "corretiva" ? "Corr." : "Prev.", 108, y);
-        doc.text(statusLabels[os.status] ?? os.status, 124, y);
-        const osVal = custosPorOS[(os as any).id] ?? Number(os.valor_orcamento ?? 0);
-        doc.text(osVal > 0 ? fmt(osVal) : "—", 155, y);
+          os.titulo.length > 26 ? os.titulo.substring(0, 26) + "…" : os.titulo;
+        doc.text(tituloTrunc, 48, y);
+        doc.text(os.tipo === "corretiva" ? "Corr." : "Prev.", 100, y);
+        doc.text(statusLabels[os.status] ?? os.status, 116, y);
+        doc.text((prioridadeLabels[os.prioridade] ?? os.prioridade).substring(0, 6), 146, y);
+        const osVal = custosPorOS[os.id] ?? Number(os.valor_orcamento ?? 0);
+        doc.text(osVal > 0 ? fmt(osVal) : "—", 160, y);
+        doc.text(os.chamados_count ? `${os.chamados_count}` : "—", 186, y);
         doc.text(
           new Date(os.data_abertura).toLocaleDateString("pt-BR"),
-          182,
+          192,
           y
         );
         y += 5;
@@ -306,8 +347,8 @@ export async function generateContratoReport(contrato: ContratoData) {
     });
   }
 
-  // ---- 5. Resumo por Status ----
-  addSection("5. Distribuição por Status");
+  // ---- 6. Resumo por Status ----
+  addSection("6. Distribuição por Status");
   const statusCount: Record<string, number> = {};
   ordens.forEach((os) => {
     statusCount[os.status] = (statusCount[os.status] ?? 0) + 1;
@@ -316,9 +357,9 @@ export async function generateContratoReport(contrato: ContratoData) {
     addLine(`${statusLabels[status] ?? status}:`, `${count} OS`);
   });
 
-  // ---- 6. Resumo por Prioridade ----
+  // ---- 7. Resumo por Prioridade ----
   if (ordens.length > 0) {
-    addSection("6. Distribuição por Prioridade");
+    addSection("7. Distribuição por Prioridade");
     const prioCount: Record<string, number> = {};
     ordens.forEach((os) => {
       prioCount[os.prioridade] = (prioCount[os.prioridade] ?? 0) + 1;
