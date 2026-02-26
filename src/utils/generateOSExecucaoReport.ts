@@ -1,5 +1,12 @@
 import jsPDF from "jspdf";
 
+interface ChamadoRef {
+  codigo: string;
+  gut_score?: number | null;
+  tipo_demanda: string;
+  local_servico: string;
+}
+
 interface ExecucaoReportData {
   codigo: string;
   titulo: string;
@@ -16,12 +23,28 @@ interface ExecucaoReportData {
   dataAbertura: string;
   dataAutorizacao?: string;
   fiscalNome?: string;
+  prioridade?: string;
+  chamados?: ChamadoRef[];
 }
+
+const prioridadeLabels: Record<string, string> = {
+  baixa: "Baixa",
+  media: "Média",
+  alta: "Alta",
+  urgente: "Urgente",
+};
 
 export function generateOSExecucaoReport(data: ExecucaoReportData): jsPDF {
   const doc = new jsPDF();
   const pw = doc.internal.pageSize.getWidth();
   let y = 18;
+
+  const checkPage = (needed = 12) => {
+    if (y > 280 - needed) {
+      doc.addPage();
+      y = 20;
+    }
+  };
 
   // Header - Institution
   doc.setFont("helvetica", "bold");
@@ -60,7 +83,6 @@ export function generateOSExecucaoReport(data: ExecucaoReportData): jsPDF {
   y += 8;
 
   // Type row
-  const tipoLabel = data.tipo === "preventiva" ? "Preventiva" : "Corretiva";
   doc.setFont("helvetica", "bold");
   doc.text("Tipo de Serviço:", 16, y);
   doc.setFont("helvetica", "normal");
@@ -68,6 +90,19 @@ export function generateOSExecucaoReport(data: ExecucaoReportData): jsPDF {
   const checkCorr = data.tipo === "corretiva" ? "(X)" : "(  )";
   doc.text(`${checkPrev} Preventiva    ${checkCorr} Corretiva`, 54, y);
   y += 8;
+
+  // Priority
+  if (data.prioridade) {
+    doc.setFont("helvetica", "bold");
+    doc.text("Prioridade:", 16, y);
+    doc.setFont("helvetica", "normal");
+    const prioLabel = prioridadeLabels[data.prioridade] || data.prioridade;
+    const chamadoOrigin = data.chamados && data.chamados.length > 0;
+    const maxGut = chamadoOrigin ? Math.max(...(data.chamados || []).map(c => c.gut_score ?? 0)) : 0;
+    const gutNote = chamadoOrigin && maxGut > 0 ? ` (definida por GUT: ${maxGut})` : "";
+    doc.text(`${prioLabel}${gutNote}`, 46, y);
+    y += 8;
+  }
 
   // OS number and solicitante
   doc.setFillColor(240, 240, 240);
@@ -81,6 +116,29 @@ export function generateOSExecucaoReport(data: ExecucaoReportData): jsPDF {
   doc.setFont("helvetica", "normal");
   doc.text(data.solicitanteNome, pw / 2 + 52, y);
   y += 16;
+
+  // Chamados vinculados
+  if (data.chamados && data.chamados.length > 0) {
+    y += 4;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.text("Chamados Vinculados:", 16, y);
+    y += 7;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+
+    data.chamados.forEach((ch, idx) => {
+      checkPage(16);
+      doc.setFont("helvetica", "bold");
+      doc.text(`${idx + 1}. ${ch.codigo}`, 20, y);
+      doc.setFont("helvetica", "normal");
+      const gutStr = ch.gut_score ? ` — GUT: ${ch.gut_score}` : "";
+      doc.text(`  ${ch.tipo_demanda} — ${ch.local_servico}${gutStr}`, 20 + doc.getTextWidth(`${idx + 1}. ${ch.codigo}`) + 2, y);
+      y += 5;
+    });
+    y += 3;
+    doc.setFontSize(10);
+  }
 
   // Descrição dos Serviços
   y += 4;

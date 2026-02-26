@@ -32,6 +32,21 @@ interface HistoricoFluxoItem {
   usuario: string;
 }
 
+interface ChamadoInfo {
+  codigo: string;
+  tipo_demanda: string;
+  local_servico: string;
+  descricao: string;
+  gut_gravidade?: number | null;
+  gut_urgencia?: number | null;
+  gut_tendencia?: number | null;
+  gut_score?: number | null;
+  prioridade: string;
+  created_at: string;
+  status: string;
+  solicitante_nome?: string;
+}
+
 interface ReportData {
   os: OrdemServico;
   contrato?: { numero: string; empresa: string; preposto_nome?: string | null } | null;
@@ -40,9 +55,10 @@ interface ReportData {
   valorAtestado?: number;
   geradoPor?: string;
   historicoFluxo?: HistoricoFluxoItem[];
+  chamados?: ChamadoInfo[];
 }
 
-export function generateOSReport({ os, contrato, custos = [], responsaveis = [], valorAtestado, geradoPor, historicoFluxo = [] }: ReportData, { skipSave = false } = {}): jsPDF {
+export function generateOSReport({ os, contrato, custos = [], responsaveis = [], valorAtestado, geradoPor, historicoFluxo = [], chamados = [] }: ReportData, { skipSave = false } = {}): jsPDF {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   let y = 20;
@@ -98,13 +114,22 @@ export function generateOSReport({ os, contrato, custos = [], responsaveis = [],
   doc.line(14, y, pageWidth - 14, y);
   y += 8;
 
-  // Identification
+  // 1. Identification
   addSection("1. Identificação");
   addLine("Código:", os.codigo);
   addLine("Título:", os.titulo);
   addLine("Status:", statusLabels[os.status] || os.status);
   addLine("Tipo:", os.tipo === "corretiva" ? "Corretiva" : "Preventiva");
   addLine("Prioridade:", prioridadeLabels[os.prioridade] || os.prioridade);
+  if (chamados.length > 0) {
+    addLine("Origem:", `Criada a partir de ${chamados.length} chamado(s)`);
+    const maxGut = Math.max(...chamados.map(c => c.gut_score ?? 0));
+    if (maxGut > 0) {
+      addLine("Score GUT (maior):", `${maxGut} → Prioridade definida automaticamente`);
+    }
+  } else {
+    addLine("Origem:", "Criação direta (sem chamado)");
+  }
 
   if (os.descricao) {
     addLine("Descrição:", "");
@@ -116,43 +141,79 @@ export function generateOSReport({ os, contrato, custos = [], responsaveis = [],
     y += lines.length * 5 + 2;
   }
 
-  // Location
+  // 2. Chamados Vinculados
+  if (chamados.length > 0) {
+    addSection("2. Chamados Vinculados");
+
+    chamados.forEach((ch, idx) => {
+      checkPage(30);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.text(`${idx + 1}. ${ch.codigo}`, 16, y);
+      y += 5;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+
+      addLine("Tipo Demanda:", ch.tipo_demanda, 20);
+      addLine("Local:", ch.local_servico, 20);
+      addLine("Solicitante:", ch.solicitante_nome || "—", 20);
+      addLine("Data Abertura:", new Date(ch.created_at).toLocaleString("pt-BR"), 20);
+      addLine("Prioridade:", prioridadeLabels[ch.prioridade] || ch.prioridade, 20);
+
+      if (ch.gut_score != null && ch.gut_score > 0) {
+        addLine("Matriz GUT:", `G:${ch.gut_gravidade} × U:${ch.gut_urgencia} × T:${ch.gut_tendencia} = ${ch.gut_score}`, 20);
+      }
+
+      if (ch.descricao) {
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8);
+        const descLines = doc.splitTextToSize(ch.descricao, pageWidth - 44);
+        checkPage(descLines.length * 4 + 2);
+        doc.text(descLines, 22, y);
+        y += descLines.length * 4 + 3;
+      }
+      y += 2;
+    });
+  }
+
+  // 3. Location
+  const sectionOffset = chamados.length > 0 ? 1 : 0;
   const uop = os.uops as any;
   const delegacia = uop?.delegacias;
   const regional = (os as any).regionais || delegacia?.regionais;
   if (regional || delegacia || uop) {
-    addSection("2. Localização");
+    addSection(`${2 + sectionOffset}. Localização`);
     if (regional) addLine("Regional:", `${regional.nome} (${regional.sigla})`);
     if (delegacia) addLine("Delegacia:", delegacia.nome);
     if (uop) addLine("Unidade:", uop.nome);
   }
 
-  // Contract
+  // 4. Contract
   if (contrato) {
-    addSection("3. Contrato");
+    addSection(`${3 + sectionOffset}. Contrato`);
     addLine("Número:", contrato.numero);
     addLine("Empresa:", contrato.empresa);
     if (contrato.preposto_nome) addLine("Preposto:", contrato.preposto_nome);
   }
 
-  // Dates
-  addSection("4. Datas");
+  // 5. Dates
+  addSection(`${4 + sectionOffset}. Datas`);
   addLine("Abertura:", new Date(os.data_abertura).toLocaleString("pt-BR"));
   if (os.data_encerramento) {
     addLine("Encerramento:", new Date(os.data_encerramento).toLocaleString("pt-BR"));
   }
 
-  // Responsáveis por etapa
+  // 6. Responsáveis por etapa
   if (responsaveis.length > 0) {
-    addSection("5. Responsáveis por Etapa");
+    addSection(`${5 + sectionOffset}. Responsáveis por Etapa`);
     responsaveis.forEach((r) => {
       const dateStr = r.data ? ` (${r.data})` : "";
       addLine(`${r.etapa}:`, `${r.nome}${dateStr}`);
     });
   }
 
-  // Budget & Attested Value
-  addSection("6. Valores");
+  // 7. Budget & Attested Value
+  addSection(`${6 + sectionOffset}. Valores`);
   if ((os as any).valor_orcamento > 0) {
     addLine("Valor do Orçamento:", `R$ ${Number((os as any).valor_orcamento).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`);
   }
@@ -168,9 +229,9 @@ export function generateOSReport({ os, contrato, custos = [], responsaveis = [],
     addLine("Arquivo de Orçamento:", "Anexado (ver sistema)");
   }
 
-  // Costs
+  // 8. Costs
   if (custos.length > 0) {
-    addSection("7. Custos Detalhados");
+    addSection(`${7 + sectionOffset}. Custos Detalhados`);
     const totalCustos = custos.reduce((sum, c) => sum + Number(c.valor), 0);
     custos.forEach((c) => {
       addLine(`• ${c.descricao} (${c.tipo}):`, `R$ ${Number(c.valor).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`);
@@ -183,23 +244,23 @@ export function generateOSReport({ os, contrato, custos = [], responsaveis = [],
     y += 6;
   }
 
-  // Payment documents
+  // 9. Payment documents
   const paymentDocs: string[] = (os as any).documentos_pagamento || [];
   if (paymentDocs.length > 0) {
-    addSection("8. Documentos de Pagamento");
+    addSection(`${8 + sectionOffset}. Documentos de Pagamento`);
     addLine("Quantidade:", `${paymentDocs.length} documento(s) anexado(s)`);
   }
 
-  // Photos
+  // 10. Photos
   if (os.foto_antes || os.foto_depois) {
-    addSection("9. Evidências Fotográficas");
+    addSection(`${9 + sectionOffset}. Evidências Fotográficas`);
     if (os.foto_antes) addLine("Foto Antes:", "Anexada (ver sistema)");
     if (os.foto_depois) addLine("Foto Depois:", "Anexada (ver sistema)");
   }
 
-  // Histórico do Fluxo
+  // 11. Histórico do Fluxo
   if (historicoFluxo.length > 0) {
-    addSection("10. Histórico do Fluxo");
+    addSection(`${10 + sectionOffset}. Histórico do Fluxo`);
     historicoFluxo.forEach((item, idx) => {
       checkPage(20);
       doc.setFont("helvetica", "bold");

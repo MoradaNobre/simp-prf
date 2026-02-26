@@ -77,6 +77,39 @@ export function RelatoriosPagamento() {
         .select("descricao, tipo, valor")
         .eq("os_id", relatorio.os_id);
 
+      // Fetch linked chamados
+      const { data: chamadosForReport } = await supabase
+        .from("chamados")
+        .select("codigo, tipo_demanda, local_servico, descricao, gut_gravidade, gut_urgencia, gut_tendencia, gut_score, prioridade, created_at, status, solicitante_id")
+        .eq("os_id", relatorio.os_id);
+
+      const chamadoSolIds = [...new Set((chamadosForReport || []).map((c: any) => c.solicitante_id).filter(Boolean))];
+      let chamadoSolMap: Record<string, string> = {};
+      if (chamadoSolIds.length > 0) {
+        const { data: chamadoProfiles } = await supabase
+          .from("profiles")
+          .select("user_id, full_name")
+          .in("user_id", chamadoSolIds);
+        if (chamadoProfiles) {
+          chamadoSolMap = Object.fromEntries(chamadoProfiles.map((p: any) => [p.user_id, p.full_name]));
+        }
+      }
+
+      const chamadosData = (chamadosForReport || []).map((ch: any) => ({
+        codigo: ch.codigo,
+        tipo_demanda: ch.tipo_demanda,
+        local_servico: ch.local_servico,
+        descricao: ch.descricao,
+        gut_gravidade: ch.gut_gravidade,
+        gut_urgencia: ch.gut_urgencia,
+        gut_tendencia: ch.gut_tendencia,
+        gut_score: ch.gut_score,
+        prioridade: ch.prioridade,
+        created_at: ch.created_at,
+        status: ch.status,
+        solicitante_nome: chamadoSolMap[ch.solicitante_id] || "—",
+      }));
+
       generateOSReport({
         os: os as any,
         contrato: dados.contrato || null,
@@ -85,6 +118,7 @@ export function RelatoriosPagamento() {
         valorAtestado: relatorio.valor_atestado,
         geradoPor: dados.gerado_por_nome || "",
         historicoFluxo: dados.historicoFluxo || [],
+        chamados: chamadosData,
       });
       toast.success("PDF gerado com sucesso!");
     } catch (err: any) {
