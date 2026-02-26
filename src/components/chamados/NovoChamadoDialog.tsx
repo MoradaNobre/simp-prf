@@ -52,6 +52,7 @@ export function NovoChamadoDialog({ open, onOpenChange }: Props) {
   const [delegaciaId, setDelegaciaId] = useState("");
   const [uopId, setUopId] = useState("");
   const [foto, setFoto] = useState<File | null>(null);
+  const [patrimonio, setPatrimonio] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const isGestorGlobal = isGlobalRole(role);
@@ -83,7 +84,7 @@ export function NovoChamadoDialog({ open, onOpenChange }: Props) {
     setTipoDemanda(""); setDescricao(""); setLocalServico("");
     setPrioridade("media"); setJustificativaUrgente("");
     setSelectedRegionalId(""); setDelegaciaId(""); setUopId("");
-    setFoto(null);
+    setFoto(null); setPatrimonio("");
   };
 
   const handleSubmit = async () => {
@@ -101,9 +102,13 @@ export function NovoChamadoDialog({ open, onOpenChange }: Props) {
         fotoUrl = urlData.publicUrl;
       }
 
+      const descFinal = patrimonio.trim()
+        ? `${descricao.trim()}\n[Patrimônio Ar Condicionado]: ${patrimonio.trim()}`
+        : descricao.trim();
+
       await createChamado.mutateAsync({
         tipo_demanda: tipoDemanda,
-        descricao: descricao.trim(),
+        descricao: descFinal,
         local_servico: localServico.trim(),
         prioridade,
         justificativa_urgente: prioridade === "urgente" ? justificativaUrgente.trim() : null,
@@ -144,6 +149,17 @@ export function NovoChamadoDialog({ open, onOpenChange }: Props) {
               </SelectContent>
             </Select>
           </div>
+
+          {tipoDemanda === "ar_condicionado" && (
+            <div>
+              <Label>Patrimônio do Ar Condicionado</Label>
+              <Input
+                value={patrimonio}
+                onChange={(e) => setPatrimonio(e.target.value)}
+                placeholder="Informe o número de patrimônio (opcional)"
+              />
+            </div>
+          )}
 
           <div>
             <Label>Descrição *</Label>
