@@ -196,10 +196,10 @@ export default function Dashboard() {
         </div>
       </div>
 
-        <Tabs defaultValue="operacional">
+        <Tabs defaultValue="chamados">
           <TabsList>
-            <TabsTrigger value="operacional">Ordens de Serviço</TabsTrigger>
             <TabsTrigger value="chamados">Chamados</TabsTrigger>
+            <TabsTrigger value="operacional">Ordens de Serviço</TabsTrigger>
             {canSeeOrcamento && <TabsTrigger value="orcamento">Orçamento</TabsTrigger>}
           </TabsList>
           <TabsContent value="operacional" className="space-y-6 mt-4">
