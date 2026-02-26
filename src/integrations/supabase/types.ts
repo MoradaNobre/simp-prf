@@ -97,6 +97,92 @@ export type Database = {
         }
         Relationships: []
       }
+      chamados: {
+        Row: {
+          codigo: string
+          created_at: string
+          delegacia_id: string | null
+          descricao: string
+          foto: string | null
+          id: string
+          justificativa_urgente: string | null
+          local_servico: string
+          os_id: string | null
+          prioridade: Database["public"]["Enums"]["os_prioridade"]
+          regional_id: string | null
+          solicitante_id: string
+          status: string
+          tipo_demanda: string
+          uop_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          codigo?: string
+          created_at?: string
+          delegacia_id?: string | null
+          descricao: string
+          foto?: string | null
+          id?: string
+          justificativa_urgente?: string | null
+          local_servico: string
+          os_id?: string | null
+          prioridade?: Database["public"]["Enums"]["os_prioridade"]
+          regional_id?: string | null
+          solicitante_id: string
+          status?: string
+          tipo_demanda: string
+          uop_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          codigo?: string
+          created_at?: string
+          delegacia_id?: string | null
+          descricao?: string
+          foto?: string | null
+          id?: string
+          justificativa_urgente?: string | null
+          local_servico?: string
+          os_id?: string | null
+          prioridade?: Database["public"]["Enums"]["os_prioridade"]
+          regional_id?: string | null
+          solicitante_id?: string
+          status?: string
+          tipo_demanda?: string
+          uop_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chamados_delegacia_id_fkey"
+            columns: ["delegacia_id"]
+            isOneToOne: false
+            referencedRelation: "delegacias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chamados_os_id_fkey"
+            columns: ["os_id"]
+            isOneToOne: false
+            referencedRelation: "ordens_servico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chamados_regional_id_fkey"
+            columns: ["regional_id"]
+            isOneToOne: false
+            referencedRelation: "regionais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chamados_uop_id_fkey"
+            columns: ["uop_id"]
+            isOneToOne: false
+            referencedRelation: "uops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contrato_aditivos: {
         Row: {
           contrato_id: string
