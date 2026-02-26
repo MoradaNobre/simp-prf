@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageSquarePlus, Clock, Link2, XCircle, AlertTriangle } from "lucide-react";
+import { MessageSquarePlus, Clock, Link2, XCircle, AlertTriangle, ClipboardCheck } from "lucide-react";
 
 const TIPO_LABELS: Record<string, string> = {
   hidraulico: "Hidráulico",
@@ -26,9 +26,10 @@ function useDashboardChamados(regionalId?: string | null) {
       const chamados = data ?? [];
 
       const abertos = chamados.filter(c => c.status === "aberto").length;
+      const analisados = chamados.filter(c => c.status === "analisado").length;
       const vinculados = chamados.filter(c => c.status === "vinculado").length;
       const cancelados = chamados.filter(c => c.status === "cancelado").length;
-      const urgentes = chamados.filter(c => c.status === "aberto" && c.prioridade === "urgente").length;
+      const urgentes = chamados.filter(c => (c.status === "aberto" || c.status === "analisado") && c.prioridade === "urgente").length;
 
       // By type
       const porTipo: Record<string, number> = {};
@@ -42,7 +43,7 @@ function useDashboardChamados(regionalId?: string | null) {
         porPrioridade[p] = chamados.filter(c => c.status === "aberto" && c.prioridade === p).length;
       }
 
-      return { total: chamados.length, abertos, vinculados, cancelados, urgentes, porTipo, porPrioridade };
+      return { total: chamados.length, abertos, analisados, vinculados, cancelados, urgentes, porTipo, porPrioridade };
     },
     refetchInterval: 30_000,
   });
@@ -57,9 +58,9 @@ export default function DashboardChamados({ regionalId }: Props) {
 
   const kpis = [
     { label: "Abertos", value: data?.abertos ?? 0, icon: Clock, color: "text-blue-500" },
-    { label: "Urgentes (abertos)", value: data?.urgentes ?? 0, icon: AlertTriangle, color: "text-destructive" },
+    { label: "Analisados", value: data?.analisados ?? 0, icon: ClipboardCheck, color: "text-amber-500" },
+    { label: "Urgentes", value: data?.urgentes ?? 0, icon: AlertTriangle, color: "text-destructive" },
     { label: "Vinculados a OS", value: data?.vinculados ?? 0, icon: Link2, color: "text-emerald-500" },
-    { label: "Cancelados", value: data?.cancelados ?? 0, icon: XCircle, color: "text-muted-foreground" },
   ];
 
   const tipoEntries = Object.entries(data?.porTipo ?? {}).sort((a, b) => b[1] - a[1]);
