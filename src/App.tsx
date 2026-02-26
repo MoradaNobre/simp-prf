@@ -9,6 +9,7 @@ import { AppLayout } from "@/components/AppLayout";
 import Dashboard from "@/pages/Dashboard";
 import LandingPage from "@/pages/LandingPage";
 import OrdensServico from "@/pages/OrdensServico";
+import Chamados from "@/pages/Chamados";
 import Preventiva from "@/pages/Preventiva";
 import Agenda from "@/pages/Agenda";
 import Contratos from "@/pages/Contratos";
@@ -39,6 +40,7 @@ const App = () => (
               <Route path="/app" element={<AppLayout />}>
                 <Route index element={<AppRedirect />} />
                 <Route path="dashboard" element={<Dashboard />} />
+                <Route path="chamados" element={<Chamados />} />
                 <Route path="ordens" element={<OrdensServico />} />
                 <Route path="preventiva" element={<Preventiva />} />
                 <Route path="agenda" element={<Agenda />} />
