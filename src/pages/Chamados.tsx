@@ -5,11 +5,12 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Search, PackagePlus, Trash2, Eye, ClipboardCheck, ArrowUpDown } from "lucide-react";
+import { Plus, Search, PackagePlus, Trash2, Eye, ClipboardCheck, ArrowUpDown, Pencil } from "lucide-react";
 import { NovoChamadoDialog } from "@/components/chamados/NovoChamadoDialog";
 import { useChamados, useUpdateChamado, useDeleteChamado, type Chamado } from "@/hooks/useChamados";
 import { useCreateOS } from "@/hooks/useOrdensServico";
 import { ChamadoStatusTimeline } from "@/components/chamados/ChamadoStatusTimeline";
+import { EditarChamadoDialog } from "@/components/chamados/EditarChamadoDialog";
 import { GUTMatrixPanel } from "@/components/os/GUTMatrixPanel";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -74,6 +75,7 @@ export default function Chamados() {
   const [creatingOS, setCreatingOS] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [sortByScore, setSortByScore] = useState(false);
+  const [editChamado, setEditChamado] = useState<Chamado | null>(null);
 
   const { data: chamados = [], isLoading } = useChamados({
     status: statusFilter || undefined,
@@ -329,6 +331,12 @@ export default function Chamados() {
                         <ClipboardCheck className="h-4 w-4" />
                       </Button>
                     )}
+                    {/* Edit button: operador can edit own aberto chamados, gestors can edit aberto chamados */}
+                    {chamado.status === "aberto" && (chamado.solicitante_id === user?.id || isGestor || isMaster) && (
+                      <Button size="icon" variant="ghost" title="Editar" onClick={() => setEditChamado(chamado)}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    )}
                     <Button size="icon" variant="ghost" onClick={() => setViewChamado(chamado)}>
                       <Eye className="h-4 w-4" />
                     </Button>
@@ -346,6 +354,7 @@ export default function Chamados() {
       )}
 
       <NovoChamadoDialog open={dialogOpen} onOpenChange={setDialogOpen} />
+      <EditarChamadoDialog chamado={editChamado} open={!!editChamado} onOpenChange={(v) => !v && setEditChamado(null)} />
 
       {/* Analyze GUT dialog */}
       <Dialog open={!!analyzeChamado} onOpenChange={() => setAnalyzeChamado(null)}>
