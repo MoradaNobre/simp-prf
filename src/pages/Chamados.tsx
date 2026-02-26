@@ -332,7 +332,7 @@ export default function Chamados() {
                     <Button size="icon" variant="ghost" onClick={() => setViewChamado(chamado)}>
                       <Eye className="h-4 w-4" />
                     </Button>
-                    {(isMaster || ((isGestor || chamado.solicitante_id === user?.id) && chamado.status === "aberto")) && (
+                    {(isMaster || (isGestor && chamado.status === "aberto")) && (
                       <Button size="icon" variant="ghost" className="text-destructive" onClick={() => setDeleteId(chamado.id)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
