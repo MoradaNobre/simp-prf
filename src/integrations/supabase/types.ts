@@ -111,6 +111,7 @@ export type Database = {
           id: string
           justificativa_urgente: string | null
           local_servico: string
+          motivo_cancelamento: string | null
           os_id: string | null
           prioridade: Database["public"]["Enums"]["os_prioridade"]
           regional_id: string | null
@@ -133,6 +134,7 @@ export type Database = {
           id?: string
           justificativa_urgente?: string | null
           local_servico: string
+          motivo_cancelamento?: string | null
           os_id?: string | null
           prioridade?: Database["public"]["Enums"]["os_prioridade"]
           regional_id?: string | null
@@ -155,6 +157,7 @@ export type Database = {
           id?: string
           justificativa_urgente?: string | null
           local_servico?: string
+          motivo_cancelamento?: string | null
           os_id?: string | null
           prioridade?: Database["public"]["Enums"]["os_prioridade"]
           regional_id?: string | null
