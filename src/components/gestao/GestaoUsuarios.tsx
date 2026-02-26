@@ -409,7 +409,7 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
         <Select value={filterRegionalId} onValueChange={setFilterRegionalId}>
           <SelectTrigger className="w-[160px]"><SelectValue placeholder="Regional" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todas regionais</SelectItem>
+            <SelectItem value="all">Todas as Regionais</SelectItem>
             {availableRegionais.map((r) => (
               <SelectItem key={r.id} value={r.id}>{r.sigla}</SelectItem>
             ))}
