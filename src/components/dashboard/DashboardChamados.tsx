@@ -61,6 +61,7 @@ export default function DashboardChamados({ regionalId }: Props) {
     { label: "Analisados", value: data?.analisados ?? 0, icon: ClipboardCheck, color: "text-amber-500" },
     { label: "Urgentes", value: data?.urgentes ?? 0, icon: AlertTriangle, color: "text-destructive" },
     { label: "Vinculados a OS", value: data?.vinculados ?? 0, icon: Link2, color: "text-emerald-500" },
+    { label: "Cancelados", value: data?.cancelados ?? 0, icon: XCircle, color: "text-muted-foreground" },
   ];
 
   const tipoEntries = Object.entries(data?.porTipo ?? {}).sort((a, b) => b[1] - a[1]);
@@ -73,7 +74,7 @@ export default function DashboardChamados({ regionalId }: Props) {
   return (
     <div className="space-y-6">
       {/* KPIs */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {kpis.map((k) => (
           <Card key={k.label}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
