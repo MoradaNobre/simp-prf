@@ -3,9 +3,9 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, FileText, Loader2, Lock } from "lucide-react";
+import { ArrowLeft, ClipboardList, FileText, Loader2, Lock } from "lucide-react";
 
-const DOCS: Record<string, { title: string; file: string; icon: "file" | "lock" }> = {
+const DOCS: Record<string, { title: string; file: string; icon: "file" | "lock" | "clipboard" }> = {
   tecnico: {
     title: "Documentação Técnica",
     file: "/TECHNICAL_DOCS.md",
@@ -15,6 +15,11 @@ const DOCS: Record<string, { title: string; file: string; icon: "file" | "lock" 
     title: "Política de Privacidade",
     file: "/PRIVACY_POLICY.md",
     icon: "lock",
+  },
+  prd: {
+    title: "Requisitos do Produto (PRD)",
+    file: "/PRD.md",
+    icon: "clipboard",
   },
 };
 
@@ -60,7 +65,7 @@ export default function DocumentoViewer() {
     );
   }
 
-  const IconComp = doc.icon === "lock" ? Lock : FileText;
+  const IconComp = doc.icon === "lock" ? Lock : doc.icon === "clipboard" ? ClipboardList : FileText;
 
   return (
     <div className="max-w-4xl mx-auto space-y-4">
