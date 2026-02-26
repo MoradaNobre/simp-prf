@@ -395,7 +395,7 @@ export default function Chamados() {
                         <Ban className="h-4 w-4" />
                       </Button>
                     )}
-                    {(isMaster || (isGestor && chamado.status === "aberto")) && (
+                    {isMaster && (
                       <Button size="icon" variant="ghost" className="text-destructive" onClick={() => setDeleteId(chamado.id)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
