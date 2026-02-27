@@ -155,8 +155,8 @@ export default function DashboardMapa() {
                             d={d}
                             fill={ufUsers.length > 0 ? primaryColor : "hsl(var(--muted))"}
                             fillOpacity={isHovered ? 1 : 0.85}
-                            stroke="hsl(var(--muted-foreground) / 0.35)"
-                            strokeWidth={isHovered ? 1.2 : 0.5}
+                            stroke="hsl(var(--foreground) / 0.45)"
+                            strokeWidth={isHovered ? 1.8 : 1}
                             strokeLinejoin="round"
                             className="transition-all duration-150"
                           />
