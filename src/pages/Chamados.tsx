@@ -248,7 +248,7 @@ export default function Chamados() {
             <p className="font-medium mb-1">Como funciona o fluxo de chamados?</p>
             <ol className="list-decimal list-inside space-y-0.5 text-blue-700 dark:text-blue-400">
               <li>Você abre um chamado descrevendo o problema.</li>
-              <li>Um <strong>Gestor</strong> ou <strong>Fiscal</strong> analisa o chamado com a Matriz GUT (priorização técnica).</li>
+              <li>Um <strong>Gestor</strong> ou <strong>Fiscal</strong> analisa o chamado (priorização técnica).</li>
               <li>Após análise, o chamado é agrupado em uma <strong>Ordem de Serviço</strong> para execução.</li>
             </ol>
             <p className="mt-1 text-xs text-blue-600 dark:text-blue-500">Você pode editar seus chamados enquanto estiverem com status <strong>Aberto</strong>.</p>
