@@ -80,7 +80,8 @@ function useUsersByRoleAndUF(role: string) {
 }
 
 // Small states: font size smaller
-const SMALL_STATES = new Set(["DF", "RJ", "ES", "SE", "AL", "RN", "PB"]);
+const SMALL_STATES = new Set(["RJ", "ES", "SE", "AL", "RN", "PB"]);
+const TINY_STATES = new Set(["DF"]);
 
 export default function DashboardMapa() {
   const [selectedRole, setSelectedRole] = useState("gestor_nacional");
@@ -139,7 +140,8 @@ export default function DashboardMapa() {
                       ? nameColorMap.get(ufUsers[0].user_name) || "#94a3b8"
                       : "hsl(var(--muted))";
                     const isHovered = hoveredState === state.uf;
-                    const isSmall = SMALL_STATES.has(state.uf);
+                    const isSmall = SMALL_STATES.has(state.uf) || TINY_STATES.has(state.uf);
+                    const isTiny = TINY_STATES.has(state.uf);
 
                     return (
                       <g
@@ -166,10 +168,10 @@ export default function DashboardMapa() {
                             <circle
                               cx={state.centroidX}
                               cy={state.centroidY}
-                              r="10"
-                              fill="hsl(var(--background))"
-                              stroke="hsl(var(--muted-foreground) / 0.5)"
-                              strokeWidth="0.8"
+                              r={isTiny ? "14" : "11"}
+                              fill={ufUsers.length > 0 ? primaryColor : "hsl(var(--muted))"}
+                              stroke="hsl(var(--background))"
+                              strokeWidth="1.2"
                               style={{ pointerEvents: "none" }}
                             />
                             <text
@@ -177,9 +179,9 @@ export default function DashboardMapa() {
                               y={state.centroidY}
                               textAnchor="middle"
                               dominantBaseline="central"
-                              fontSize="9"
+                              fontSize={isTiny ? "11" : "9"}
                               fontWeight="bold"
-                              fill="hsl(var(--foreground))"
+                              fill="#fff"
                               className="select-none"
                               style={{ pointerEvents: "none" }}
                             >
