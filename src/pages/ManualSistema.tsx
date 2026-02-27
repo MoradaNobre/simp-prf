@@ -655,12 +655,24 @@ export default function ManualSistema() {
       const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
       const pageW = 210;
       const pageH = 297;
-      const marginL = 15;
-      const marginR = 15;
+      const marginL = 18;
+      const marginR = 18;
       const contentW = pageW - marginL - marginR;
-      const marginTop = 20;
-      const marginBottom = 15;
+      const marginTop = 22;
+      const marginBottom = 18;
       let y = marginTop;
+
+      // Sanitize text: replace unicode chars jsPDF can't render with safe alternatives
+      const safe = (text: string) =>
+        text
+          .replace(/→/g, "-")
+          .replace(/⚠/g, "[!]")
+          .replace(/•/g, "-")
+          .replace(/×/g, "x")
+          .replace(/—/g, "-")
+          .replace(/'/g, "'")
+          .replace(/"/g, '"')
+          .replace(/"/g, '"');
 
       const checkPage = (needed: number) => {
         if (y + needed > pageH - marginBottom) {
@@ -669,8 +681,16 @@ export default function ManualSistema() {
         }
       };
 
-      // ── Cover page ──
-      pdf.setFillColor(30, 58, 138); // blue-900
+      const writeLines = (lines: string[], x: number, lineH: number) => {
+        lines.forEach((line: string) => {
+          checkPage(lineH);
+          pdf.text(safe(line), x, y);
+          y += lineH;
+        });
+      };
+
+      // -- Cover page --
+      pdf.setFillColor(30, 58, 138);
       pdf.rect(0, 0, pageW, pageH, "F");
       pdf.setTextColor(255, 255, 255);
       pdf.setFontSize(32);
@@ -680,131 +700,144 @@ export default function ManualSistema() {
       pdf.text("SIMP-PRF", pageW / 2, 115, { align: "center" });
       pdf.setFontSize(12);
       pdf.setFont("helvetica", "normal");
-      pdf.text("Sistema Integrado de Manutenção Predial", pageW / 2, 135, { align: "center" });
-      pdf.text("Polícia Rodoviária Federal", pageW / 2, 143, { align: "center" });
+      pdf.text("Sistema Integrado de Manutencao Predial", pageW / 2, 135, { align: "center" });
+      pdf.text("Policia Rodoviaria Federal", pageW / 2, 143, { align: "center" });
       pdf.setFontSize(10);
       const now = new Date();
-      pdf.text(`Gerado em ${now.toLocaleDateString("pt-BR")} às ${now.toLocaleTimeString("pt-BR")}`, pageW / 2, 200, { align: "center" });
+      pdf.text(`Gerado em ${now.toLocaleDateString("pt-BR")}`, pageW / 2, 200, { align: "center" });
 
-      // ── Table of Contents ──
+      // -- Table of Contents --
       pdf.addPage();
       y = marginTop;
       pdf.setTextColor(30, 58, 138);
-      pdf.setFontSize(20);
+      pdf.setFontSize(18);
       pdf.setFont("helvetica", "bold");
-      pdf.text("Índice", marginL, y);
+      pdf.text("Indice", marginL, y);
       y += 12;
       pdf.setTextColor(60, 60, 60);
       pdf.setFontSize(11);
       pdf.setFont("helvetica", "normal");
       SECTIONS.forEach((section, idx) => {
         checkPage(8);
-        pdf.text(`${idx + 1}. ${section.title}`, marginL + 4, y);
+        pdf.setFont("helvetica", "bold");
+        pdf.text(safe(`${idx + 1}. ${section.title}`), marginL + 4, y);
+        pdf.setFont("helvetica", "normal");
         y += 7;
         section.features.forEach((f) => {
           checkPage(6);
           pdf.setFontSize(9);
-          pdf.text(`• ${f.title}`, marginL + 12, y);
+          pdf.text(safe(`  - ${f.title}`), marginL + 12, y);
           pdf.setFontSize(11);
           y += 5;
         });
         y += 3;
       });
 
-      // ── Content pages ──
+      // -- Content pages --
       SECTIONS.forEach((section, sIdx) => {
         pdf.addPage();
         y = marginTop;
 
-        // Section header with colored bar
+        // Section header bar
         pdf.setFillColor(30, 58, 138);
-        pdf.rect(marginL, y - 5, contentW, 14, "F");
+        pdf.rect(marginL, y - 5, contentW, 12, "F");
         pdf.setTextColor(255, 255, 255);
-        pdf.setFontSize(16);
+        pdf.setFontSize(14);
         pdf.setFont("helvetica", "bold");
-        pdf.text(`${sIdx + 1}. ${section.title}`, marginL + 4, y + 4);
-        y += 16;
+        pdf.text(safe(`${sIdx + 1}. ${section.title}`), marginL + 4, y + 3);
+        y += 14;
 
         // Section description
         pdf.setTextColor(80, 80, 80);
-        pdf.setFontSize(10);
+        pdf.setFontSize(9);
         pdf.setFont("helvetica", "normal");
-        const descLines = pdf.splitTextToSize(section.description, contentW - 4);
-        checkPage(descLines.length * 5 + 4);
-        pdf.text(descLines, marginL + 2, y);
-        y += descLines.length * 5 + 6;
+        const descLines: string[] = pdf.splitTextToSize(safe(section.description), contentW - 8);
+        writeLines(descLines, marginL + 4, 4.5);
+        y += 4;
 
         // Features
         section.features.forEach((feature, fIdx) => {
-          checkPage(20);
+          checkPage(18);
 
-          // Feature title
-          pdf.setFillColor(240, 240, 250);
-          pdf.rect(marginL, y - 4, contentW, 9, "F");
+          // Feature title background
+          pdf.setFillColor(235, 237, 250);
+          pdf.rect(marginL, y - 4, contentW, 8, "F");
           pdf.setTextColor(30, 58, 138);
-          pdf.setFontSize(11);
+          pdf.setFontSize(10);
           pdf.setFont("helvetica", "bold");
-          pdf.text(`${sIdx + 1}.${fIdx + 1} ${feature.title}`, marginL + 3, y + 1);
-          y += 10;
+          pdf.text(safe(`${sIdx + 1}.${fIdx + 1}  ${feature.title}`), marginL + 3, y);
+          y += 8;
 
           // Roles
           if (feature.roles && feature.roles.length > 0) {
-            pdf.setFontSize(8);
+            pdf.setFontSize(7.5);
             pdf.setFont("helvetica", "italic");
-            pdf.setTextColor(120, 120, 120);
-            pdf.text(`Perfis: ${feature.roles.join(", ")}`, marginL + 3, y);
-            y += 5;
+            pdf.setTextColor(130, 130, 130);
+            const rolesText = safe(`Perfis: ${feature.roles.join(", ")}`);
+            const rolesLines: string[] = pdf.splitTextToSize(rolesText, contentW - 10);
+            writeLines(rolesLines, marginL + 4, 3.5);
+            y += 1;
           }
 
           // Description
           pdf.setTextColor(60, 60, 60);
-          pdf.setFontSize(9.5);
+          pdf.setFontSize(9);
           pdf.setFont("helvetica", "normal");
-          const fDescLines = pdf.splitTextToSize(feature.description, contentW - 6);
-          checkPage(fDescLines.length * 4.5 + 2);
-          pdf.text(fDescLines, marginL + 3, y);
-          y += fDescLines.length * 4.5 + 3;
+          const fDescLines: string[] = pdf.splitTextToSize(safe(feature.description), contentW - 10);
+          writeLines(fDescLines, marginL + 4, 4);
+          y += 2;
 
           // Details
           if (feature.details) {
             feature.details.forEach((detail) => {
-              const detailLines = pdf.splitTextToSize(detail, contentW - 14);
-              checkPage(detailLines.length * 4.2 + 2);
-              pdf.setTextColor(100, 100, 100);
-              pdf.text("→", marginL + 5, y);
-              pdf.setTextColor(60, 60, 60);
-              pdf.text(detailLines, marginL + 10, y);
-              y += detailLines.length * 4.2 + 1.5;
+              const detailLines: string[] = pdf.splitTextToSize(safe(detail), contentW - 18);
+              detailLines.forEach((line: string, li: number) => {
+                checkPage(4.5);
+                if (li === 0) {
+                  pdf.setTextColor(100, 100, 100);
+                  pdf.text("-", marginL + 6, y);
+                }
+                pdf.setTextColor(60, 60, 60);
+                pdf.text(line, marginL + 10, y);
+                y += 4;
+              });
+              y += 0.5;
             });
           }
 
           // Tip
           if (feature.tip) {
-            checkPage(12);
+            const tipText = safe(`[!] ${feature.tip}`);
+            const tipLines: string[] = pdf.splitTextToSize(tipText, contentW - 14);
+            const tipH = tipLines.length * 3.8 + 5;
+            checkPage(tipH + 2);
             pdf.setFillColor(255, 251, 235);
-            const tipLines = pdf.splitTextToSize(`⚠ ${feature.tip}`, contentW - 10);
-            const tipH = tipLines.length * 4 + 6;
             pdf.rect(marginL + 2, y - 2, contentW - 4, tipH, "F");
-            pdf.setDrawColor(217, 175, 50);
+            pdf.setDrawColor(200, 170, 50);
             pdf.rect(marginL + 2, y - 2, contentW - 4, tipH, "S");
             pdf.setTextColor(120, 80, 0);
-            pdf.setFontSize(8.5);
-            pdf.text(tipLines, marginL + 5, y + 2);
-            y += tipH + 4;
+            pdf.setFontSize(8);
+            pdf.setFont("helvetica", "normal");
+            tipLines.forEach((line: string) => {
+              pdf.text(line, marginL + 5, y + 2);
+              y += 3.8;
+            });
+            y += 5;
           }
 
-          y += 4;
+          y += 3;
         });
       });
 
-      // ── Footer on every page ──
+      // -- Footer on every page --
       const totalPages = pdf.getNumberOfPages();
       for (let i = 2; i <= totalPages; i++) {
         pdf.setPage(i);
-        pdf.setFontSize(8);
+        pdf.setFontSize(7);
+        pdf.setFont("helvetica", "normal");
         pdf.setTextColor(160, 160, 160);
-        pdf.text(`SIMP-PRF — Manual do Sistema`, marginL, pageH - 8);
-        pdf.text(`Página ${i - 1} de ${totalPages - 1}`, pageW - marginR, pageH - 8, { align: "right" });
+        pdf.text("SIMP-PRF - Manual do Sistema", marginL, pageH - 8);
+        pdf.text(`Pagina ${i - 1} de ${totalPages - 1}`, pageW - marginR, pageH - 8, { align: "right" });
       }
 
       pdf.save("Manual_SIMP-PRF.pdf");
