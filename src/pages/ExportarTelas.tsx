@@ -122,21 +122,48 @@ export default function ExportarTelas() {
 
   const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+  const findTab = (doc: Document, tabValue: string): HTMLElement | null => {
+    // Try multiple strategies to find Radix tab triggers
+    const strategies = [
+      () => doc.querySelector(`button[role="tab"][value="${tabValue}"]`),
+      () => doc.querySelector(`[data-value="${tabValue}"][role="tab"]`),
+      () => doc.querySelector(`button[value="${tabValue}"]`),
+      () => doc.querySelector(`[role="tab"][data-radix-collection-item][value="${tabValue}"]`),
+      () => {
+        // Search all tab buttons and match by value attribute or data attribute
+        const allTabs = doc.querySelectorAll('button[role="tab"]');
+        for (const t of allTabs) {
+          if (t.getAttribute("value") === tabValue || t.getAttribute("data-value") === tabValue) {
+            return t;
+          }
+        }
+        return null;
+      },
+    ];
+    for (const strategy of strategies) {
+      const el = strategy();
+      if (el) return el as HTMLElement;
+    }
+    console.warn(`Tab not found: ${tabValue}`);
+    return null;
+  };
+
   const performAction = async (iframe: HTMLIFrameElement, action: ScreenAction) => {
     try {
       const doc = iframe.contentDocument || iframe.contentWindow?.document;
       if (!doc) return;
 
       if (action.type === "tab") {
-        const tab =
-          doc.querySelector(`button[role="tab"][value="${action.selector}"]`) ||
-          doc.querySelector(`[data-value="${action.selector}"][role="tab"]`) ||
-          doc.querySelector(`button[value="${action.selector}"]`);
+        const tab = findTab(doc, action.selector);
         if (tab) {
-          (tab as HTMLElement).click();
+          // Simulate full user interaction for Radix
+          tab.focus();
+          tab.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true }));
+          tab.dispatchEvent(new MouseEvent("pointerup", { bubbles: true }));
+          tab.click();
+          console.log(`Tab clicked: ${action.selector}`);
         }
       } else if (action.type === "click") {
-        // Try multiple selectors separated by comma
         const selectors = action.selector.split(",").map((s) => s.trim());
         for (const sel of selectors) {
           try {
@@ -150,7 +177,7 @@ export default function ExportarTelas() {
           }
         }
       }
-      await delay(action.wait ?? 1200);
+      await delay(action.wait ?? 1500);
     } catch (err) {
       console.warn("Action failed:", err);
     }
@@ -194,7 +221,6 @@ export default function ExportarTelas() {
 
     const iframe = iframeRef.current;
     const captures: { name: string; description: string; canvas: HTMLCanvasElement }[] = [];
-    let lastPath = "";
 
     for (let i = 0; i < SCREENS.length; i++) {
       const screen = SCREENS[i];
@@ -203,12 +229,11 @@ export default function ExportarTelas() {
       setProgress(Math.round((i / SCREENS.length) * 100));
 
       try {
-        // Navigate if path changed
-        if (screen.path !== lastPath) {
-          iframe.src = screen.path;
-          await waitForIframeLoad(iframe);
-          lastPath = screen.path;
-        }
+        // Always force reload to ensure clean state for each screen
+        iframe.src = "about:blank";
+        await delay(300);
+        iframe.src = screen.path;
+        await waitForIframeLoad(iframe);
 
         // Perform pre-capture actions (tabs, clicks)
         if (screen.actions) {
