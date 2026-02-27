@@ -10,6 +10,7 @@ import {
   FileBarChart,
   DollarSign,
   MessageSquarePlus,
+  BookOpen,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -198,6 +199,23 @@ export function AppSidebar() {
           </div>
         )}
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              isActive={location.pathname === "/app/manual"}
+              tooltip="Manual do Sistema"
+            >
+              <NavLink
+                to="/app/manual"
+                end
+                className="hover:bg-sidebar-accent/50"
+                activeClassName="bg-sidebar-accent text-yellow-400 font-medium"
+              >
+                <BookOpen className="h-4 w-4" />
+                <span>Manual</span>
+              </NavLink>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           {isPrfEmail && (
             <SidebarMenuItem>
               <SidebarMenuButton

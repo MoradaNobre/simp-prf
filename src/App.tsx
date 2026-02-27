@@ -24,6 +24,7 @@ import GestaoOrcamento from "@/pages/GestaoOrcamento";
 import NotFound from "@/pages/NotFound";
 import DefinirResponsavel from "@/pages/DefinirResponsavel";
 import ExportarTelas from "@/pages/ExportarTelas";
+import ManualSistema from "@/pages/ManualSistema";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,7 @@ const App = () => (
                 <Route path="sobre" element={<Sobre />} />
                 <Route path="documento" element={<DocumentoViewer />} />
                 <Route path="exportar-telas" element={<ExportarTelas />} />
+                <Route path="manual" element={<ManualSistema />} />
               </Route>
               <Route path="/definir-responsavel/:osId" element={<DefinirResponsavel />} />
               <Route path="*" element={<NotFound />} />
