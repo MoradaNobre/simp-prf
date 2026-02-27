@@ -70,6 +70,7 @@ const LABEL_OFFSETS: Record<string, [number, number]> = {
   RN: [12, -8],
   PB: [12, -4],
   PA: [-20, 15],
+  AC: [0, -5],
 };
 
 function buildStates(): StateFeature[] {
