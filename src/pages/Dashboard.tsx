@@ -202,7 +202,7 @@ export default function Dashboard() {
             <TabsTrigger value="chamados">Chamados</TabsTrigger>
             <TabsTrigger value="operacional">Ordens de Serviço</TabsTrigger>
             {canSeeOrcamento && <TabsTrigger value="orcamento">Orçamento</TabsTrigger>}
-            {isNacional && <TabsTrigger value="mapa">Mapa</TabsTrigger>}
+            {role && role !== "preposto" && role !== "terceirizado" && <TabsTrigger value="mapa">Mapa</TabsTrigger>}
           </TabsList>
           <TabsContent value="operacional" className="space-y-6 mt-4">
             <DashboardOperacional data={data} isLoading={isLoading} />
@@ -215,7 +215,7 @@ export default function Dashboard() {
               <DashboardOrcamento regionalId={effectiveRegionalId} userRole={role} />
             </TabsContent>
           )}
-          {isNacional && (
+          {role && role !== "preposto" && role !== "terceirizado" && (
             <TabsContent value="mapa" className="mt-4">
               <DashboardMapa />
             </TabsContent>
