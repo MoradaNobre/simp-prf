@@ -25,12 +25,12 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
-} from "@/components/ui/dialog";
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from
+"@/components/ui/dialog";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from
+"@/components/ui/alert-dialog";
 import { Loader2 } from "lucide-react";
 
 const TIPO_LABELS: Record<string, string> = {
@@ -42,21 +42,21 @@ const TIPO_LABELS: Record<string, string> = {
   rede_logica: "Rede Lógica",
   elevadores: "Elevadores",
   ar_condicionado: "Ar Condicionado",
-  instalacoes_diversas: "Instalações Diversas",
+  instalacoes_diversas: "Instalações Diversas"
 };
 
 const STATUS_COLORS: Record<string, string> = {
   aberto: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
   analisado: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200",
   vinculado: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-  cancelado: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+  cancelado: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
 };
 
 const PRIORIDADE_COLORS: Record<string, string> = {
   baixa: "secondary",
   media: "default",
   alta: "warning",
-  urgente: "destructive",
+  urgente: "destructive"
 };
 
 export default function Chamados() {
@@ -73,7 +73,7 @@ export default function Chamados() {
   const [selectedChamados, setSelectedChamados] = useState<Set<string>>(new Set());
   const [viewChamado, setViewChamado] = useState<Chamado | null>(null);
   const [analyzeChamado, setAnalyzeChamado] = useState<Chamado | null>(null);
-  const [gutValues, setGutValues] = useState<{ gut_gravidade: number; gut_urgencia: number; gut_tendencia: number } | null>(null);
+  const [gutValues, setGutValues] = useState<{gut_gravidade: number;gut_urgencia: number;gut_tendencia: number;} | null>(null);
   const [creatingOS, setCreatingOS] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [sortByScore, setSortByScore] = useState(false);
@@ -84,13 +84,13 @@ export default function Chamados() {
   const { data: chamados = [], isLoading } = useChamados({
     status: statusFilter || undefined,
     regionalId,
-    search: search || undefined,
+    search: search || undefined
   });
 
   // Sort by GUT score descending if enabled
-  const sortedChamados = sortByScore
-    ? [...chamados].sort((a, b) => (b.gut_score ?? 0) - (a.gut_score ?? 0))
-    : chamados;
+  const sortedChamados = sortByScore ?
+  [...chamados].sort((a, b) => (b.gut_score ?? 0) - (a.gut_score ?? 0)) :
+  chamados;
 
   // Fetch OS data for viewed chamado
   const viewOsId = viewChamado?.os_id;
@@ -98,15 +98,15 @@ export default function Chamados() {
     queryKey: ["os-for-chamado", viewOsId],
     queryFn: async () => {
       if (!viewOsId) return null;
-      const { data, error } = await supabase
-        .from("ordens_servico")
-        .select("codigo, status, titulo")
-        .eq("id", viewOsId)
-        .single();
+      const { data, error } = await supabase.
+      from("ordens_servico").
+      select("codigo, status, titulo").
+      eq("id", viewOsId).
+      single();
       if (error) return null;
       return data;
     },
-    enabled: !!viewOsId,
+    enabled: !!viewOsId
   });
 
   const createOS = useCreateOS();
@@ -114,9 +114,9 @@ export default function Chamados() {
   const deleteChamado = useDeleteChamado();
 
   const toggleSelect = (id: string) => {
-    setSelectedChamados(prev => {
+    setSelectedChamados((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
+      if (next.has(id)) next.delete(id);else next.add(id);
       return next;
     });
   };
@@ -129,7 +129,7 @@ export default function Chamados() {
         status: "analisado",
         gut_gravidade: gutValues.gut_gravidade,
         gut_urgencia: gutValues.gut_urgencia,
-        gut_tendencia: gutValues.gut_tendencia,
+        gut_tendencia: gutValues.gut_tendencia
       });
       toast.success("Chamado analisado com sucesso!");
       setAnalyzeChamado(null);
@@ -143,8 +143,8 @@ export default function Chamados() {
     if (selectedChamados.size === 0 || !user) return;
     setCreatingOS(true);
     try {
-      const selected = chamados.filter(c => selectedChamados.has(c.id) && c.status === "analisado");
-      if (selected.length === 0) { toast.error("Selecione chamados analisados."); return; }
+      const selected = chamados.filter((c) => selectedChamados.has(c.id) && c.status === "analisado");
+      if (selected.length === 0) {toast.error("Selecione chamados analisados.");return;}
 
       // Use first chamado's data as base
       const base = selected[0];
@@ -159,12 +159,12 @@ export default function Chamados() {
       const descricaoFinal = descParts.join("\n\n");
 
       // Use highest GUT score to determine priority
-      const maxScore = Math.max(...selected.map(c => c.gut_score ?? 0));
+      const maxScore = Math.max(...selected.map((c) => c.gut_score ?? 0));
       let maxPrio: string;
-      if (maxScore >= 64) maxPrio = "urgente";
-      else if (maxScore >= 27) maxPrio = "alta";
-      else if (maxScore >= 8) maxPrio = "media";
-      else maxPrio = "baixa";
+      if (maxScore >= 64) maxPrio = "urgente";else
+      if (maxScore >= 27) maxPrio = "alta";else
+      if (maxScore >= 8) maxPrio = "media";else
+      maxPrio = "baixa";
 
       const result = await createOS.mutateAsync({
         titulo: selected.length === 1 ? tipoLabel : `${selected.length} chamados agrupados`,
@@ -176,7 +176,7 @@ export default function Chamados() {
         solicitante_id: user.id,
         foto_antes: base.foto || null,
         codigo: "",
-        regional_id: base.regional_id || null,
+        regional_id: base.regional_id || null
       } as any);
 
       // Link chamados to OS
@@ -230,9 +230,9 @@ export default function Chamados() {
         <div>
           <h1 className="text-2xl font-bold">Chamados</h1>
           <p className="text-muted-foreground text-sm">
-            {role === "operador"
-              ? "Registre chamados de manutenção para sua regional. Após análise, eles serão agrupados em Ordens de Serviço."
-              : "Abra chamados, analise com a Matriz GUT e agrupe-os em Ordens de Serviço."}
+            {role === "operador" ?
+            "Registre chamados de manutenção para sua regional. Após análise, eles serão agrupados em Ordens de Serviço." :
+            "Abra chamados, analise com a Matriz GUT e agrupe-os em Ordens de Serviço."}
           </p>
         </div>
         <Button onClick={() => setDialogOpen(true)}>
@@ -241,23 +241,23 @@ export default function Chamados() {
       </div>
 
       {/* Role-based workflow guide */}
-      {role === "operador" && (
-        <div className="flex items-start gap-3 p-3 rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/40 text-sm">
+      {role === "operador" &&
+      <div className="flex items-start gap-3 p-3 rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/40 text-sm">
           <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
           <div className="text-blue-800 dark:text-blue-300">
             <p className="font-medium mb-1">Como funciona o fluxo de chamados?</p>
             <ol className="list-decimal list-inside space-y-0.5 text-blue-700 dark:text-blue-400">
               <li>Você abre um chamado descrevendo o problema.</li>
-              <li>Um <strong>Gestor</strong> ou <strong>Fiscal</strong> analisa o chamado com a Matriz GUT (priorização técnica).</li>
+              <li>Um Gestor ou Fiscal analisa o chamado (priorização técnica).<strong>Gestor</strong> ou <strong>Fiscal</strong> analisa o chamado com a Matriz GUT (priorização técnica).</li>
               <li>Após análise, o chamado é agrupado em uma <strong>Ordem de Serviço</strong> para execução.</li>
             </ol>
             <p className="mt-1 text-xs text-blue-600 dark:text-blue-500">Você pode editar seus chamados enquanto estiverem com status <strong>Aberto</strong>.</p>
           </div>
         </div>
-      )}
+      }
 
-      {isGestorOrFiscal && !isMaster && (
-        <div className="flex items-start gap-3 p-3 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/40 text-sm">
+      {isGestorOrFiscal && !isMaster &&
+      <div className="flex items-start gap-3 p-3 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/40 text-sm">
           <Info className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
           <div className="text-amber-800 dark:text-amber-300">
             <p className="font-medium mb-1">Ações disponíveis:</p>
@@ -268,7 +268,7 @@ export default function Chamados() {
             </ul>
           </div>
         </div>
-      )}
+      }
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
@@ -290,64 +290,64 @@ export default function Chamados() {
         <Button
           variant={sortByScore ? "default" : "outline"}
           size="icon"
-          onClick={() => setSortByScore(v => !v)}
-          title="Ordenar por Score GUT"
-        >
+          onClick={() => setSortByScore((v) => !v)}
+          title="Ordenar por Score GUT">
+
           <ArrowUpDown className="h-4 w-4" />
         </Button>
       </div>
 
       {/* Gestor action bar */}
-      {(isGestorOrFiscal || isMaster) && selectedChamados.size > 0 && (
-        <div className="flex items-center gap-3 p-3 bg-muted rounded-lg border">
+      {(isGestorOrFiscal || isMaster) && selectedChamados.size > 0 &&
+      <div className="flex items-center gap-3 p-3 bg-muted rounded-lg border">
           <span className="text-sm font-medium">{selectedChamados.size} chamado(s) selecionado(s)</span>
           {/* Only show Gerar OS if there are analisado chamados selected */}
-          {[...selectedChamados].some(id => chamados.find(c => c.id === id)?.status === "analisado") && (
-            <Button size="sm" onClick={handleCreateOSFromChamados} disabled={creatingOS}>
+          {[...selectedChamados].some((id) => chamados.find((c) => c.id === id)?.status === "analisado") &&
+        <Button size="sm" onClick={handleCreateOSFromChamados} disabled={creatingOS}>
               {creatingOS ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <PackagePlus className="h-4 w-4 mr-2" />}
               Gerar OS
             </Button>
-          )}
-          {isMaster && (
-            <Button size="sm" variant="destructive" onClick={() => setConfirmBulkDelete(true)} disabled={bulkDeleting}>
+        }
+          {isMaster &&
+        <Button size="sm" variant="destructive" onClick={() => setConfirmBulkDelete(true)} disabled={bulkDeleting}>
               {bulkDeleting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Trash2 className="h-4 w-4 mr-2" />}
               Excluir Selecionados
             </Button>
-          )}
+        }
           <Button size="sm" variant="ghost" onClick={() => setSelectedChamados(new Set())}>Limpar</Button>
         </div>
-      )}
+      }
 
       {/* List */}
-      {isLoading ? (
-        <div className="text-center py-10 text-muted-foreground">Carregando...</div>
-      ) : sortedChamados.length === 0 ? (
-        <div className="text-center py-10 text-muted-foreground space-y-2">
+      {isLoading ?
+      <div className="text-center py-10 text-muted-foreground">Carregando...</div> :
+      sortedChamados.length === 0 ?
+      <div className="text-center py-10 text-muted-foreground space-y-2">
           <p>Nenhum chamado encontrado.</p>
-          {statusFilter === "aberto" && isGestorOrFiscal && (
-            <p className="text-xs">Não há chamados aguardando análise no momento.</p>
-          )}
-          {statusFilter === "analisado" && isGestorOrFiscal && (
-            <p className="text-xs">Não há chamados analisados aguardando vinculação a uma OS.</p>
-          )}
-          {role === "operador" && (
-            <p className="text-xs">Clique em <strong>+ Novo Chamado</strong> para registrar uma demanda de manutenção.</p>
-          )}
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {sortedChamados.map((chamado) => (
-            <Card key={chamado.id} className={`${selectedChamados.has(chamado.id) ? "ring-2 ring-primary" : ""}`}>
+          {statusFilter === "aberto" && isGestorOrFiscal &&
+        <p className="text-xs">Não há chamados aguardando análise no momento.</p>
+        }
+          {statusFilter === "analisado" && isGestorOrFiscal &&
+        <p className="text-xs">Não há chamados analisados aguardando vinculação a uma OS.</p>
+        }
+          {role === "operador" &&
+        <p className="text-xs">Clique em <strong>+ Novo Chamado</strong> para registrar uma demanda de manutenção.</p>
+        }
+        </div> :
+
+      <div className="space-y-3">
+          {sortedChamados.map((chamado) =>
+        <Card key={chamado.id} className={`${selectedChamados.has(chamado.id) ? "ring-2 ring-primary" : ""}`}>
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
                   {/* Checkbox: master can select any, gestors/fiscais only analisado */}
-                  {(isMaster || (isGestorOrFiscal && chamado.status === "analisado")) && (
-                    <Checkbox
-                      checked={selectedChamados.has(chamado.id)}
-                      onCheckedChange={() => toggleSelect(chamado.id)}
-                      className="mt-1"
-                    />
-                  )}
+                  {(isMaster || isGestorOrFiscal && chamado.status === "analisado") &&
+              <Checkbox
+                checked={selectedChamados.has(chamado.id)}
+                onCheckedChange={() => toggleSelect(chamado.id)}
+                className="mt-1" />
+
+              }
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       <span className="font-mono text-sm font-bold">{chamado.codigo}</span>
@@ -358,11 +358,11 @@ export default function Chamados() {
                         {chamado.prioridade.charAt(0).toUpperCase() + chamado.prioridade.slice(1)}
                       </Badge>
                       <Badge variant="outline">{TIPO_LABELS[chamado.tipo_demanda] || chamado.tipo_demanda}</Badge>
-                      {chamado.gut_score != null && (
-                        <Badge variant="secondary" className="font-mono text-xs">
+                      {chamado.gut_score != null &&
+                  <Badge variant="secondary" className="font-mono text-xs">
                           GUT: {chamado.gut_score}
                         </Badge>
-                      )}
+                  }
                     </div>
                     <p className="text-sm text-muted-foreground truncate">{chamado.descricao}</p>
                     <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground flex-wrap">
@@ -375,38 +375,38 @@ export default function Chamados() {
                   </div>
                   <div className="flex gap-1">
                     {/* Analyze button: gestors/fiscais can analyze "aberto" chamados */}
-                    {isGestorOrFiscal && chamado.status === "aberto" && (
-                      <Button size="icon" variant="ghost" title="Analisar (Matriz GUT)" className="text-destructive hover:text-destructive" onClick={() => { setAnalyzeChamado(chamado); setGutValues(null); }}>
+                    {isGestorOrFiscal && chamado.status === "aberto" &&
+                <Button size="icon" variant="ghost" title="Analisar (Matriz GUT)" className="text-destructive hover:text-destructive" onClick={() => {setAnalyzeChamado(chamado);setGutValues(null);}}>
                         <ClipboardCheck className="h-4 w-4" />
                       </Button>
-                    )}
+                }
                     {/* Edit button: operador can edit own aberto chamados, gestors can edit aberto chamados */}
-                    {chamado.status === "aberto" && (chamado.solicitante_id === user?.id || isGestor || isMaster) && (
-                      <Button size="icon" variant="ghost" title="Editar" onClick={() => setEditChamado(chamado)}>
+                    {chamado.status === "aberto" && (chamado.solicitante_id === user?.id || isGestor || isMaster) &&
+                <Button size="icon" variant="ghost" title="Editar" onClick={() => setEditChamado(chamado)}>
                         <Pencil className="h-4 w-4" />
                       </Button>
-                    )}
+                }
                     <Button size="icon" variant="ghost" onClick={() => setViewChamado(chamado)}>
                       <Eye className="h-4 w-4" />
                     </Button>
                     {/* Cancel button: gestors/fiscais can cancel any "aberto", operador can cancel own "aberto" */}
-                    {chamado.status === "aberto" && (isGestorOrFiscal || (role === "operador" && chamado.solicitante_id === user?.id)) && (
-                      <Button size="icon" variant="ghost" title="Cancelar chamado" className="text-amber-600 hover:text-amber-600" onClick={() => { setCancelChamado(chamado); setMotivoCancelamento(""); }}>
+                    {chamado.status === "aberto" && (isGestorOrFiscal || role === "operador" && chamado.solicitante_id === user?.id) &&
+                <Button size="icon" variant="ghost" title="Cancelar chamado" className="text-amber-600 hover:text-amber-600" onClick={() => {setCancelChamado(chamado);setMotivoCancelamento("");}}>
                         <Ban className="h-4 w-4" />
                       </Button>
-                    )}
-                    {isMaster && (
-                      <Button size="icon" variant="ghost" className="text-destructive" onClick={() => setDeleteId(chamado.id)}>
+                }
+                    {isMaster &&
+                <Button size="icon" variant="ghost" className="text-destructive" onClick={() => setDeleteId(chamado.id)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
-                    )}
+                }
                   </div>
                 </div>
               </CardContent>
             </Card>
-          ))}
+        )}
         </div>
-      )}
+      }
 
       <NovoChamadoDialog open={dialogOpen} onOpenChange={setDialogOpen} />
       <EditarChamadoDialog chamado={editChamado} open={!!editChamado} onOpenChange={(v) => !v && setEditChamado(null)} />
@@ -418,8 +418,8 @@ export default function Chamados() {
             <DialogTitle>Analisar Chamado {analyzeChamado?.codigo}</DialogTitle>
             <DialogDescription>Preencha a Matriz GUT para definir a prioridade técnica deste chamado.</DialogDescription>
           </DialogHeader>
-          {analyzeChamado && (
-            <div className="space-y-4">
+          {analyzeChamado &&
+          <div className="space-y-4">
               <div className="text-sm space-y-1">
                 <p><strong>Tipo:</strong> {TIPO_LABELS[analyzeChamado.tipo_demanda] || analyzeChamado.tipo_demanda}</p>
                 <p><strong>Local:</strong> {analyzeChamado.local_servico}</p>
@@ -435,7 +435,7 @@ export default function Chamados() {
                 </Button>
               </DialogFooter>
             </div>
-          )}
+          }
         </DialogContent>
       </Dialog>
 
@@ -446,15 +446,15 @@ export default function Chamados() {
             <DialogTitle>Chamado {viewChamado?.codigo}</DialogTitle>
             <DialogDescription>Detalhes do chamado</DialogDescription>
           </DialogHeader>
-          {viewChamado && (
-            <div className="space-y-3 text-sm">
+          {viewChamado &&
+          <div className="space-y-3 text-sm">
               <div><strong>Tipo:</strong> {TIPO_LABELS[viewChamado.tipo_demanda] || viewChamado.tipo_demanda}</div>
               <div><strong>Local:</strong> {viewChamado.local_servico}</div>
               <div><strong>Prioridade:</strong> {viewChamado.prioridade}</div>
               <div><strong>Descrição:</strong><p className="mt-1 whitespace-pre-wrap text-muted-foreground">{viewChamado.descricao}</p></div>
-              {viewChamado.justificativa_urgente && (
-                <div><strong>Justificativa de Urgência:</strong><p className="mt-1 text-muted-foreground">{viewChamado.justificativa_urgente}</p></div>
-              )}
+              {viewChamado.justificativa_urgente &&
+            <div><strong>Justificativa de Urgência:</strong><p className="mt-1 text-muted-foreground">{viewChamado.justificativa_urgente}</p></div>
+            }
               {viewChamado.regionais && <div><strong>Regional:</strong> {viewChamado.regionais.sigla} — {viewChamado.regionais.nome}</div>}
               {viewChamado.delegacias && <div><strong>Delegacia:</strong> {viewChamado.delegacias.nome}</div>}
               {viewChamado.uops && <div><strong>UOP:</strong> {viewChamado.uops.nome}</div>}
@@ -462,28 +462,28 @@ export default function Chamados() {
               <div><strong>Data:</strong> {format(new Date(viewChamado.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</div>
 
               {/* GUT read-only display */}
-              {viewChamado.gut_score != null && (
-                <GUTMatrixPanel
-                  gravidade={viewChamado.gut_gravidade}
-                  urgencia={viewChamado.gut_urgencia}
-                  tendencia={viewChamado.gut_tendencia}
-                  score={viewChamado.gut_score}
-                />
-              )}
+              {viewChamado.gut_score != null &&
+            <GUTMatrixPanel
+              gravidade={viewChamado.gut_gravidade}
+              urgencia={viewChamado.gut_urgencia}
+              tendencia={viewChamado.gut_tendencia}
+              score={viewChamado.gut_score} />
 
-              {viewChamado.foto && (
-                <div>
+            }
+
+              {viewChamado.foto &&
+            <div>
                   <strong>Foto:</strong>
                   <img src={viewChamado.foto} alt="Foto do chamado" className="mt-2 rounded-lg max-h-60 object-contain" />
                 </div>
-              )}
+            }
 
               {/* Painel de acompanhamento */}
               <div className="border-t pt-4 mt-4">
                 <ChamadoStatusTimeline chamado={viewChamado} osData={viewOsData} />
               </div>
             </div>
-          )}
+          }
         </DialogContent>
       </Dialog>
 
@@ -529,11 +529,11 @@ export default function Chamados() {
                 value={motivoCancelamento}
                 onChange={(e) => setMotivoCancelamento(e.target.value)}
                 placeholder="Descreva o motivo do cancelamento..."
-                rows={3}
-              />
-              {motivoCancelamento.length === 0 && (
-                <p className="text-xs text-destructive mt-1">O motivo é obrigatório.</p>
-              )}
+                rows={3} />
+
+              {motivoCancelamento.length === 0 &&
+              <p className="text-xs text-destructive mt-1">O motivo é obrigatório.</p>
+              }
             </div>
           </div>
           <DialogFooter>
@@ -547,7 +547,7 @@ export default function Chamados() {
                   await updateChamado.mutateAsync({
                     id: cancelChamado.id,
                     status: "cancelado",
-                    motivo_cancelamento: motivoCancelamento.trim(),
+                    motivo_cancelamento: motivoCancelamento.trim()
                   });
                   toast.success("Chamado cancelado.");
                   setCancelChamado(null);
@@ -555,14 +555,14 @@ export default function Chamados() {
                 } catch (err: any) {
                   toast.error("Erro: " + (err.message || err));
                 }
-              }}
-            >
+              }}>
+
               <Ban className="h-4 w-4 mr-2" />
               Confirmar Cancelamento
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>);
+
 }
