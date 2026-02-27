@@ -441,7 +441,7 @@ export default function Chamados() {
 
       {/* View dialog */}
       <Dialog open={!!viewChamado} onOpenChange={() => setViewChamado(null)}>
-        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Chamado {viewChamado?.codigo}</DialogTitle>
             <DialogDescription>Detalhes do chamado</DialogDescription>
