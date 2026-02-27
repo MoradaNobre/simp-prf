@@ -126,8 +126,8 @@ export default function DashboardMapa() {
               <div className="flex-1 min-w-0">
               <svg viewBox={BRAZIL_VIEWBOX} className="w-full h-auto max-h-[600px]">
                   <defs>
-                    <filter id="stateShadow" x="-4%" y="-4%" width="108%" height="108%">
-                      <feDropShadow dx="1" dy="1.5" stdDeviation="1.5" floodColor="#000" floodOpacity="0.18" />
+                    <filter id="stateShadow" x="-2%" y="-2%" width="104%" height="104%">
+                      <feDropShadow dx="0.5" dy="0.8" stdDeviation="0.8" floodColor="#000" floodOpacity="0.12" />
                     </filter>
                   </defs>
                   {/* State shapes */}
@@ -150,8 +150,9 @@ export default function DashboardMapa() {
                           d={state.d}
                           fill={ufUsers.length > 0 ? primaryColor : "hsl(var(--muted))"}
                           fillOpacity={isHovered ? 1 : 0.85}
-                          stroke={isHovered ? "hsl(var(--foreground))" : "hsl(var(--background))"}
-                          strokeWidth={isHovered ? 2 : 1.2}
+                          stroke="hsl(var(--muted-foreground) / 0.4)"
+                          strokeWidth={isHovered ? 1.5 : 0.6}
+                          strokeLinejoin="round"
                           className="transition-all duration-150"
                         />
                         {!state.circlePath && (
@@ -163,9 +164,7 @@ export default function DashboardMapa() {
                             className="select-none"
                             fontSize="9"
                             fontWeight="bold"
-                            fill="#fff"
-                            stroke="#00000066"
-                            strokeWidth="0.4"
+                            fill="hsl(var(--foreground))"
                             style={{ pointerEvents: "none" }}
                           >
                             {uf}
@@ -194,8 +193,8 @@ export default function DashboardMapa() {
                             d={state.circlePath!}
                             fill={ufUsers.length > 0 ? primaryColor : "hsl(var(--muted))"}
                             fillOpacity={isHovered ? 1 : 0.9}
-                            stroke={isHovered ? "hsl(var(--foreground))" : "hsl(var(--background))"}
-                            strokeWidth={isHovered ? 2 : 1.2}
+                            stroke="hsl(var(--muted-foreground) / 0.4)"
+                            strokeWidth={isHovered ? 1.5 : 0.6}
                           />
                           <text
                             x={state.labelX}
@@ -205,9 +204,7 @@ export default function DashboardMapa() {
                             className="select-none"
                             fontSize="8"
                             fontWeight="bold"
-                            fill="#fff"
-                            stroke="#00000066"
-                            strokeWidth="0.3"
+                            fill="hsl(var(--foreground))"
                             style={{ pointerEvents: "none" }}
                           >
                             {uf}
