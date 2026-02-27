@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ClipboardList, AlertTriangle, CheckCircle, Clock, Building2,
-  DollarSign, FileText, ShieldCheck, Hammer, FileCheck, CreditCard,
+  DollarSign, FileText, ShieldCheck, Hammer, FileCheck, CreditCard, Map,
 } from "lucide-react";
 import { differenceInMinutes, startOfMonth } from "date-fns";
 import { useRegionalFilter } from "@/hooks/useRegionalFilter";
@@ -14,6 +14,7 @@ import { RegionalFilterSelect } from "@/components/RegionalFilterSelect";
 import { useUserRole } from "@/hooks/useUserRole";
 import DashboardOrcamento from "@/components/dashboard/DashboardOrcamento";
 import DashboardChamados from "@/components/dashboard/DashboardChamados";
+import DashboardMapa from "@/components/dashboard/DashboardMapa";
 import { useContratos } from "@/hooks/useContratos";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -201,6 +202,7 @@ export default function Dashboard() {
             <TabsTrigger value="chamados">Chamados</TabsTrigger>
             <TabsTrigger value="operacional">Ordens de Serviço</TabsTrigger>
             {canSeeOrcamento && <TabsTrigger value="orcamento">Orçamento</TabsTrigger>}
+            {isNacional && <TabsTrigger value="mapa">Mapa</TabsTrigger>}
           </TabsList>
           <TabsContent value="operacional" className="space-y-6 mt-4">
             <DashboardOperacional data={data} isLoading={isLoading} />
@@ -211,6 +213,11 @@ export default function Dashboard() {
           {canSeeOrcamento && (
             <TabsContent value="orcamento" className="mt-4">
               <DashboardOrcamento regionalId={effectiveRegionalId} userRole={role} />
+            </TabsContent>
+          )}
+          {isNacional && (
+            <TabsContent value="mapa" className="mt-4">
+              <DashboardMapa />
             </TabsContent>
           )}
         </Tabs>
