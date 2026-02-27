@@ -129,17 +129,20 @@ export default function DashboardMapa() {
                         strokeWidth={isHovered ? 1.8 : 1}
                         className="transition-all duration-150"
                       />
-                      <text
-                        x={state.labelX}
-                        y={state.labelY}
-                        textAnchor="middle"
-                        dominantBaseline="central"
-                        className="fill-background font-bold select-none"
-                        fontSize="10"
-                        style={{ pointerEvents: "none" }}
-                      >
-                        {uf}
-                      </text>
+                      {/* Only render label on the state if it has no circle callout */}
+                      {!state.circlePath && (
+                        <text
+                          x={state.labelX}
+                          y={state.labelY}
+                          textAnchor="middle"
+                          dominantBaseline="central"
+                          className="fill-background font-bold select-none"
+                          fontSize="10"
+                          style={{ pointerEvents: "none" }}
+                        >
+                          {uf}
+                        </text>
+                      )}
                     </g>
                   );
                 })}
@@ -162,9 +165,9 @@ export default function DashboardMapa() {
                         <path
                           d={state.circlePath!}
                           fill={ufGestores.length > 0 ? primaryColor : "hsl(var(--muted))"}
-                          fillOpacity={isHovered ? 0.95 : 0.85}
+                          fillOpacity={isHovered ? 1 : 0.9}
                           stroke="hsl(var(--background))"
-                          strokeWidth={1.2}
+                          strokeWidth={1.5}
                         />
                         <text
                           x={state.labelX}
