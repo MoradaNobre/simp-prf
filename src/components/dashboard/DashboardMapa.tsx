@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
-import { statePaths, BRAZIL_VIEWBOX } from "./BrazilMapPaths";
+import { brazilStates, BRAZIL_VIEWBOX } from "./BrazilMapPaths";
 
 const gestorColors = [
   "#8b5cf6", "#f59e0b", "#10b981", "#ef4444", "#3b82f6",
@@ -79,6 +79,9 @@ function useUsersByRoleAndUF(role: string) {
   });
 }
 
+// Small states: font size smaller
+const SMALL_STATES = new Set(["DF", "RJ", "ES", "SE", "AL", "RN", "PB"]);
+
 export default function DashboardMapa() {
   const [selectedRole, setSelectedRole] = useState("gestor_nacional");
   const { data: users = [], isLoading } = useUsersByRoleAndUF(selectedRole);
@@ -124,94 +127,56 @@ export default function DashboardMapa() {
             <div className="flex flex-col lg:flex-row gap-6">
               {/* SVG Map */}
               <div className="flex-1 min-w-0">
-              <svg viewBox={BRAZIL_VIEWBOX} className="w-full h-auto max-h-[600px]">
+                <svg viewBox={BRAZIL_VIEWBOX} className="w-full h-auto max-h-[600px]">
                   <defs>
                     <filter id="stateShadow" x="-2%" y="-2%" width="104%" height="104%">
-                      <feDropShadow dx="0.5" dy="0.8" stdDeviation="0.8" floodColor="#000" floodOpacity="0.12" />
+                      <feDropShadow dx="0.5" dy="0.8" stdDeviation="0.8" floodColor="#000" floodOpacity="0.10" />
                     </filter>
                   </defs>
-                  {/* State shapes */}
-                  {Object.entries(statePaths).map(([uf, state]) => {
-                    const ufUsers = usersByUF[uf] || [];
+                  {brazilStates.map((state) => {
+                    const ufUsers = usersByUF[state.uf] || [];
                     const primaryColor = ufUsers.length > 0
                       ? nameColorMap.get(ufUsers[0].user_name) || "#94a3b8"
                       : "hsl(var(--muted))";
-                    const isHovered = hoveredState === uf;
+                    const isHovered = hoveredState === state.uf;
+                    const isSmall = SMALL_STATES.has(state.uf);
 
                     return (
                       <g
-                        key={uf}
-                        onMouseEnter={() => setHoveredState(uf)}
+                        key={state.uf}
+                        onMouseEnter={() => setHoveredState(state.uf)}
                         onMouseLeave={() => setHoveredState(null)}
                         className="cursor-pointer"
                         filter="url(#stateShadow)"
                       >
-                        <path
-                          d={state.d}
-                          fill={ufUsers.length > 0 ? primaryColor : "hsl(var(--muted))"}
-                          fillOpacity={isHovered ? 1 : 0.85}
-                          stroke="hsl(var(--muted-foreground) / 0.4)"
-                          strokeWidth={isHovered ? 1.5 : 0.6}
-                          strokeLinejoin="round"
-                          className="transition-all duration-150"
-                        />
-                        {!state.circlePath && (
-                          <text
-                            x={state.labelX}
-                            y={state.labelY}
-                            textAnchor="middle"
-                            dominantBaseline="central"
-                            className="select-none"
-                            fontSize="9"
-                            fontWeight="bold"
-                            fill="hsl(var(--foreground))"
-                            style={{ pointerEvents: "none" }}
-                          >
-                            {uf}
-                          </text>
-                        )}
+                        {state.paths.map((d, i) => (
+                          <path
+                            key={i}
+                            d={d}
+                            fill={ufUsers.length > 0 ? primaryColor : "hsl(var(--muted))"}
+                            fillOpacity={isHovered ? 1 : 0.85}
+                            stroke="hsl(var(--muted-foreground) / 0.35)"
+                            strokeWidth={isHovered ? 1.2 : 0.5}
+                            strokeLinejoin="round"
+                            className="transition-all duration-150"
+                          />
+                        ))}
+                        <text
+                          x={state.centroidX}
+                          y={state.centroidY}
+                          textAnchor="middle"
+                          dominantBaseline="central"
+                          fontSize={isSmall ? "7" : "9"}
+                          fontWeight="bold"
+                          fill="hsl(var(--foreground))"
+                          className="select-none"
+                          style={{ pointerEvents: "none" }}
+                        >
+                          {state.uf}
+                        </text>
                       </g>
                     );
                   })}
-                  {/* Circle callouts for small states */}
-                  {Object.entries(statePaths)
-                    .filter(([, state]) => state.circlePath)
-                    .map(([uf, state]) => {
-                      const ufUsers = usersByUF[uf] || [];
-                      const primaryColor = ufUsers.length > 0
-                        ? nameColorMap.get(ufUsers[0].user_name) || "#94a3b8"
-                        : "hsl(var(--muted))";
-                      const isHovered = hoveredState === uf;
-                      return (
-                        <g
-                          key={`circle-${uf}`}
-                          onMouseEnter={() => setHoveredState(uf)}
-                          onMouseLeave={() => setHoveredState(null)}
-                          className="cursor-pointer"
-                        >
-                          <path
-                            d={state.circlePath!}
-                            fill={ufUsers.length > 0 ? primaryColor : "hsl(var(--muted))"}
-                            fillOpacity={isHovered ? 1 : 0.9}
-                            stroke="hsl(var(--muted-foreground) / 0.4)"
-                            strokeWidth={isHovered ? 1.5 : 0.6}
-                          />
-                          <text
-                            x={state.labelX}
-                            y={state.labelY}
-                            textAnchor="middle"
-                            dominantBaseline="central"
-                            className="select-none"
-                            fontSize="8"
-                            fontWeight="bold"
-                            fill="hsl(var(--foreground))"
-                            style={{ pointerEvents: "none" }}
-                          >
-                            {uf}
-                          </text>
-                        </g>
-                      );
-                    })}
                 </svg>
               </div>
 
@@ -259,8 +224,9 @@ export default function DashboardMapa() {
                 <div>
                   <h3 className="text-sm font-semibold text-foreground mb-2">UFs sem {roleLabel.toLowerCase()}</h3>
                   <div className="flex flex-wrap gap-1">
-                    {Object.keys(statePaths)
-                      .filter((uf) => !usersByUF[uf]?.length)
+                    {brazilStates
+                      .filter((s) => !usersByUF[s.uf]?.length)
+                      .map((s) => s.uf)
                       .sort()
                       .map((uf) => (
                         <span key={uf} className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
