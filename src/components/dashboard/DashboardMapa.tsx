@@ -124,7 +124,7 @@ export default function DashboardMapa() {
                       <path
                         d={state.d}
                         fill={ufGestores.length > 0 ? primaryColor : "hsl(var(--muted))"}
-                        fillOpacity={isHovered ? 0.95 : 0.7}
+                        fillOpacity={isHovered ? 1 : 0.9}
                         stroke="hsl(var(--background))"
                         strokeWidth={isHovered ? 1.8 : 1}
                         className="transition-all duration-150"
