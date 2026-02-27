@@ -134,6 +134,7 @@ export default function DashboardMapa() {
                       <feDropShadow dx="0.5" dy="0.8" stdDeviation="0.8" floodColor="#000" floodOpacity="0.10" />
                     </filter>
                   </defs>
+                  {/* State paths first */}
                   {brazilStates.map((state) => {
                     const ufUsers = usersByUF[state.uf] || [];
                     const primaryColor = ufUsers.length > 0
@@ -141,7 +142,6 @@ export default function DashboardMapa() {
                       : "hsl(var(--muted))";
                     const isHovered = hoveredState === state.uf;
                     const isSmall = SMALL_STATES.has(state.uf) || TINY_STATES.has(state.uf);
-                    const isTiny = TINY_STATES.has(state.uf);
 
                     return (
                       <g
@@ -163,32 +163,7 @@ export default function DashboardMapa() {
                             className="transition-all duration-150"
                           />
                         ))}
-                        {isSmall ? (
-                          <>
-                            <circle
-                              cx={state.centroidX}
-                              cy={state.centroidY}
-                              r={isTiny ? "14" : "11"}
-                              fill={ufUsers.length > 0 ? primaryColor : "hsl(var(--muted))"}
-                              stroke="hsl(var(--background))"
-                              strokeWidth="1.2"
-                              style={{ pointerEvents: "none" }}
-                            />
-                            <text
-                              x={state.centroidX}
-                              y={state.centroidY}
-                              textAnchor="middle"
-                              dominantBaseline="central"
-                              fontSize={isTiny ? "11" : "9"}
-                              fontWeight="bold"
-                              fill="#fff"
-                              className="select-none"
-                              style={{ pointerEvents: "none" }}
-                            >
-                              {state.uf}
-                            </text>
-                          </>
-                        ) : (
+                        {!isSmall && (
                           <text
                             x={state.centroidX}
                             y={state.centroidY}
@@ -206,6 +181,47 @@ export default function DashboardMapa() {
                       </g>
                     );
                   })}
+                  {/* Small state circles rendered on top */}
+                  {brazilStates
+                    .filter((s) => SMALL_STATES.has(s.uf) || TINY_STATES.has(s.uf))
+                    .map((state) => {
+                      const ufUsers = usersByUF[state.uf] || [];
+                      const primaryColor = ufUsers.length > 0
+                        ? nameColorMap.get(ufUsers[0].user_name) || "#94a3b8"
+                        : "hsl(var(--muted))";
+                      const isTiny = TINY_STATES.has(state.uf);
+                      return (
+                        <g
+                          key={`circle-${state.uf}`}
+                          onMouseEnter={() => setHoveredState(state.uf)}
+                          onMouseLeave={() => setHoveredState(null)}
+                          className="cursor-pointer"
+                        >
+                          <circle
+                            cx={state.centroidX}
+                            cy={state.centroidY}
+                            r={isTiny ? "14" : "11"}
+                            fill={ufUsers.length > 0 ? primaryColor : "hsl(var(--muted))"}
+                            fillOpacity="1"
+                            stroke="hsl(var(--background))"
+                            strokeWidth="1.5"
+                          />
+                          <text
+                            x={state.centroidX}
+                            y={state.centroidY}
+                            textAnchor="middle"
+                            dominantBaseline="central"
+                            fontSize={isTiny ? "11" : "9"}
+                            fontWeight="bold"
+                            fill="#fff"
+                            className="select-none"
+                            style={{ pointerEvents: "none" }}
+                          >
+                            {state.uf}
+                          </text>
+                        </g>
+                      );
+                    })}
                 </svg>
               </div>
 
