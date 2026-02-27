@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
 import {
   Accordion,
   AccordionContent,
@@ -43,7 +44,9 @@ import {
   CircleDollarSign,
   FileCheck,
   Ban,
+  Loader2,
 } from "lucide-react";
+import jsPDF from "jspdf";
 
 /* ────────────────────────────────────────────── */
 /*  Types                                         */
@@ -638,25 +641,198 @@ function SectionNav({ sections, activeSection, onSelect }: { sections: ManualSec
 export default function ManualSistema() {
   const [activeSection, setActiveSection] = useState(SECTIONS[0].id);
 
+  const [exporting, setExporting] = useState(false);
+
   const handleSelect = (id: string) => {
     setActiveSection(id);
-    // Scroll to section on mobile
     const el = document.getElementById(`section-${id}`);
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   };
+
+  const exportPDF = useCallback(async () => {
+    setExporting(true);
+    try {
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const pageW = 210;
+      const pageH = 297;
+      const marginL = 15;
+      const marginR = 15;
+      const contentW = pageW - marginL - marginR;
+      const marginTop = 20;
+      const marginBottom = 15;
+      let y = marginTop;
+
+      const checkPage = (needed: number) => {
+        if (y + needed > pageH - marginBottom) {
+          pdf.addPage();
+          y = marginTop;
+        }
+      };
+
+      // ── Cover page ──
+      pdf.setFillColor(30, 58, 138); // blue-900
+      pdf.rect(0, 0, pageW, pageH, "F");
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(32);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("Manual do Sistema", pageW / 2, 100, { align: "center" });
+      pdf.setFontSize(28);
+      pdf.text("SIMP-PRF", pageW / 2, 115, { align: "center" });
+      pdf.setFontSize(12);
+      pdf.setFont("helvetica", "normal");
+      pdf.text("Sistema Integrado de Manutenção Predial", pageW / 2, 135, { align: "center" });
+      pdf.text("Polícia Rodoviária Federal", pageW / 2, 143, { align: "center" });
+      pdf.setFontSize(10);
+      const now = new Date();
+      pdf.text(`Gerado em ${now.toLocaleDateString("pt-BR")} às ${now.toLocaleTimeString("pt-BR")}`, pageW / 2, 200, { align: "center" });
+
+      // ── Table of Contents ──
+      pdf.addPage();
+      y = marginTop;
+      pdf.setTextColor(30, 58, 138);
+      pdf.setFontSize(20);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("Índice", marginL, y);
+      y += 12;
+      pdf.setTextColor(60, 60, 60);
+      pdf.setFontSize(11);
+      pdf.setFont("helvetica", "normal");
+      SECTIONS.forEach((section, idx) => {
+        checkPage(8);
+        pdf.text(`${idx + 1}. ${section.title}`, marginL + 4, y);
+        y += 7;
+        section.features.forEach((f) => {
+          checkPage(6);
+          pdf.setFontSize(9);
+          pdf.text(`• ${f.title}`, marginL + 12, y);
+          pdf.setFontSize(11);
+          y += 5;
+        });
+        y += 3;
+      });
+
+      // ── Content pages ──
+      SECTIONS.forEach((section, sIdx) => {
+        pdf.addPage();
+        y = marginTop;
+
+        // Section header with colored bar
+        pdf.setFillColor(30, 58, 138);
+        pdf.rect(marginL, y - 5, contentW, 14, "F");
+        pdf.setTextColor(255, 255, 255);
+        pdf.setFontSize(16);
+        pdf.setFont("helvetica", "bold");
+        pdf.text(`${sIdx + 1}. ${section.title}`, marginL + 4, y + 4);
+        y += 16;
+
+        // Section description
+        pdf.setTextColor(80, 80, 80);
+        pdf.setFontSize(10);
+        pdf.setFont("helvetica", "normal");
+        const descLines = pdf.splitTextToSize(section.description, contentW - 4);
+        checkPage(descLines.length * 5 + 4);
+        pdf.text(descLines, marginL + 2, y);
+        y += descLines.length * 5 + 6;
+
+        // Features
+        section.features.forEach((feature, fIdx) => {
+          checkPage(20);
+
+          // Feature title
+          pdf.setFillColor(240, 240, 250);
+          pdf.rect(marginL, y - 4, contentW, 9, "F");
+          pdf.setTextColor(30, 58, 138);
+          pdf.setFontSize(11);
+          pdf.setFont("helvetica", "bold");
+          pdf.text(`${sIdx + 1}.${fIdx + 1} ${feature.title}`, marginL + 3, y + 1);
+          y += 10;
+
+          // Roles
+          if (feature.roles && feature.roles.length > 0) {
+            pdf.setFontSize(8);
+            pdf.setFont("helvetica", "italic");
+            pdf.setTextColor(120, 120, 120);
+            pdf.text(`Perfis: ${feature.roles.join(", ")}`, marginL + 3, y);
+            y += 5;
+          }
+
+          // Description
+          pdf.setTextColor(60, 60, 60);
+          pdf.setFontSize(9.5);
+          pdf.setFont("helvetica", "normal");
+          const fDescLines = pdf.splitTextToSize(feature.description, contentW - 6);
+          checkPage(fDescLines.length * 4.5 + 2);
+          pdf.text(fDescLines, marginL + 3, y);
+          y += fDescLines.length * 4.5 + 3;
+
+          // Details
+          if (feature.details) {
+            feature.details.forEach((detail) => {
+              const detailLines = pdf.splitTextToSize(detail, contentW - 14);
+              checkPage(detailLines.length * 4.2 + 2);
+              pdf.setTextColor(100, 100, 100);
+              pdf.text("→", marginL + 5, y);
+              pdf.setTextColor(60, 60, 60);
+              pdf.text(detailLines, marginL + 10, y);
+              y += detailLines.length * 4.2 + 1.5;
+            });
+          }
+
+          // Tip
+          if (feature.tip) {
+            checkPage(12);
+            pdf.setFillColor(255, 251, 235);
+            const tipLines = pdf.splitTextToSize(`⚠ ${feature.tip}`, contentW - 10);
+            const tipH = tipLines.length * 4 + 6;
+            pdf.rect(marginL + 2, y - 2, contentW - 4, tipH, "F");
+            pdf.setDrawColor(217, 175, 50);
+            pdf.rect(marginL + 2, y - 2, contentW - 4, tipH, "S");
+            pdf.setTextColor(120, 80, 0);
+            pdf.setFontSize(8.5);
+            pdf.text(tipLines, marginL + 5, y + 2);
+            y += tipH + 4;
+          }
+
+          y += 4;
+        });
+      });
+
+      // ── Footer on every page ──
+      const totalPages = pdf.getNumberOfPages();
+      for (let i = 2; i <= totalPages; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(8);
+        pdf.setTextColor(160, 160, 160);
+        pdf.text(`SIMP-PRF — Manual do Sistema`, marginL, pageH - 8);
+        pdf.text(`Página ${i - 1} de ${totalPages - 1}`, pageW - marginR, pageH - 8, { align: "right" });
+      }
+
+      pdf.save("Manual_SIMP-PRF.pdf");
+    } catch (err) {
+      console.error("Erro ao gerar PDF:", err);
+    } finally {
+      setExporting(false);
+    }
+  }, []);
 
   const currentSection = SECTIONS.find((s) => s.id === activeSection) || SECTIONS[0];
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
-          <BookOpen className="h-6 w-6 text-primary" />
-          Manual do Sistema SIMP-PRF
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Documentação completa de todas as funcionalidades, módulos e fluxos do sistema.
-        </p>
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
+            <BookOpen className="h-6 w-6 text-primary" />
+            Manual do Sistema SIMP-PRF
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Documentação completa de todas as funcionalidades, módulos e fluxos do sistema.
+          </p>
+        </div>
+        <Button onClick={exportPDF} disabled={exporting} className="gap-2">
+          {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+          {exporting ? "Gerando PDF..." : "Exportar PDF"}
+        </Button>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6">
