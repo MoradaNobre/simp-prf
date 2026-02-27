@@ -183,10 +183,67 @@ export default function ExportarTelas() {
     }
   };
 
+  /** Inject temporary CSS to prevent text truncation and overflow clipping */
+  const injectCaptureStyles = (doc: Document): HTMLStyleElement | null => {
+    try {
+      const style = doc.createElement("style");
+      style.id = "capture-fix";
+      style.textContent = `
+        /* Force all text to be fully visible for html2canvas */
+        * {
+          text-overflow: clip !important;
+          overflow-wrap: break-word !important;
+        }
+        .truncate, [class*="truncate"] {
+          overflow: visible !important;
+          white-space: normal !important;
+          text-overflow: unset !important;
+        }
+        .overflow-hidden, [class*="overflow-hidden"] {
+          overflow: visible !important;
+        }
+        .line-clamp-1, .line-clamp-2, .line-clamp-3,
+        [class*="line-clamp"] {
+          -webkit-line-clamp: unset !important;
+          display: block !important;
+          overflow: visible !important;
+        }
+        /* Ensure sidebar and nav text is fully rendered */
+        [data-sidebar] span, nav span, button span,
+        [role="menuitem"] span, [role="tab"] {
+          overflow: visible !important;
+          white-space: nowrap !important;
+          text-overflow: unset !important;
+          min-width: fit-content !important;
+        }
+        /* Ensure badges and small elements are visible */
+        .badge, [class*="badge"], [class*="Badge"] {
+          overflow: visible !important;
+          white-space: nowrap !important;
+        }
+      `;
+      doc.head.appendChild(style);
+      return style;
+    } catch {
+      return null;
+    }
+  };
+
+  const removeCaptureStyles = (doc: Document) => {
+    try {
+      const style = doc.getElementById("capture-fix");
+      if (style) style.remove();
+    } catch { /* ignore */ }
+  };
+
   const captureIframe = async (iframe: HTMLIFrameElement): Promise<HTMLCanvasElement | null> => {
     try {
       const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
       if (!iframeDoc?.body) return null;
+
+      // Inject fix styles before capture
+      injectCaptureStyles(iframeDoc);
+      await delay(300); // Let styles apply
 
       const body = iframeDoc.body;
       const html = iframeDoc.documentElement;
@@ -206,6 +263,10 @@ export default function ExportarTelas() {
         logging: false,
         backgroundColor: "#ffffff",
       });
+
+      // Clean up injected styles
+      removeCaptureStyles(iframeDoc);
+
       return canvas;
     } catch (err) {
       console.error("Error capturing iframe:", err);
