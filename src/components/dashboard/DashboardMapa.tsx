@@ -161,19 +161,46 @@ export default function DashboardMapa() {
                             className="transition-all duration-150"
                           />
                         ))}
-                        <text
-                          x={state.centroidX}
-                          y={state.centroidY}
-                          textAnchor="middle"
-                          dominantBaseline="central"
-                          fontSize={isSmall ? "7" : "9"}
-                          fontWeight="bold"
-                          fill="hsl(var(--foreground))"
-                          className="select-none"
-                          style={{ pointerEvents: "none" }}
-                        >
-                          {state.uf}
-                        </text>
+                        {isSmall ? (
+                          <>
+                            <circle
+                              cx={state.centroidX}
+                              cy={state.centroidY}
+                              r="10"
+                              fill="hsl(var(--background))"
+                              stroke="hsl(var(--muted-foreground) / 0.5)"
+                              strokeWidth="0.8"
+                              style={{ pointerEvents: "none" }}
+                            />
+                            <text
+                              x={state.centroidX}
+                              y={state.centroidY}
+                              textAnchor="middle"
+                              dominantBaseline="central"
+                              fontSize="9"
+                              fontWeight="bold"
+                              fill="hsl(var(--foreground))"
+                              className="select-none"
+                              style={{ pointerEvents: "none" }}
+                            >
+                              {state.uf}
+                            </text>
+                          </>
+                        ) : (
+                          <text
+                            x={state.centroidX}
+                            y={state.centroidY}
+                            textAnchor="middle"
+                            dominantBaseline="central"
+                            fontSize="11"
+                            fontWeight="bold"
+                            fill="hsl(var(--foreground))"
+                            className="select-none"
+                            style={{ pointerEvents: "none" }}
+                          >
+                            {state.uf}
+                          </text>
+                        )}
                       </g>
                     );
                   })}
