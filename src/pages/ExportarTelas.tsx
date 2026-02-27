@@ -8,59 +8,96 @@ import { toast } from "sonner";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
+interface ScreenAction {
+  type: "click" | "tab";
+  /** CSS selector or tab value */
+  selector: string;
+  wait?: number;
+}
+
 interface ScreenConfig {
   name: string;
   path: string;
-  tabValue?: string; // if set, click this tab after navigation
   description: string;
+  /** Actions to perform BEFORE capturing (tab clicks, button clicks) */
+  actions?: ScreenAction[];
+  /** Action to perform AFTER capturing (e.g. close dialog) */
+  afterActions?: ScreenAction[];
 }
 
 const SCREENS: ScreenConfig[] = [
-  // Public
+  // ── Public ──
   { name: "Landing Page", path: "/", description: "Página inicial pública do sistema" },
   { name: "Login", path: "/login", description: "Tela de autenticação" },
 
-  // Dashboard tabs
-  { name: "Dashboard — Chamados", path: "/app/dashboard", tabValue: "chamados", description: "Dashboard: aba de chamados" },
-  { name: "Dashboard — Ordens de Serviço", path: "/app/dashboard", tabValue: "operacional", description: "Dashboard: aba de ordens de serviço" },
-  { name: "Dashboard — Orçamento", path: "/app/dashboard", tabValue: "orcamento", description: "Dashboard: aba orçamentária" },
-  { name: "Dashboard — Mapa", path: "/app/dashboard", tabValue: "mapa", description: "Dashboard: mapa nacional" },
+  // ── Dashboard ──
+  { name: "Dashboard — Chamados", path: "/app/dashboard", description: "Dashboard: aba de chamados", actions: [{ type: "tab", selector: "chamados" }] },
+  { name: "Dashboard — Ordens de Serviço", path: "/app/dashboard", description: "Dashboard: aba operacional", actions: [{ type: "tab", selector: "operacional" }] },
+  { name: "Dashboard — Orçamento", path: "/app/dashboard", description: "Dashboard: aba orçamentária", actions: [{ type: "tab", selector: "orcamento" }] },
+  { name: "Dashboard — Mapa", path: "/app/dashboard", description: "Dashboard: mapa nacional", actions: [{ type: "tab", selector: "mapa" }] },
 
-  // Main modules
+  // ── Chamados ──
   { name: "Chamados", path: "/app/chamados", description: "Listagem e gestão de chamados" },
+  {
+    name: "Formulário — Novo Chamado",
+    path: "/app/chamados",
+    description: "Dialog de abertura de novo chamado",
+    actions: [{ type: "click", selector: 'button:has(svg.lucide-plus)', wait: 1500 }],
+    afterActions: [{ type: "click", selector: 'button[data-state="open"] ~ div button:has(svg.lucide-x), [role="dialog"] button[aria-label="Close"], [role="dialog"] button:has(svg.lucide-x)', wait: 500 }],
+  },
+
+  // ── Ordens de Serviço ──
   { name: "Ordens de Serviço", path: "/app/ordens", description: "Listagem e gestão de ordens de serviço" },
+  {
+    name: "Formulário — Nova OS",
+    path: "/app/ordens",
+    description: "Dialog de criação de nova Ordem de Serviço",
+    actions: [{ type: "click", selector: 'button:has(svg.lucide-plus)', wait: 1500 }],
+    afterActions: [{ type: "click", selector: '[role="dialog"] button:has(svg.lucide-x)', wait: 500 }],
+  },
+
+  // ── Agenda ──
   { name: "Agenda de Visitas", path: "/app/agenda", description: "Calendário de agendamentos de visitas" },
 
-  // Relatórios tabs
-  { name: "Relatórios — Execução", path: "/app/relatorios", tabValue: "execucao", description: "Relatórios: aba de execução" },
-  { name: "Relatórios — Pagamento", path: "/app/relatorios", tabValue: "pagamento", description: "Relatórios: aba de pagamento" },
+  // ── Relatórios ──
+  { name: "Relatórios — Execução", path: "/app/relatorios", description: "Relatórios: aba de execução", actions: [{ type: "tab", selector: "execucao" }] },
+  { name: "Relatórios — Pagamento", path: "/app/relatorios", description: "Relatórios: aba de pagamento", actions: [{ type: "tab", selector: "pagamento" }] },
 
-  // Contratos
+  // ── Contratos ──
   { name: "Contratos", path: "/app/contratos", description: "Gestão de contratos vigentes" },
+  {
+    name: "Formulário — Novo Contrato",
+    path: "/app/contratos",
+    description: "Dialog de cadastro de novo contrato",
+    actions: [{ type: "click", selector: 'button:has(svg.lucide-plus)', wait: 1500 }],
+    afterActions: [{ type: "click", selector: '[role="dialog"] button:has(svg.lucide-x)', wait: 500 }],
+  },
 
-  // Gestão Orçamento tabs
-  { name: "Orçamento — Portaria", path: "/app/orcamento", tabValue: "loa", description: "Gestão do Orçamento: Portaria Orçamentária (LOA)" },
-  { name: "Orçamento — Cotas", path: "/app/orcamento", tabValue: "dotacoes", description: "Gestão do Orçamento: Cotas por regional" },
-  { name: "Orçamento — Solicitações", path: "/app/orcamento", tabValue: "solicitacoes", description: "Gestão do Orçamento: Solicitações de crédito" },
+  // ── Gestão Orçamento ──
+  { name: "Orçamento — Portaria (LOA)", path: "/app/orcamento", description: "Gestão: Portaria Orçamentária", actions: [{ type: "tab", selector: "loa" }] },
+  { name: "Orçamento — Cotas", path: "/app/orcamento", description: "Gestão: Cotas por regional", actions: [{ type: "tab", selector: "dotacoes" }] },
+  { name: "Orçamento — Solicitações de Crédito", path: "/app/orcamento", description: "Gestão: Solicitações de crédito suplementar", actions: [{ type: "tab", selector: "solicitacoes" }] },
 
-  // Gestão do Sistema tabs
-  { name: "Gestão — Usuários", path: "/app/gestao", tabValue: "usuarios", description: "Gestão do Sistema: usuários e perfis" },
-  { name: "Gestão — Regionais", path: "/app/gestao", tabValue: "regionais", description: "Gestão do Sistema: regionais" },
-  { name: "Gestão — Delegacias", path: "/app/gestao", tabValue: "delegacias", description: "Gestão do Sistema: delegacias" },
-  { name: "Gestão — UOPs", path: "/app/gestao", tabValue: "uops", description: "Gestão do Sistema: unidades operacionais" },
-  { name: "Gestão — Limites Modalidade", path: "/app/gestao", tabValue: "limites", description: "Gestão do Sistema: limites por modalidade" },
-  { name: "Gestão — Auditoria", path: "/app/gestao", tabValue: "logs", description: "Gestão do Sistema: logs de auditoria" },
+  // ── Gestão do Sistema ──
+  { name: "Gestão — Usuários", path: "/app/gestao", description: "Gestão do Sistema: usuários e perfis", actions: [{ type: "tab", selector: "usuarios" }] },
+  { name: "Gestão — Regionais", path: "/app/gestao", description: "Gestão do Sistema: regionais", actions: [{ type: "tab", selector: "regionais" }] },
+  { name: "Gestão — Delegacias", path: "/app/gestao", description: "Gestão do Sistema: delegacias", actions: [{ type: "tab", selector: "delegacias" }] },
+  { name: "Gestão — UOPs", path: "/app/gestao", description: "Gestão do Sistema: unidades operacionais", actions: [{ type: "tab", selector: "uops" }] },
+  { name: "Gestão — Limites Modalidade", path: "/app/gestao", description: "Gestão do Sistema: limites por modalidade", actions: [{ type: "tab", selector: "limites" }] },
+  { name: "Gestão — Auditoria", path: "/app/gestao", description: "Gestão do Sistema: logs de auditoria", actions: [{ type: "tab", selector: "logs" }] },
 
-  // Sobre
+  // ── Manutenção Preventiva ──
+  { name: "Manutenção Preventiva", path: "/app/preventiva", description: "Planos de manutenção preventiva" },
+
+  // ── Sobre ──
   { name: "Sobre o Sistema", path: "/app/sobre", description: "Informações e documentação do sistema" },
 ];
 
 type ScreenStatus = "pending" | "capturing" | "done" | "error";
 
-const VIEWPORT_WIDTH = 1920;
+const VIEWPORT_WIDTH = 1440;
 const CAPTURE_SCALE = 2;
-const WAIT_MS = 3000;
-const TAB_WAIT_MS = 1500;
+const WAIT_MS = 3500;
 
 export default function ExportarTelas() {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -85,21 +122,37 @@ export default function ExportarTelas() {
 
   const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-  const clickTab = async (iframe: HTMLIFrameElement, tabValue: string) => {
+  const performAction = async (iframe: HTMLIFrameElement, action: ScreenAction) => {
     try {
       const doc = iframe.contentDocument || iframe.contentWindow?.document;
       if (!doc) return;
-      // Radix tabs render buttons with role="tab" and a data-value or value attr
-      const tab =
-        doc.querySelector(`button[role="tab"][value="${tabValue}"]`) ||
-        doc.querySelector(`[data-value="${tabValue}"][role="tab"]`) ||
-        doc.querySelector(`button[value="${tabValue}"]`);
-      if (tab) {
-        (tab as HTMLElement).click();
-        await delay(TAB_WAIT_MS);
+
+      if (action.type === "tab") {
+        const tab =
+          doc.querySelector(`button[role="tab"][value="${action.selector}"]`) ||
+          doc.querySelector(`[data-value="${action.selector}"][role="tab"]`) ||
+          doc.querySelector(`button[value="${action.selector}"]`);
+        if (tab) {
+          (tab as HTMLElement).click();
+        }
+      } else if (action.type === "click") {
+        // Try multiple selectors separated by comma
+        const selectors = action.selector.split(",").map((s) => s.trim());
+        for (const sel of selectors) {
+          try {
+            const el = doc.querySelector(sel);
+            if (el) {
+              (el as HTMLElement).click();
+              break;
+            }
+          } catch {
+            // selector may be invalid, skip
+          }
+        }
       }
+      await delay(action.wait ?? 1200);
     } catch (err) {
-      console.warn("Tab click failed:", err);
+      console.warn("Action failed:", err);
     }
   };
 
@@ -108,7 +161,6 @@ export default function ExportarTelas() {
       const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
       if (!iframeDoc?.body) return null;
 
-      // Capture full page height
       const body = iframeDoc.body;
       const html = iframeDoc.documentElement;
       const fullHeight = Math.max(
@@ -151,16 +203,18 @@ export default function ExportarTelas() {
       setProgress(Math.round((i / SCREENS.length) * 100));
 
       try {
-        // Only navigate if path changed
+        // Navigate if path changed
         if (screen.path !== lastPath) {
           iframe.src = screen.path;
           await waitForIframeLoad(iframe);
           lastPath = screen.path;
         }
 
-        // Click tab if needed
-        if (screen.tabValue) {
-          await clickTab(iframe, screen.tabValue);
+        // Perform pre-capture actions (tabs, clicks)
+        if (screen.actions) {
+          for (const action of screen.actions) {
+            await performAction(iframe, action);
+          }
         }
 
         const canvas = await captureIframe(iframe);
@@ -170,62 +224,97 @@ export default function ExportarTelas() {
         } else {
           updateStatus(screen.name, "error");
         }
+
+        // Perform after-capture actions (close dialogs)
+        if (screen.afterActions) {
+          for (const action of screen.afterActions) {
+            await performAction(iframe, action);
+          }
+        }
       } catch (err) {
         console.error(`Error on ${screen.name}:`, err);
         updateStatus(screen.name, "error");
       }
     }
 
-    // Build PDF
+    // Build PDF — PORTRAIT
     if (captures.length > 0) {
-      // First page dimensions (landscape A4-ish but matching content)
-      const pageW = 1920;
-      const pageH = 1080;
+      const pageW = 1440;
+      const coverH = 2000;
 
-      const pdf = new jsPDF({ orientation: "landscape", unit: "px", format: [pageW, pageH] });
+      const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [pageW, coverH] });
 
-      // Cover page
+      // ─── Cover page ───
       pdf.setFillColor(30, 58, 95);
-      pdf.rect(0, 0, pageW, pageH, "F");
-      pdf.setFontSize(56);
+      pdf.rect(0, 0, pageW, coverH, "F");
+      pdf.setFontSize(64);
       pdf.setTextColor(255, 255, 255);
-      pdf.text("SIMP-PRF", pageW / 2, 380, { align: "center" });
-      pdf.setFontSize(28);
+      pdf.text("SIMP-PRF", pageW / 2, 700, { align: "center" });
+      pdf.setFontSize(32);
       pdf.setTextColor(200, 210, 225);
-      pdf.text("Sistema Integrado de Manutenção Predial", pageW / 2, 440, { align: "center" });
-      pdf.text("Polícia Rodoviária Federal", pageW / 2, 480, { align: "center" });
-      pdf.setFontSize(18);
+      pdf.text("Sistema Integrado de Manutenção Predial", pageW / 2, 780, { align: "center" });
+      pdf.text("Polícia Rodoviária Federal", pageW / 2, 830, { align: "center" });
+      pdf.setFontSize(22);
       pdf.setTextColor(160, 175, 195);
-      pdf.text(`Documentação Visual — ${captures.length} telas`, pageW / 2, 560, { align: "center" });
-      pdf.text(`Gerado em: ${new Date().toLocaleDateString("pt-BR")} às ${new Date().toLocaleTimeString("pt-BR")}`, pageW / 2, 600, { align: "center" });
-      pdf.text("Perfil: Gestor Master", pageW / 2, 640, { align: "center" });
+      pdf.text(`Documentação Visual — ${captures.length} telas capturadas`, pageW / 2, 940, { align: "center" });
+      pdf.text(`Gerado em: ${new Date().toLocaleDateString("pt-BR")} às ${new Date().toLocaleTimeString("pt-BR")}`, pageW / 2, 990, { align: "center" });
+      pdf.text("Perfil: Gestor Master", pageW / 2, 1040, { align: "center" });
 
+      // ─── Table of contents ───
+      pdf.addPage([pageW, coverH], "portrait");
+      pdf.setFillColor(30, 58, 95);
+      pdf.rect(0, 0, pageW, 80, "F");
+      pdf.setFontSize(28);
+      pdf.setTextColor(255, 255, 255);
+      pdf.text("Índice de Telas", pageW / 2, 52, { align: "center" });
+
+      pdf.setFontSize(16);
+      pdf.setTextColor(40, 40, 40);
+      let tocY = 130;
+      captures.forEach(({ name, description }, idx) => {
+        if (tocY > coverH - 60) {
+          pdf.addPage([pageW, coverH], "portrait");
+          tocY = 60;
+        }
+        pdf.setFont("helvetica", "bold");
+        pdf.setTextColor(30, 58, 95);
+        pdf.text(`${idx + 1}.`, 60, tocY);
+        pdf.text(name, 100, tocY);
+        pdf.setFont("helvetica", "normal");
+        pdf.setTextColor(100, 100, 100);
+        pdf.setFontSize(13);
+        pdf.text(description, 100, tocY + 22);
+        pdf.setFontSize(16);
+        tocY += 56;
+      });
+
+      // ─── Screen pages ───
       for (let i = 0; i < captures.length; i++) {
         const { name, description, canvas } = captures[i];
 
-        // Calculate page dimensions based on canvas aspect ratio
         const canvasW = canvas.width / CAPTURE_SCALE;
         const canvasH = canvas.height / CAPTURE_SCALE;
-        const headerH = 36;
-        const imgPageW = pageW;
-        const imgPageH = Math.max(pageH, canvasH * (imgPageW / canvasW) + headerH);
+        const headerH = 50;
+        const margin = 0;
+        const imgW = pageW - margin * 2;
+        const imgH = canvasH * (imgW / canvasW);
+        const totalPageH = imgH + headerH;
 
-        pdf.addPage([imgPageW, imgPageH], "landscape");
+        pdf.addPage([pageW, totalPageH], "portrait");
 
         // Header bar
         pdf.setFillColor(30, 58, 95);
-        pdf.rect(0, 0, imgPageW, headerH, "F");
-        pdf.setFontSize(14);
+        pdf.rect(0, 0, pageW, headerH, "F");
+        pdf.setFontSize(18);
         pdf.setTextColor(255, 255, 255);
-        pdf.text(`${i + 1}/${captures.length} — ${name}`, 16, 24);
-        pdf.setFontSize(11);
+        pdf.text(`${i + 1}/${captures.length} — ${name}`, 20, 32);
+        pdf.setFontSize(13);
         pdf.setTextColor(180, 195, 215);
-        pdf.text(description, imgPageW - 16, 24, { align: "right" });
+        pdf.text(description, pageW - 20, 32, { align: "right" });
 
-        // Image fills full width below header with no extra margins
+        // Screenshot fills full width
         const imgData = canvas.toDataURL("image/jpeg", 0.92);
-        const imgH = imgPageH - headerH;
-        pdf.addImage(imgData, "JPEG", 0, headerH, imgPageW, imgH);
+        pdf.addImage(imgData, "JPEG", margin, headerH, imgW, imgH);
       }
 
       pdf.save(`SIMP-PRF_Telas_${new Date().toISOString().slice(0, 10)}.pdf`);
@@ -244,7 +333,7 @@ export default function ExportarTelas() {
       <div>
         <h1 className="text-xl sm:text-2xl font-bold text-foreground">Exportar Telas do Sistema</h1>
         <p className="text-muted-foreground text-sm">
-          Gera um PDF paisagem com capturas de todas as {SCREENS.length} telas e abas do SIMP-PRF (perfil Gestor Master)
+          Gera um PDF retrato com capturas de todas as {SCREENS.length} telas, formulários e abas do SIMP-PRF (perfil Gestor Master)
         </p>
       </div>
 
@@ -319,11 +408,11 @@ export default function ExportarTelas() {
         </CardContent>
       </Card>
 
-      {/* Hidden iframe for capturing — full viewport width */}
+      {/* Hidden iframe for capturing */}
       <iframe
         ref={iframeRef}
         className="fixed -left-[9999px] top-0"
-        style={{ width: VIEWPORT_WIDTH, height: 4000, border: "none" }}
+        style={{ width: VIEWPORT_WIDTH, height: 5000, border: "none" }}
         title="Captura de tela"
       />
     </div>
