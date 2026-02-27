@@ -106,6 +106,7 @@ export default function DashboardMapa() {
             {/* SVG Map */}
             <div className="flex-1 min-w-0">
               <svg viewBox={BRAZIL_VIEWBOX} className="w-full h-auto max-h-[600px]">
+                {/* State shapes */}
                 {Object.entries(statePaths).map(([uf, state]) => {
                   const ufGestores = gestoresByUF[uf] || [];
                   const primaryColor = ufGestores.length > 0
@@ -120,7 +121,6 @@ export default function DashboardMapa() {
                       onMouseLeave={() => setHoveredState(null)}
                       className="cursor-pointer"
                     >
-                      {/* State shape */}
                       <path
                         d={state.d}
                         fill={ufGestores.length > 0 ? primaryColor : "hsl(var(--muted))"}
@@ -129,17 +129,6 @@ export default function DashboardMapa() {
                         strokeWidth={isHovered ? 1.8 : 1}
                         className="transition-all duration-150"
                       />
-                      {/* Circle callout for small states */}
-                      {state.circlePath && (
-                        <path
-                          d={state.circlePath}
-                          fill={ufGestores.length > 0 ? primaryColor : "hsl(var(--muted))"}
-                          fillOpacity={isHovered ? 0.95 : 0.7}
-                          stroke="hsl(var(--background))"
-                          strokeWidth={0.8}
-                        />
-                      )}
-                      {/* UF label */}
                       <text
                         x={state.labelX}
                         y={state.labelY}
@@ -154,6 +143,43 @@ export default function DashboardMapa() {
                     </g>
                   );
                 })}
+                {/* Circle callouts for small states — rendered on top */}
+                {Object.entries(statePaths)
+                  .filter(([, state]) => state.circlePath)
+                  .map(([uf, state]) => {
+                    const ufGestores = gestoresByUF[uf] || [];
+                    const primaryColor = ufGestores.length > 0
+                      ? nameColorMap.get(ufGestores[0].gestor_name) || "#94a3b8"
+                      : "hsl(var(--muted))";
+                    const isHovered = hoveredState === uf;
+                    return (
+                      <g
+                        key={`circle-${uf}`}
+                        onMouseEnter={() => setHoveredState(uf)}
+                        onMouseLeave={() => setHoveredState(null)}
+                        className="cursor-pointer"
+                      >
+                        <path
+                          d={state.circlePath!}
+                          fill={ufGestores.length > 0 ? primaryColor : "hsl(var(--muted))"}
+                          fillOpacity={isHovered ? 0.95 : 0.85}
+                          stroke="hsl(var(--background))"
+                          strokeWidth={1.2}
+                        />
+                        <text
+                          x={state.labelX}
+                          y={state.labelY}
+                          textAnchor="middle"
+                          dominantBaseline="central"
+                          className="fill-background font-bold select-none"
+                          fontSize="8"
+                          style={{ pointerEvents: "none" }}
+                        >
+                          {uf}
+                        </text>
+                      </g>
+                    );
+                  })}
               </svg>
             </div>
 
@@ -182,9 +208,9 @@ export default function DashboardMapa() {
               </div>
 
               {hoveredInfo && hoveredState && (
-                <Card className="border-primary/30 bg-muted/50">
+                <Card className="border-primary/50 bg-primary/10 shadow-md shadow-primary/10">
                   <CardContent className="p-3">
-                    <p className="text-sm font-semibold mb-1">{hoveredState}</p>
+                    <p className="text-sm font-bold mb-1.5 text-primary">{hoveredState}</p>
                     {hoveredInfo.map((g, i) => (
                       <div key={i} className="text-xs text-muted-foreground">
                         <span className="font-medium text-foreground">{g.gestor_name}</span>
