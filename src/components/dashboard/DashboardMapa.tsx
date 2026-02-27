@@ -124,7 +124,13 @@ export default function DashboardMapa() {
             <div className="flex flex-col lg:flex-row gap-6">
               {/* SVG Map */}
               <div className="flex-1 min-w-0">
-                <svg viewBox={BRAZIL_VIEWBOX} className="w-full h-auto max-h-[600px]">
+              <svg viewBox={BRAZIL_VIEWBOX} className="w-full h-auto max-h-[600px]">
+                  <defs>
+                    <filter id="stateShadow" x="-4%" y="-4%" width="108%" height="108%">
+                      <feDropShadow dx="1" dy="1.5" stdDeviation="1.5" floodColor="#000" floodOpacity="0.18" />
+                    </filter>
+                  </defs>
+                  {/* State shapes */}
                   {Object.entries(statePaths).map(([uf, state]) => {
                     const ufUsers = usersByUF[uf] || [];
                     const primaryColor = ufUsers.length > 0
@@ -138,13 +144,14 @@ export default function DashboardMapa() {
                         onMouseEnter={() => setHoveredState(uf)}
                         onMouseLeave={() => setHoveredState(null)}
                         className="cursor-pointer"
+                        filter="url(#stateShadow)"
                       >
                         <path
                           d={state.d}
                           fill={ufUsers.length > 0 ? primaryColor : "hsl(var(--muted))"}
-                          fillOpacity={isHovered ? 1 : 0.9}
-                          stroke="hsl(var(--background))"
-                          strokeWidth={isHovered ? 1.8 : 1}
+                          fillOpacity={isHovered ? 1 : 0.85}
+                          stroke={isHovered ? "hsl(var(--foreground))" : "hsl(var(--background))"}
+                          strokeWidth={isHovered ? 2 : 1.2}
                           className="transition-all duration-150"
                         />
                         {!state.circlePath && (
@@ -153,8 +160,12 @@ export default function DashboardMapa() {
                             y={state.labelY}
                             textAnchor="middle"
                             dominantBaseline="central"
-                            className="fill-background font-bold select-none"
-                            fontSize="10"
+                            className="select-none"
+                            fontSize="9"
+                            fontWeight="bold"
+                            fill="#fff"
+                            stroke="#00000066"
+                            strokeWidth="0.4"
                             style={{ pointerEvents: "none" }}
                           >
                             {uf}
@@ -163,6 +174,7 @@ export default function DashboardMapa() {
                       </g>
                     );
                   })}
+                  {/* Circle callouts for small states */}
                   {Object.entries(statePaths)
                     .filter(([, state]) => state.circlePath)
                     .map(([uf, state]) => {
@@ -182,16 +194,20 @@ export default function DashboardMapa() {
                             d={state.circlePath!}
                             fill={ufUsers.length > 0 ? primaryColor : "hsl(var(--muted))"}
                             fillOpacity={isHovered ? 1 : 0.9}
-                            stroke="hsl(var(--background))"
-                            strokeWidth={1.5}
+                            stroke={isHovered ? "hsl(var(--foreground))" : "hsl(var(--background))"}
+                            strokeWidth={isHovered ? 2 : 1.2}
                           />
                           <text
                             x={state.labelX}
                             y={state.labelY}
                             textAnchor="middle"
                             dominantBaseline="central"
-                            className="fill-background font-bold select-none"
+                            className="select-none"
                             fontSize="8"
+                            fontWeight="bold"
+                            fill="#fff"
+                            stroke="#00000066"
+                            strokeWidth="0.3"
                             style={{ pointerEvents: "none" }}
                           >
                             {uf}
