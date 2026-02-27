@@ -19,7 +19,7 @@ import {
   FileText,
   DollarSign,
   Shield,
-  Wrench,
+  
   Users,
   MapPin,
   Building2,
@@ -556,28 +556,6 @@ const SECTIONS: ManualSection[] = [
           "Filtros por tabela, ação e período",
         ],
         roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional"],
-      },
-    ],
-  },
-  {
-    id: "preventiva",
-    title: "Manutenção Preventiva",
-    icon: Wrench,
-    color: "text-rose-600 dark:text-rose-400",
-    description:
-      "Módulo de planejamento e gestão de planos de manutenção preventiva (PMOC) vinculados a UOPs.",
-    features: [
-      {
-        title: "Planos de Manutenção",
-        description: "Cadastro de planos preventivos com frequência programada.",
-        details: [
-          "Nome do plano e descrição das atividades",
-          "Frequência: Mensal, Trimestral, Semestral ou Anual",
-          "Vinculação a UOP específica",
-          "Data da próxima execução (calculada automaticamente)",
-          "Status: Ativo/Inativo",
-        ],
-        roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato"],
       },
     ],
   },
