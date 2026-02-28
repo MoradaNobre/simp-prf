@@ -11,8 +11,11 @@ import {
   DollarSign,
   MessageSquarePlus,
   BookOpen,
+  Moon,
+  Sun,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
+import { useTheme } from "next-themes";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useUserProfile } from "@/hooks/useUserProfile";
@@ -70,6 +73,7 @@ export function AppSidebar() {
   const { user } = useAuth();
   const { data: role } = useUserRole();
   const { data: profile } = useUserProfile();
+  const { theme, setTheme } = useTheme();
   const isAdmin = isAdminRole(role);
   const isRegional = role === "gestor_regional";
   const canManage = isAdmin || isRegional;
@@ -235,6 +239,17 @@ export function AppSidebar() {
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
+              <button
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className="w-full flex items-center gap-2 text-sidebar-foreground/70 hover:text-sidebar-foreground"
+              >
+                {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                <span>{theme === "dark" ? "Modo Claro" : "Modo Escuro"}</span>
+              </button>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
               <button onClick={handleLogout} className="w-full flex items-center gap-2 text-sidebar-foreground/70 hover:text-sidebar-foreground">
