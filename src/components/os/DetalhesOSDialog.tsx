@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { useSignedUrl } from "@/hooks/useSignedUrl";
 import { useNavigate } from "react-router-dom";
 import { isAdminRole } from "@/utils/roles";
 import { getStatusFlowForTipo, bypassesContractBalance, bypassesBudgetBlocking, tipoServicoLabel } from "@/utils/modalidade";
@@ -90,7 +91,32 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   const [motivoSolicitacao, setMotivoSolicitacao] = useState("");
   const [showSolicitacao, setShowSolicitacao] = useState(false);
   const [downloadingZip, setDownloadingZip] = useState(false);
-  
+
+  // Signed URLs for secure file display
+  const signedFotoAntes = useSignedUrl(os?.foto_antes);
+  const signedFotoDepois = useSignedUrl(os?.foto_depois);
+  const signedArquivoOrcamento = useSignedUrl((os as any)?.arquivo_orcamento);
+/** Small component to render payment doc links with signed URLs */
+function PaymentDocLinks({ paths }: { paths: string[] }) {
+  const [urls, setUrls] = useState<(string | null)[]>([]);
+  useEffect(() => {
+    import("@/utils/storage").then(({ getSignedUrls }) => {
+      getSignedUrls(paths).then(setUrls);
+    });
+  }, [paths]);
+  return (
+    <div className="space-y-1">
+      {urls.map((url, i) => url ? (
+        <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm text-primary underline">
+          <FileText className="h-3 w-3" /> Documento {i + 1}
+        </a>
+      ) : (
+        <span key={i} className="text-xs text-muted-foreground">Carregando documento {i + 1}...</span>
+      ))}
+    </div>
+  );
+}
+
 
   // Check if this OS was created from chamados
   const { data: linkedChamados = [] } = useQuery({
@@ -212,12 +238,8 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   const canSubmitPayment = os.status === "pagamento" && isGestorOrFiscal;
 
   const uploadFile = async (file: File, folder: string) => {
-    const ext = file.name.split(".").pop();
-    const path = `${folder}/${crypto.randomUUID()}.${ext}`;
-    const { error } = await supabase.storage.from("os-fotos").upload(path, file);
-    if (error) throw error;
-    const { data } = supabase.storage.from("os-fotos").getPublicUrl(path);
-    return data.publicUrl;
+    const { uploadToStorage } = await import("@/utils/storage");
+    return uploadToStorage(file, folder);
   };
 
   const sendTransitionNotification = async (fromStatus: string, toStatus: string, motivoRestituicao?: string): Promise<boolean> => {
@@ -491,28 +513,36 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
         } catch { /* skip files that fail */ }
       };
 
-      // Collect all attachments
+      // Collect all attachments using signed URLs
+      const { getSignedUrl: signUrl } = await import("@/utils/storage");
       const promises: Promise<void>[] = [];
 
       if (os.foto_antes) {
-        const ext = os.foto_antes.split(".").pop()?.split("?")[0] || "jpg";
-        promises.push(fetchFile(os.foto_antes, `foto_antes.${ext}`));
+        promises.push((async () => {
+          const signed = await signUrl(os.foto_antes!);
+          if (signed) await fetchFile(signed, `foto_antes.jpg`);
+        })());
       }
       if (os.foto_depois) {
-        const ext = os.foto_depois.split(".").pop()?.split("?")[0] || "jpg";
-        promises.push(fetchFile(os.foto_depois, `foto_depois.${ext}`));
+        promises.push((async () => {
+          const signed = await signUrl(os.foto_depois!);
+          if (signed) await fetchFile(signed, `foto_depois.jpg`);
+        })());
       }
       if ((os as any).arquivo_orcamento) {
-        const url = (os as any).arquivo_orcamento;
-        const ext = url.split(".").pop()?.split("?")[0] || "pdf";
-        promises.push(fetchFile(url, `orcamento.${ext}`));
+        promises.push((async () => {
+          const signed = await signUrl((os as any).arquivo_orcamento);
+          if (signed) await fetchFile(signed, `orcamento.pdf`);
+        })());
       }
 
       // Payment documents
       const docs: string[] = (os as any).documentos_pagamento || [];
-      docs.forEach((url, i) => {
-        const ext = url.split(".").pop()?.split("?")[0] || "pdf";
-        promises.push(fetchFile(url, `pagamento/documento_${i + 1}.${ext}`));
+      docs.forEach((path, i) => {
+        promises.push((async () => {
+          const signed = await signUrl(path);
+          if (signed) await fetchFile(signed, `pagamento/documento_${i + 1}.pdf`);
+        })());
       });
 
       // Fetch and add reports as PDFs
@@ -685,10 +715,10 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
           })()}
 
           {/* Budget file link */}
-          {(os as any).arquivo_orcamento && (
+          {signedArquivoOrcamento && (
             <div className="flex items-center gap-2 text-sm">
               <FileText className="h-4 w-4 text-muted-foreground" />
-              <a href={(os as any).arquivo_orcamento} target="_blank" rel="noopener noreferrer" className="text-primary underline">
+              <a href={signedArquivoOrcamento} target="_blank" rel="noopener noreferrer" className="text-primary underline">
                 Ver arquivo do orçamento
               </a>
             </div>
@@ -696,16 +726,16 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
 
           {/* Photos */}
           <div className="grid grid-cols-2 gap-3">
-            {os.foto_antes && (
+            {os.foto_antes && signedFotoAntes && (
               <div>
                 <Label className="text-xs text-muted-foreground">Foto Antes</Label>
-                <img src={os.foto_antes} alt="Antes" className="mt-1 rounded-md border max-h-40 object-cover w-full" />
+                <img src={signedFotoAntes} alt="Antes" className="mt-1 rounded-md border max-h-40 object-cover w-full" />
               </div>
             )}
-            {os.foto_depois ? (
+            {os.foto_depois && signedFotoDepois ? (
               <div>
                 <Label className="text-xs text-muted-foreground">Foto Depois</Label>
-                <img src={os.foto_depois} alt="Depois" className="mt-1 rounded-md border max-h-40 object-cover w-full" />
+                <img src={signedFotoDepois} alt="Depois" className="mt-1 rounded-md border max-h-40 object-cover w-full" />
               </div>
             ) : os.status === "execucao" && (isPreposto || isTerceirizado) && (
               <div>
@@ -728,13 +758,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
           {paymentDocs.length > 0 && (
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Documentos de Pagamento</Label>
-              <div className="space-y-1">
-                {paymentDocs.map((url, i) => (
-                  <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm text-primary underline">
-                    <FileText className="h-3 w-3" /> Documento {i + 1}
-                  </a>
-                ))}
-              </div>
+              <PaymentDocLinks paths={paymentDocs} />
             </div>
           )}
 

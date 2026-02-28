@@ -89,12 +89,8 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
     try {
       let fotoUrl: string | null = null;
       if (fotoAntes) {
-        const ext = fotoAntes.name.split(".").pop();
-        const path = `antes/${crypto.randomUUID()}.${ext}`;
-        const { error: upErr } = await supabase.storage.from("os-fotos").upload(path, fotoAntes);
-        if (upErr) throw upErr;
-        const { data: urlData } = supabase.storage.from("os-fotos").getPublicUrl(path);
-        fotoUrl = urlData.publicUrl;
+        const { uploadToStorage } = await import("@/utils/storage");
+        fotoUrl = await uploadToStorage(fotoAntes, "antes");
       }
 
       const categoriaLabels: Record<string, string> = {
