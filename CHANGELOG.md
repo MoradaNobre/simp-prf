@@ -4,6 +4,20 @@ Registro centralizado de todas as alterações nos documentos de referência do 
 
 ---
 
+## [28/02/2026] — Aceite obrigatório de Termos e tipo de demanda Usina Solar
+
+### Documento(s) Alterado(s)
+- **TECHNICAL_DOCS.md** (v1.5 → v1.6): Aceite obrigatório de Termos de Uso e Política de Privacidade (`accepted_terms_at`), 10 tipos de demanda
+- **PRD.md** (v1.4 → v1.5): Registro do aceite obrigatório e novo tipo de demanda, 202 regras de negócio
+- **SPEC.md** (v1.6 → v1.7): Fluxo pós-login com dialog bloqueante de Termos, tipo "Usina Solar" na tabela de tipos de demanda
+- **REGRAS_NEGOCIO.md** (v1.6 → v1.7): Novas regras RN-198 a RN-202 (aceite de termos e usina solar). Total: 202 regras
+- **PRIVACY_POLICY.md** (v1.4 → v1.5): Mecanismo de aceite obrigatório com registro de timestamp
+
+### Motivação
+Conformidade com LGPD (aceite explícito) e ampliação dos tipos de demanda para manutenção de usinas solares.
+
+---
+
 ## [28/02/2026] — Criação do processo de documentação
 
 ### Documento(s) Alterado(s)

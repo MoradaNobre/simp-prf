@@ -1,13 +1,14 @@
 # SPEC – Especificação Funcional do SIMP (Sistema de Manutenção Predial)
 
-**Versão:** 1.6  
-**Data:** 26/02/2026  
+**Versão:** 1.7  
+**Data:** 28/02/2026  
 **Responsável:** Daniel Nunes de Ávila  
 
 ---
 
 ## Histórico de Versões
 
+- v1.7 (28/02/2026): Aceite obrigatório de Termos de Uso e Política de Privacidade (dialog modal bloqueante, `accepted_terms_at`). Novo tipo de demanda "Usina Solar" (total: 10 tipos).
 - v1.6 (26/02/2026): Inclusão do módulo de Chamados (seção 6A), reestruturação dos relatórios PDF com chamados vinculados.
 - v1.5 (24/02/2026): Fluxo abreviado do Cartão Corporativo (Ateste → Encerrada), permissões especiais do Suprido no fluxo de OS.
 - v1.4 (24/02/2026): Limites de Modalidade (4º bloqueio), edição inline, duplicação de contratos Cartão Corporativo, reordenação de bloqueios.
@@ -162,6 +163,7 @@ Regional (Superintendência) → Delegacia → UOP (Unidade Operacional)
 1. Login bem-sucedido → redireciona para `/app`
 2. `/app` redireciona automaticamente para `/app/dashboard` (ou primeira página acessível ao perfil)
 3. Se o perfil for `terceirizado` com flag `must_change_password = true` → redireciona para `/alterar-senha`
+4. Se `accepted_terms_at` for nulo → exibe dialog modal bloqueante com **Termos de Uso** (5 cláusulas: Objeto, Acesso, Responsabilidades, Proibições, Auditoria) e **Política de Privacidade** (LGPD). O usuário deve marcar dois checkboxes e clicar em "Aceitar e Continuar". O dialog não pode ser fechado por clique fora ou tecla Escape. O aceite registra timestamp em `profiles.accepted_terms_at`.
 
 ### 4.4. Recuperação de Senha
 
@@ -278,6 +280,7 @@ Aberto → Analisado → Vinculado (a uma OS)
 | `elevadores` | Elevadores |
 | `ar_condicionado` | Ar Condicionado |
 | `instalacoes_diversas` | Instalações Diversas |
+| `usina_solar` | Usina Solar |
 
 ### 6.5. Análise com Matriz GUT
 
