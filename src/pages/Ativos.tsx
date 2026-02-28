@@ -1,10 +1,9 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Building2, Plus, Search, Upload, ChevronRight, ChevronDown, MapPin, Loader2 } from "lucide-react";
+import { Building2, Plus, Search, ChevronRight, ChevronDown, MapPin, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { monitoredInvoke } from "@/utils/monitoredInvoke";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -71,35 +70,6 @@ function TreeNode({ label, icon, children, count, defaultOpen = false }: {
 export default function Ativos() {
   const { regionais, delegacias, uops } = useAtivosData();
   const [search, setSearch] = useState("");
-  const [importing, setImporting] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
-
-  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setImporting(true);
-    try {
-      const text = await file.text();
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast.error("Faça login para importar dados");
-        return;
-      }
-      const { data, error } = await monitoredInvoke("import-csv", {
-        body: { data: text },
-      });
-      if (error) throw error;
-      toast.success(`Importados: ${data.regionais} regionais, ${data.delegacias} delegacias, ${data.uops} UOPs`);
-      regionais.refetch();
-      delegacias.refetch();
-      uops.refetch();
-    } catch (err: any) {
-      toast.error("Erro ao importar: " + (err.message || err));
-    } finally {
-      setImporting(false);
-      if (fileRef.current) fileRef.current.value = "";
-    }
-  };
 
   const regData = regionais.data || [];
   const delData = delegacias.data || [];
@@ -125,11 +95,6 @@ export default function Ativos() {
           </p>
         </div>
         <div className="flex gap-2">
-          <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={handleImport} />
-          <Button variant="outline" onClick={() => fileRef.current?.click()} disabled={importing}>
-            {importing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
-            Importar CSV
-          </Button>
           <Button>
             <Plus className="mr-2 h-4 w-4" /> Novo Ativo
           </Button>
