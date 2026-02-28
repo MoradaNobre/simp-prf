@@ -76,7 +76,7 @@ A metodologia adotada baseia-se em abordagem qualitativa de avaliação de risco
 
 | ID | Categoria | Evento de Risco | Causa Provável | Impacto Potencial | Probabilidade | Impacto | Nível de Risco | Controles Existentes | Vulnerabilidades Identificadas | Ação de Mitigação Recomendada | Tipo de Controle | Prioridade |
 |----|-----------|----------------|----------------|-------------------|---------------|---------|----------------|---------------------|-------------------------------|-------------------------------|-----------------|------------|
-| RS-01 | Segurança | Escalonamento indevido de privilégios por manipulação da tabela `user_roles` | Exploração de vulnerabilidade em RLS; SQL injection via inputs não sanitizados; conluio entre usuários com perfis complementares | Acesso não autorizado a funcionalidades administrativas; manipulação de dados financeiros; comprometimento da integridade do sistema | Baixa | Muito Alto | **Alto** | Tabela `user_roles` separada com RLS; funções `has_role`, `is_admin`, `is_manager`, `is_nacional` com `SECURITY DEFINER` e `search_path` explícito; hierarquia de atribuição de perfis controlada por frontend | Verificação de hierarquia de atribuição de perfis implementada apenas no frontend (client-side); ausência de trigger server-side para validar que o perfil atribuidor tem autoridade sobre o perfil atribuído; `user_roles` não possui trigger de auditoria dedicado | Implementar trigger PostgreSQL para validação server-side da hierarquia de atribuição de perfis; adicionar trigger de auditoria em `user_roles` para registrar todas as alterações; implementar alerta automático para criação de perfis administrativos | Preventivo / Detectivo | Crítica |
+| RS-01 | Segurança | Escalonamento indevido de privilégios por manipulação da tabela `user_roles` | Exploração de vulnerabilidade em RLS; SQL injection via inputs não sanitizados; conluio entre usuários com perfis complementares | Acesso não autorizado a funcionalidades administrativas; manipulação de dados financeiros; comprometimento da integridade do sistema | Baixa | Alto | **Médio** | **[MITIGADO]** Tabela `user_roles` separada com RLS; funções `has_role`, `is_admin`, `is_manager`, `is_nacional` com `SECURITY DEFINER`; **trigger `trg_validate_role_hierarchy`** implementado com validação server-side da hierarquia (gestor_master→100, gestor_nacional→80, gestor_regional→60, fiscal_contrato→40). O trigger bloqueia INSERT/UPDATE quando o caller não possui autoridade sobre o role alvo. Operações de sistema (auth.uid() nulo) são permitidas para compatibilidade com o trigger `handle_new_user`. | Trigger `audit_role_change_trigger` já existente registra alterações, porém sem alerta automático para criação de perfis administrativos; trigger depende de `auth.uid()` que pode ser nulo em operações via service_role key (Edge Functions) | Implementar alerta automático para criação de perfis gestor_master/gestor_nacional; avaliar restrição adicional para operações via service_role key | Preventivo / Detectivo | Média |
 | RS-02 | Segurança | Acesso não autorizado a documentos fiscais e fotografias de serviços | Configuração inadequada de políticas de acesso ao storage; URL de arquivo previsível ou sem expiração; compartilhamento indevido de links | Vazamento de documentos fiscais sensíveis; exposição de dados de fornecedores; violação de sigilo contratual | Média | Alto | **Alto** | HTTPS para transmissão; autenticação obrigatória para acesso ao sistema; RLS nas tabelas que referenciam os arquivos | Ausência de políticas de acesso específicas no bucket de armazenamento; URLs de arquivos podem ser acessadas diretamente sem validação de sessão; não há expiração de URLs de acesso; ausência de watermark em documentos sensíveis | Configurar políticas de acesso no storage vinculadas ao RLS das tabelas; implementar URLs assinadas com expiração (signed URLs); adicionar watermark com identificação do usuário em downloads de documentos fiscais; registrar logs de acesso a documentos | Preventivo / Detectivo | Alta |
 | RS-03 | Segurança | Invocação não autenticada de Edge Functions críticas | Configuração `verify_jwt = false` nas Edge Functions do sistema; endpoints expostos publicamente | Importação de dados adulterados; envio de e-mails fraudulentos em nome do sistema | Baixa | Alto | **Médio** | **[MITIGADO PARCIALMENTE]** As 3 Edge Functions críticas (`create-contract-user`, `delete-user`, `import-csv`) implementam verificação de identidade via `getClaims(token)` e validação de role server-side (apenas `gestor_master`/`gestor_nacional` para `delete-user` e `import-csv`; 5 roles permitidos para `create-contract-user`). Funções de notificação (`notify-os-transition`, `notify-preposto`, `send-os-execucao`, `send-auth-email`) validam Authorization header. | Funções de notificação não verificam role do chamador (apenas autenticação); ausência de rate limiting; `verify_jwt = false` no config.toml significa que a proteção depende da implementação manual em cada função; ausência de validação de origem (CORS permissivo) | Implementar rate limiting nas Edge Functions; restringir CORS para domínios autorizados; adicionar verificação de role nas funções de notificação; considerar implementar API Gateway com throttling | Preventivo | Média |
 | RS-04 | Segurança | Comprometimento de credenciais de usuário | Senha fraca; compartilhamento de credenciais; ausência de MFA; ataque de força bruta | Acesso indevido ao sistema com perfil do usuário comprometido; manipulação de dados; ações fraudulentas sob identidade alheia | Média | Alto | **Alto** | Autenticação por e-mail e senha; obrigatoriedade de alteração de senha no primeiro acesso (perfil terceirizado); controle de usuários ativos/inativos | Ausência de autenticação multifator (MFA); não há política de complexidade de senha configurada; não há bloqueio após tentativas falhas; não há expiração periódica de senha; primeiro acesso sem troca de senha obrigatória para perfis internos | Implementar MFA para perfis administrativos (gestor_master, gestor_nacional); configurar política de complexidade de senha; implementar bloqueio temporário após 5 tentativas falhas; estender obrigatoriedade de troca de senha no primeiro acesso para todos os perfis | Preventivo | Alta |
@@ -116,9 +116,9 @@ A metodologia adotada baseia-se em abordagem qualitativa de avaliação de risco
 
 | Nível de Risco | Quantidade | Percentual |
 |----------------|------------|------------|
-| Crítico | 4 | 15,4% |
+| Crítico | 3 | 11,5% |
 | Alto | 15 | 57,7% |
-| Médio | 6 | 23,1% |
+| Médio | 7 | 26,9% |
 | Baixo | 1 | 3,8% |
 | **Total** | **26** | **100%** |
 
@@ -129,11 +129,11 @@ A metodologia adotada baseia-se em abordagem qualitativa de avaliação de risco
 | Estratégico | 3 | 1 | 2 |
 | Orçamentário | 4 | 1 | 2 |
 | Operacional | 5 | 1 | 3 |
-| Segurança da Informação | 6 | 0 | 3 |
+| Segurança da Informação | 6 | 0 | 2 |
 | Conformidade Administrativa | 3 | 0 | 2 |
 | Tecnológico | 4 | 1 | 0 |
 | Continuidade do Negócio | 3 | 0 | 3 |
-| **Total** | **28** | **4** | **15** |
+| **Total** | **28** | **3** | **14** |
 
 ### 3.3. Distribuição por Tipo de Controle Recomendado
 
@@ -146,16 +146,17 @@ A metodologia adotada baseia-se em abordagem qualitativa de avaliação de risco
 
 ---
 
-## 4. Top 4 Riscos Críticos
+## 4. Top 3 Riscos Críticos
 
 | Posição | ID | Evento de Risco | Justificativa da Criticidade |
 |---------|-----|----------------|------------------------------|
-| **1º** | **RS-01** | Escalonamento indevido de privilégios | A validação hierárquica de atribuição de perfis é implementada exclusivamente no frontend. Um usuário com conhecimento técnico poderia realizar chamadas diretas à API REST para atribuir perfis acima de sua hierarquia, comprometendo todo o modelo de segregação de acessos do sistema. |
-| **2º** | **ROP-02** | Exclusão indevida de dados históricos | A ausência de soft delete em tabelas críticas (`ordens_servico`, `chamados`, `contratos`) significa que uma exclusão, mesmo acidental, resulta em perda irrecuperável de dados operacionais e financeiros. O impacto é amplificado pela natureza pública do órgão e pela necessidade de prestação de contas. |
-| **3º** | **RT-01** | Dependência excessiva de Edge Functions | A concentração de operações críticas (criação de usuários, notificações, importação de dados) em ambiente serverless sem mecanismos de resiliência (retry, circuit breaker, monitoramento) cria um ponto de falha sistêmico que afeta múltiplos processos simultaneamente. |
-| **4º** | **RE-01** | Dependência de desenvolvedor único | O risco de paralisação total da evolução e manutenção do sistema por concentração de conhecimento técnico em um único profissional é classificado como crítico pela combinação de alta probabilidade (fato estrutural) com impacto institucional severo. |
+| **1º** | **ROP-02** | Exclusão indevida de dados históricos | A ausência de soft delete em tabelas críticas (`ordens_servico`, `chamados`, `contratos`) significa que uma exclusão, mesmo acidental, resulta em perda irrecuperável de dados operacionais e financeiros. O impacto é amplificado pela natureza pública do órgão e pela necessidade de prestação de contas. |
+| **2º** | **RT-01** | Dependência excessiva de Edge Functions | A concentração de operações críticas (criação de usuários, notificações, importação de dados) em ambiente serverless sem mecanismos de resiliência (retry, circuit breaker, monitoramento) cria um ponto de falha sistêmico que afeta múltiplos processos simultaneamente. |
+| **3º** | **RE-01** | Dependência de desenvolvedor único | O risco de paralisação total da evolução e manutenção do sistema por concentração de conhecimento técnico em um único profissional é classificado como crítico pela combinação de alta probabilidade (fato estrutural) com impacto institucional severo. |
 
-> **Nota:** O risco **RS-03** (Invocação não autenticada de Edge Functions) foi reclassificado de **Crítico** para **Médio** na versão 1.1 após implementação de verificação `getClaims()` e validação de role server-side nas funções `create-contract-user`, `delete-user` e `import-csv`.
+> **Nota v1.1:** O risco **RS-03** (Invocação não autenticada de Edge Functions) foi reclassificado de **Crítico** para **Médio** após implementação de `getClaims()` + validação de role server-side.
+> 
+> **Nota v1.2:** O risco **RS-01** (Escalonamento de privilégios) foi reclassificado de **Alto** para **Médio** após implementação do trigger `trg_validate_role_hierarchy` que bloqueia atribuição de perfis acima da hierarquia do caller diretamente no banco de dados.
 
 ---
 
@@ -164,7 +165,7 @@ A metodologia adotada baseia-se em abordagem qualitativa de avaliação de risco
 ### 5.1. Ações Imediatas (0-3 meses)
 
 1. ~~**Habilitar verificação JWT nas Edge Functions críticas**~~ ✅ **CONCLUÍDO** — As funções `create-contract-user`, `delete-user` e `import-csv` agora utilizam `getClaims(token)` para validação de identidade e verificação de role server-side (`gestor_master`/`gestor_nacional` para `delete-user` e `import-csv`).
-2. **Implementar trigger de validação server-side** para atribuição de perfis na tabela `user_roles`, eliminando a dependência exclusiva de controle client-side (RS-01).
+2. ~~**Implementar trigger de validação server-side**~~ ✅ **CONCLUÍDO** — Trigger `trg_validate_role_hierarchy` implementado na tabela `user_roles`, validando hierarquia de perfis em INSERT e UPDATE (RS-01).
 3. **Tornar tabela `audit_logs` append-only**, removendo a política de DELETE e garantindo imutabilidade da trilha de auditoria (RC-01).
 4. **Implementar soft delete** (campo `deleted_at`) nas tabelas `ordens_servico`, `chamados` e `contratos` (ROP-02).
 
@@ -193,7 +194,7 @@ A metodologia adotada baseia-se em abordagem qualitativa de avaliação de risco
 
 | Dimensão | Nível Atual | Observação |
 |----------|-------------|------------|
-| **Controle de Acesso** | Avançado | Implementação robusta de RLS com 7 perfis hierárquicos, funções auxiliares com SECURITY DEFINER e segregação por regional. Lacuna principal: validação de hierarquia apenas client-side. |
+| **Controle de Acesso** | Avançado | Implementação robusta de RLS com 7 perfis hierárquicos, funções auxiliares com SECURITY DEFINER e segregação por regional. **[ATUALIZAÇÃO v1.2]** Trigger `trg_validate_role_hierarchy` implementado para validação server-side da hierarquia de atribuição de perfis, eliminando dependência exclusiva do frontend. |
 | **Trilha de Auditoria** | Intermediário | Tabela dedicada com registro de operações críticas, porém sem garantia de imutabilidade (permite DELETE), cobertura incompleta de tabelas e ausência de assinatura digital dos registros. |
 | **Integridade Financeira** | Intermediário | Bloqueio automático por saldo com 4 níveis hierárquicos, porém vulnerável a race conditions e sem reconciliação automatizada. Views atendem ao propósito mas sem teste de consistência. |
 | **Segurança de Infraestrutura** | Intermediário | HTTPS/TLS implementado, criptografia em repouso. **[ATUALIZAÇÃO v1.1]** Edge Functions críticas possuem autenticação via `getClaims()` e verificação de role server-side. Lacunas remanescentes: ausência de MFA, storage sem políticas granulares de acesso, funções de notificação sem verificação de role. |
@@ -214,7 +215,7 @@ A implementação das recomendações estratégicas propostas elevaria o sistema
 
 _Documento elaborado conforme metodologia de avaliação qualitativa de riscos, com abordagem compatível com práticas reconhecidas de gestão de riscos no setor público._
 
-**Versão:** 1.1  
+**Versão:** 1.2  
 **Data:** 28/02/2026  
 **Responsável pela Elaboração:** Daniel Nunes de Ávila  
 **Próxima Revisão Programada:** 28/08/2026 (semestral)
@@ -224,4 +225,5 @@ _Documento elaborado conforme metodologia de avaliação qualitativa de riscos, 
 | Versão | Data | Alterações |
 |--------|------|------------|
 | 1.0 | 28/02/2026 | Elaboração inicial com 28 riscos em 7 categorias |
-| 1.1 | 28/02/2026 | Reclassificação de RS-03 (Crítico → Médio) após implementação de `getClaims()` + validação de role nas Edge Functions `create-contract-user`, `delete-user` e `import-csv`. Top 5 atualizado para Top 4. Segurança de Infraestrutura reclassificada de Básico para Intermediário. Recomendação 5.1.1 marcada como concluída. |
+| 1.1 | 28/02/2026 | Reclassificação de RS-03 (Crítico → Médio) após implementação de `getClaims()` + validação de role nas Edge Functions. Top 5 → Top 4. Segurança de Infraestrutura: Básico → Intermediário. Recomendação 5.1.1 concluída. |
+| 1.2 | 28/02/2026 | Reclassificação de RS-01 (Alto → Médio) após implementação do trigger `trg_validate_role_hierarchy` na tabela `user_roles`. Top 4 → Top 3. Recomendação 5.1.2 concluída. Controle de Acesso atualizado para refletir validação server-side da hierarquia. |
