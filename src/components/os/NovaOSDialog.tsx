@@ -178,7 +178,7 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
                 <SelectItem value="elevadores">Elevadores — Elevador parado, com degrau, etc.</SelectItem>
                 <SelectItem value="ar_condicionado">Ar Condicionado — Não funciona, pingando, etc.</SelectItem>
                 <SelectItem value="instalacoes_diversas">Instalações Diversas — Divisórias, forro, suportes, dispensers, etc.</SelectItem>
-                <SelectItem value="usina_solar">Usina Solar — Painéis solares, inversores, cabeamento fotovoltaico, etc.</SelectItem>
+                <SelectItem value="usina_solar">Usina Solar — Painéis solares, inversores, cabeamento, etc.</SelectItem>
               </SelectContent>
             </Select>
           </div>
