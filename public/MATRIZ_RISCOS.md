@@ -2,7 +2,7 @@
 
 **Órgão:** Polícia Rodoviária Federal  
 **Sistema:** SIMP-PRF  
-**Versão:** 1.4  
+**Versão:** 1.5  
 **Data de Elaboração:** 28/02/2026  
 **Última Atualização:** 28/02/2026
 **Responsável:** Daniel Nunes de Ávila  
@@ -218,7 +218,7 @@ A implementação das recomendações estratégicas propostas elevaria o sistema
 
 _Documento elaborado conforme metodologia de avaliação qualitativa de riscos, com abordagem compatível com práticas reconhecidas de gestão de riscos no setor público._
 
-**Versão:** 1.4  
+**Versão:** 1.5  
 **Data:** 28/02/2026  
 **Responsável pela Elaboração:** Daniel Nunes de Ávila  
 **Próxima Revisão Programada:** 28/08/2026 (semestral)
@@ -232,3 +232,4 @@ _Documento elaborado conforme metodologia de avaliação qualitativa de riscos, 
 | 1.2 | 28/02/2026 | Reclassificação de RS-01 (Alto → Médio) após implementação do trigger `trg_validate_role_hierarchy` na tabela `user_roles`. Top 4 → Top 3. Recomendação 5.1.2 concluída. Controle de Acesso atualizado para refletir validação server-side da hierarquia. |
 | 1.3 | 28/02/2026 | Reclassificação de RC-01 (Alto → Médio) após tornar `audit_logs` append-only (remoção da política de DELETE). Recomendação 5.1.3 concluída. |
 | 1.4 | 28/02/2026 | Reclassificação de ROP-02 (Crítico → Alto) após implementação de soft delete (`deleted_at`) nas tabelas `ordens_servico`, `chamados` e `contratos`. Políticas de DELETE removidas via RLS. View `contratos_saldo` atualizada. Top 3 → Top 2. Trilha de Auditoria: Intermediário → Avançado. Recomendação 5.1.4 concluída. Todas as 4 ações imediatas (5.1) concluídas. |
+| 1.5 | 28/02/2026 | Implementação de monitoramento de Edge Functions (RT-01, ROP-01): tabela `edge_function_logs` para registro de execuções; wrapper `monitoredInvoke` aplicado a todas as 8 Edge Functions; dashboard de monitoramento com KPIs, gráficos e tabela de status na aba Gestão; Edge Function `check-function-health` para verificação periódica com alertas por e-mail configuráveis (limiar, janela, destinatários). Recomendação 5.2.2 concluída. |

@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useCreateContrato } from "@/hooks/useContratos";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { monitoredInvoke } from "@/utils/monitoredInvoke";
 import { useUsersByRole, type UserOption } from "@/hooks/useUsersByRole";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useUserProfile } from "@/hooks/useUserProfile";
@@ -89,7 +90,7 @@ export function NovoContratoDialog({ open, onOpenChange, initialValues }: Props)
       // Fetch preposto email if a preposto is selected
       let prepostoEmail: string | null = null;
       if (form.preposto_user_id && form.preposto_user_id !== "none") {
-        const { data: emailMap } = await supabase.functions.invoke("list-user-emails");
+        const { data: emailMap } = await monitoredInvoke("list-user-emails");
         if (emailMap && emailMap[form.preposto_user_id]) {
           prepostoEmail = emailMap[form.preposto_user_id];
         }

@@ -397,6 +397,42 @@ export type Database = {
           },
         ]
       }
+      edge_function_logs: {
+        Row: {
+          caller_id: string | null
+          created_at: string
+          error_message: string | null
+          function_name: string
+          id: string
+          latency_ms: number
+          request_method: string
+          status_code: number
+          success: boolean
+        }
+        Insert: {
+          caller_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          function_name: string
+          id?: string
+          latency_ms?: number
+          request_method?: string
+          status_code?: number
+          success?: boolean
+        }
+        Update: {
+          caller_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          function_name?: string
+          id?: string
+          latency_ms?: number
+          request_method?: string
+          status_code?: number
+          success?: boolean
+        }
+        Relationships: []
+      }
       limites_modalidade: {
         Row: {
           ano: number
@@ -434,6 +470,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      monitoring_config: {
+        Row: {
+          config_key: string
+          config_value: string
+          id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          config_key: string
+          config_value: string
+          id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          config_key?: string
+          config_value?: string
+          id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
       }
       orcamento_anual: {
         Row: {

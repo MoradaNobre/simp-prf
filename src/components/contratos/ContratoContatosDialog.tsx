@@ -9,6 +9,7 @@ import { useContratoContatos, useDeleteContratoContato } from "@/hooks/useContra
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { monitoredInvoke } from "@/utils/monitoredInvoke";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface Props {
@@ -53,7 +54,7 @@ export function ContratoContatosDialog({ contratoId, empresaNome, open, onOpenCh
 
     setSubmitting(true);
     try {
-      const { data, error } = await supabase.functions.invoke("create-contract-user", {
+      const { data, error } = await monitoredInvoke("create-contract-user", {
         body: {
           nome: nome.trim(),
           email: email.trim(),
