@@ -1,13 +1,14 @@
 # Catálogo de Regras de Negócio – SIMP-PRF
 
-**Versão:** 1.6  
-**Data:** 26/02/2026  
+**Versão:** 1.7  
+**Data:** 28/02/2026  
 **Fonte:** SPEC.md  
 
 ---
 
 ## Histórico de Versões
 
+- v1.7 (28/02/2026): Inclusão das regras de aceite obrigatório de Termos de Uso (RN-198 a RN-201) e novo tipo de demanda "Usina Solar" (RN-202). Total: 202 regras.
 - v1.6 (26/02/2026): Inclusão das regras do módulo de Chamados (RN-184 a RN-197) e reestruturação de relatórios PDF. Total: 197 regras.
 - v1.5 (24/02/2026): Inclusão das regras de fluxo abreviado Cartão Corporativo (RN-180 a RN-182) e renumeração da duplicação de contratos (RN-183). Total: 183 regras.
 - v1.4 (24/02/2026): Inclusão das regras de Limites de Modalidade (RN-170 a RN-178), duplicação de contratos (RN-179) e reordenação da hierarquia de bloqueios para 4 níveis.
@@ -385,12 +386,29 @@
 
 ---
 
-**Total de Regras de Negócio:** 197
+## 30. Aceite Obrigatório de Termos de Uso e Política de Privacidade
+
+| # | Regra |
+|---|---|
+| **RN-198** | Todo usuário deve aceitar os Termos de Uso e a Política de Privacidade antes de utilizar o sistema. Enquanto `accepted_terms_at` for nulo, um dialog modal bloqueante impede o acesso às funcionalidades. |
+| **RN-199** | O dialog de aceite exibe 5 cláusulas dos Termos de Uso (Objeto, Acesso, Responsabilidades, Proibições, Auditoria) e a Política de Privacidade (LGPD). O usuário deve marcar dois checkboxes (Termos e Privacidade) para habilitar o botão "Aceitar e Continuar". |
+| **RN-200** | O dialog de aceite não pode ser fechado por clique fora da área ou pela tecla Escape, garantindo que o usuário leia e aceite explicitamente. |
+| **RN-201** | Ao aceitar, o sistema registra o timestamp atual na coluna `profiles.accepted_terms_at`, desbloqueando o acesso ao sistema. |
+
+## 31. Tipos de Demanda Adicionais
+
+| # | Regra |
+|---|---|
+| **RN-202** | O sistema suporta 10 tipos de demanda para chamados e OS: Hidráulico, Elétrico, Iluminação, Incêndio, Estrutura, Rede Lógica, Elevadores, Ar Condicionado, Instalações Diversas e Usina Solar. |
+
+---
+
+**Total de Regras de Negócio:** 202
 
 ---
 
 *Catálogo de Regras de Negócio extraído do SPEC.md — SIMP-PRF.*  
-*Versão 1.6 — 26/02/2026*
+*Versão 1.7 — 28/02/2026*
 
 ## Histórico de Versões
 
@@ -403,3 +421,4 @@
 | 1.4 | 24/02/2026 | Inclusão das seções 25 e 26 – Limites de Modalidade (RN-170 a RN-178) e Duplicação de Contratos (RN-179). Total: 179 regras |
 | 1.5 | 24/02/2026 | Inclusão da seção 26 – Fluxo Abreviado Cartão Corporativo (RN-180 a RN-182), renumeração (RN-183). Total: 183 regras |
 | 1.6 | 26/02/2026 | Inclusão das seções 28 e 29 – Chamados (RN-184 a RN-195) e Relatórios PDF com chamados (RN-196 a RN-197). Total: 197 regras |
+| 1.7 | 28/02/2026 | Inclusão das seções 30 e 31 – Aceite obrigatório de Termos (RN-198 a RN-201) e tipo de demanda Usina Solar (RN-202). Total: 202 regras |

@@ -2,8 +2,8 @@
 
 ## SIMP-PRF – Sistema Integrado de Manutenção Predial
 
-**Versão:** 1.4  
-**Data:** 26/02/2026  
+**Versão:** 1.5  
+**Data:** 28/02/2026  
 **Classificação:** Documento Institucional
 
 ---
@@ -477,7 +477,7 @@ Não se trata apenas de ferramenta operacional, mas de **mecanismo institucional
 ---
 
 *PRD – Product Requirements Document — SIMP-PRF*  
-*Versão 1.4 — 26/02/2026*
+*Versão 1.5 — 28/02/2026*
 
 ## Histórico de Versões
 
@@ -488,3 +488,4 @@ Não se trata apenas de ferramenta operacional, mas de **mecanismo institucional
 | 1.2 | 24/02/2026 | Inclusão do perfil Suprido (flag acumulável), comportamento em contratos Cartão Corporativo, fluxo abreviado (Ateste → Encerrada) |
 | 1.3 | 26/02/2026 | Inclusão do módulo de Chamados (RF-CHM), reestruturação dos relatórios PDF com seção de chamados vinculados, 197 regras de negócio |
 | 1.4 | 26/02/2026 | Inclusão do fluxo funcional de Chamados (seção 6.0) como etapa pré-OS, atualização do Propósito com sequência Chamado → OS |
+| 1.5 | 28/02/2026 | Aceite obrigatório de Termos de Uso e Política de Privacidade (dialog modal bloqueante com `accepted_terms_at`), novo tipo de demanda "Usina Solar" (10 tipos), 202 regras de negócio |

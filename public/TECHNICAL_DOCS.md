@@ -66,9 +66,9 @@ A aplicação SIMP foi desenvolvida como uma ferramenta interna para otimizar os
 
 ### 2.1. Autenticação e Autorização
 
-**Sistema de Autenticação:** A aplicação utiliza autenticação por e-mail e senha com controle de senha inicial obrigatória.
+**Sistema de Autenticação:** A aplicação utiliza autenticação por e-mail e senha com controle de senha inicial obrigatória e aceite obrigatório de Termos de Uso e Política de Privacidade.
 
-**Processo de Login:** Autenticação via e-mail institucional com validação de credenciais e verificação de status ativo do usuário.
+**Processo de Login:** Autenticação via e-mail institucional com validação de credenciais e verificação de status ativo do usuário. No primeiro acesso (ou enquanto não houver aceite registrado), o sistema exibe um dialog modal bloqueante com os Termos de Uso (5 cláusulas) e a Política de Privacidade (LGPD), exigindo aceite explícito antes de permitir o uso do sistema. O aceite é registrado na coluna `accepted_terms_at` da tabela `profiles`.
 
 **Perfis de Usuário:**
 
@@ -251,7 +251,7 @@ Cada transição de status é registrada com timestamp e identificação do resp
 
 ### 6.1. Módulo de Chamados
 
-- Registro de chamados de manutenção por servidores (9 tipos de demanda)
+- Registro de chamados de manutenção por servidores (10 tipos de demanda)
 - Análise com Matriz GUT (Gravidade × Urgência × Tendência, score 1-125)
 - Fluxo: Aberto → Analisado → Vinculado (a uma OS) ou Cancelado
 - Agrupamento de múltiplos chamados analisados em uma OS corretiva
@@ -334,9 +334,9 @@ Cada transição de status é registrada com timestamp e identificação do resp
 
 _Documento técnico elaborado conforme padrões de documentação da Polícia Rodoviária Federal._
 
-**Versão:** 1.5
+**Versão:** 1.6
 **Data:** 16/02/2026
-**Última Atualização:** 26/02/2026
+**Última Atualização:** 28/02/2026
 **Responsável:** Daniel Nunes de Ávila
 
 ## Histórico de Versões
@@ -349,3 +349,4 @@ _Documento técnico elaborado conforme padrões de documentação da Polícia Ro
 | 1.3    | 24/02/2026 | Adição da flag "Suprido" (preposto do cartão corporativo) como campo booleano acumulável na tabela `profiles` |
 | 1.4    | 24/02/2026 | Limites de Modalidade (`limites_modalidade`), 4 níveis de bloqueio na autorização, duplicação de contratos Cartão Corporativo, edição inline de limites |
 | 1.5    | 26/02/2026 | Módulo de Chamados (`chamados`), reestruturação de relatórios PDF com seção de chamados vinculados e Matriz GUT |
+| 1.6    | 28/02/2026 | Aceite obrigatório de Termos de Uso e Política de Privacidade (`accepted_terms_at` em `profiles`), novo tipo de demanda "Usina Solar" (10 tipos) |

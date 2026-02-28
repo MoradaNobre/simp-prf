@@ -243,8 +243,8 @@ Esta política entra em vigor na data de sua publicação e permanece válida at
 ---
 
 **Data de Elaboração:** 16/02/2026
-**Última Atualização:** 26/02/2026
-**Versão:** 1.4
+**Última Atualização:** 28/02/2026
+**Versão:** 1.5
 **Responsável:** Polícia Rodoviária Federal
 
 *Esta Política de Privacidade foi elaborada em conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018) e demais normas aplicáveis à administração pública federal.*
@@ -258,3 +258,4 @@ Esta política entra em vigor na data de sua publicação e permanece válida at
 | 1.2 | 24/02/2026 | Inclusão da flag "Suprido" (preposto do cartão corporativo) nos dados funcionais coletados |
 | 1.3 | 24/02/2026 | Inclusão de dados de limites de modalidade e informações de duplicação de contratos nos dados funcionais coletados |
 | 1.4 | 26/02/2026 | Inclusão de dados de chamados de manutenção (tipo de demanda, análise GUT) nos dados funcionais coletados |
+| 1.5 | 28/02/2026 | Inclusão do mecanismo de aceite obrigatório de Termos de Uso e Política de Privacidade com registro de timestamp (`accepted_terms_at`) |
