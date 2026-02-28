@@ -115,7 +115,11 @@ export function useDeleteChamado() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("chamados").delete().eq("id", id);
+      // Soft delete: set deleted_at instead of physical deletion
+      const { error } = await supabase
+        .from("chamados")
+        .update({ deleted_at: new Date().toISOString() } as any)
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["chamados"] }),

@@ -168,16 +168,11 @@ export function useDeleteOS() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      // Delete dependent records first
-      const { error: solError } = await supabase.from("solicitacoes_credito").delete().eq("os_id", id);
-      if (solError) throw solError;
-      const { error: custosError } = await supabase.from("os_custos").delete().eq("os_id", id);
-      if (custosError) throw custosError;
-      const { error: relExecError } = await supabase.from("relatorios_execucao").delete().eq("os_id", id);
-      if (relExecError) throw relExecError;
-      const { error: relOsError } = await supabase.from("relatorios_os").delete().eq("os_id", id);
-      if (relOsError) throw relOsError;
-      const { error } = await supabase.from("ordens_servico").delete().eq("id", id);
+      // Soft delete: set deleted_at instead of physical deletion
+      const { error } = await supabase
+        .from("ordens_servico")
+        .update({ deleted_at: new Date().toISOString() } as any)
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["ordens_servico"] }),

@@ -112,7 +112,11 @@ export function useDeleteContrato() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("contratos").delete().eq("id", id);
+      // Soft delete: set deleted_at instead of physical deletion
+      const { error } = await supabase
+        .from("contratos")
+        .update({ deleted_at: new Date().toISOString() } as any)
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {

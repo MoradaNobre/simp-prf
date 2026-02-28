@@ -2,7 +2,7 @@
 
 **Órgão:** Polícia Rodoviária Federal  
 **Sistema:** SIMP-PRF  
-**Versão:** 1.3  
+**Versão:** 1.4  
 **Data de Elaboração:** 28/02/2026  
 **Última Atualização:** 28/02/2026
 **Responsável:** Daniel Nunes de Ávila  
@@ -67,7 +67,7 @@ A metodologia adotada baseia-se em abordagem qualitativa de avaliação de risco
 | ID | Categoria | Evento de Risco | Causa Provável | Impacto Potencial | Probabilidade | Impacto | Nível de Risco | Controles Existentes | Vulnerabilidades Identificadas | Ação de Mitigação Recomendada | Tipo de Controle | Prioridade |
 |----|-----------|----------------|----------------|-------------------|---------------|---------|----------------|---------------------|-------------------------------|-------------------------------|-----------------|------------|
 | ROP-01 | Operacional | Falha na entrega de notificações automáticas por e-mail nas transições de status de OS | Indisponibilidade do serviço de e-mail; falha na Edge Function `notify-os-transition`; e-mail do destinatário inválido ou desatualizado; timeout da função serverless | Fiscal ou preposto não toma ciência de transição crítica (ex: ateste, faturamento); atraso na execução contratual; descumprimento de prazos | Alta | Médio | **Alto** | Edge Functions dedicadas (`notify-os-transition`, `notify-preposto`, `send-os-execucao`); registro de `email_enviado` e `email_destinatarios` em `relatorios_execucao` | Ausência de mecanismo de retry automático em caso de falha; não há monitoramento ativo de taxa de sucesso de envio; ausência de fila de mensagens (dead letter queue) | Implementar mecanismo de retry com backoff exponencial; criar dashboard de monitoramento de entregas; implementar fila de mensagens pendentes com reprocessamento | Corretivo / Preventivo | Alta |
-| ROP-02 | Operacional | Exclusão indevida de dados históricos (chamados, OS, relatórios) | Ação deliberada ou acidental por usuário com perfil de alto privilégio; ausência de soft delete em tabelas críticas; falha no controle de permissões de exclusão | Perda irreversível de trilha de auditoria; impossibilidade de prestação de contas; comprometimento de histórico operacional | Média | Muito Alto | **Crítico** | Restrição de DELETE a perfis específicos (gestor_master para OS e chamados); RLS com políticas restritivas; `audit_logs` com registro de exclusões; Edge Function `delete-user` com limpeza referencial | Ausência de soft delete (exclusão lógica) nas tabelas `ordens_servico`, `chamados` e `contratos`; exclusão física remove dados irrecuperavelmente; backup depende exclusivamente da infraestrutura de nuvem; `audit_logs` não armazena snapshot completo do registro excluído | Implementar soft delete (campo `deleted_at`) em tabelas críticas; garantir que `audit_logs` registre `old_data` completo em operações de DELETE; implementar política de retenção de backups com período mínimo de 5 anos; restringir DELETE em produção a procedimento formal documentado | Preventivo / Detectivo | Crítica |
+| ROP-02 | Operacional | Exclusão indevida de dados históricos (chamados, OS, relatórios) | Ação deliberada ou acidental por usuário com perfil de alto privilégio; ausência de soft delete em tabelas críticas; falha no controle de permissões de exclusão | Perda irreversível de trilha de auditoria; impossibilidade de prestação de contas; comprometimento de histórico operacional | Baixa | Muito Alto | **Alto** | **[MITIGADO]** Soft delete implementado nas tabelas `ordens_servico`, `chamados` e `contratos` com campo `deleted_at`. Políticas de DELETE removidas — exclusão física bloqueada via RLS. Registros "excluídos" permanecem no banco com timestamp, invisíveis nas consultas normais. View `contratos_saldo` filtra registros soft-deleted. Índices parciais otimizam performance. Edge Function `delete-user` atualizada para soft-delete. | Registros soft-deleted ainda podem ser acessados via service_role key; ausência de política de expurgo formal; backup depende da infraestrutura de nuvem | Estabelecer política de retenção com período mínimo de 5 anos; implementar interface administrativa para visualização de registros arquivados; restringir acesso à service_role key | Preventivo / Detectivo | Média |
 | ROP-03 | Operacional | Perda de integridade de documentos fiscais e fotografias armazenadas | Falha no serviço de armazenamento de arquivos; exclusão acidental de bucket; corrupção de dados em trânsito; referência órfã (registro aponta para arquivo inexistente) | Impossibilidade de comprovação de execução de serviço; fragilidade em prestação de contas; questionamento em auditoria | Baixa | Muito Alto | **Alto** | Upload via interface com vinculação direta à OS (campos `foto_antes`, `foto_depois`, `arquivo_orcamento`, `documentos_pagamento`); HTTPS para transmissão segura | Ausência de validação de integridade (hash/checksum) dos arquivos armazenados; não há verificação periódica de existência dos arquivos referenciados; ausência de política de versionamento de documentos; documentos fiscais podem ser sobrescritos sem histórico | Implementar validação de integridade (SHA-256) no upload; criar rotina de verificação periódica de links quebrados; implementar versionamento de documentos críticos; estabelecer política de backup específica para documentos fiscais | Preventivo / Detectivo | Alta |
 | ROP-04 | Operacional | Erro na geração de relatórios PDF com dados inconsistentes | Divergência entre dados exibidos na interface e dados persistidos em `relatorios_execucao`/`relatorios_os`; falha na biblioteca jsPDF; dados de chamados vinculados desatualizados no momento da geração | Relatório oficial com valores divergentes dos registros do sistema; questionamento em auditoria; necessidade de retificação | Média | Alto | **Alto** | Persistência de snapshot (`dados_json`) no momento da geração; campos desnormalizados (`codigo_os`, `titulo_os`, `contrato_numero`) para consistência histórica; geração client-side com jsPDF | Snapshot em `dados_json` pode não incluir alterações realizadas após a geração; ausência de validação cruzada entre relatório gerado e dados atuais; não há mecanismo de invalidação de relatório obsoleto | Adicionar marca d'água "VERSÃO GERADA EM [data]" nos PDFs; implementar funcionalidade de regeneração de relatório com comparativo; registrar hash do conteúdo para detecção de adulteração | Detectivo | Média |
 | ROP-05 | Operacional | Falha no sequencial de numeração de OS por regional | Condição de corrida (race condition) na tabela `regional_os_seq` em cenários de criação simultânea de OS na mesma regional | Duplicação de código de OS; inconsistência na identificação de ordens de serviço; confusão operacional | Baixa | Médio | **Baixo** | Tabela dedicada `regional_os_seq` com controle por regional; constraint `isOneToOne` na relação regional/sequencial | Ausência de lock explícito (SELECT FOR UPDATE) na operação de incremento; operação não é atômica em nível de aplicação | Encapsular incremento de sequencial em função PostgreSQL com lock explícito (SELECT FOR UPDATE); implementar constraint UNIQUE no campo `codigo` da tabela `ordens_servico` | Preventivo | Baixa |
@@ -116,9 +116,9 @@ A metodologia adotada baseia-se em abordagem qualitativa de avaliação de risco
 
 | Nível de Risco | Quantidade | Percentual |
 |----------------|------------|------------|
-| Crítico | 3 | 11,5% |
+| Crítico | 2 | 7,7% |
 | Alto | 15 | 57,7% |
-| Médio | 7 | 26,9% |
+| Médio | 8 | 30,8% |
 | Baixo | 1 | 3,8% |
 | **Total** | **26** | **100%** |
 
@@ -128,12 +128,12 @@ A metodologia adotada baseia-se em abordagem qualitativa de avaliação de risco
 |-----------|------------|-----------------|--------------|
 | Estratégico | 3 | 1 | 2 |
 | Orçamentário | 4 | 1 | 2 |
-| Operacional | 5 | 1 | 3 |
+| Operacional | 5 | 0 | 3 |
 | Segurança da Informação | 6 | 0 | 2 |
-| Conformidade Administrativa | 3 | 0 | 2 |
+| Conformidade Administrativa | 3 | 0 | 1 |
 | Tecnológico | 4 | 1 | 0 |
 | Continuidade do Negócio | 3 | 0 | 3 |
-| **Total** | **28** | **3** | **14** |
+| **Total** | **28** | **2** | **13** |
 
 ### 3.3. Distribuição por Tipo de Controle Recomendado
 
@@ -146,17 +146,20 @@ A metodologia adotada baseia-se em abordagem qualitativa de avaliação de risco
 
 ---
 
-## 4. Top 3 Riscos Críticos
+## 4. Top 2 Riscos Críticos
 
 | Posição | ID | Evento de Risco | Justificativa da Criticidade |
 |---------|-----|----------------|------------------------------|
-| **1º** | **ROP-02** | Exclusão indevida de dados históricos | A ausência de soft delete em tabelas críticas (`ordens_servico`, `chamados`, `contratos`) significa que uma exclusão, mesmo acidental, resulta em perda irrecuperável de dados operacionais e financeiros. O impacto é amplificado pela natureza pública do órgão e pela necessidade de prestação de contas. |
-| **2º** | **RT-01** | Dependência excessiva de Edge Functions | A concentração de operações críticas (criação de usuários, notificações, importação de dados) em ambiente serverless sem mecanismos de resiliência (retry, circuit breaker, monitoramento) cria um ponto de falha sistêmico que afeta múltiplos processos simultaneamente. |
-| **3º** | **RE-01** | Dependência de desenvolvedor único | O risco de paralisação total da evolução e manutenção do sistema por concentração de conhecimento técnico em um único profissional é classificado como crítico pela combinação de alta probabilidade (fato estrutural) com impacto institucional severo. |
+| **1º** | **RT-01** | Dependência excessiva de Edge Functions | A concentração de operações críticas (criação de usuários, notificações, importação de dados) em ambiente serverless sem mecanismos de resiliência (retry, circuit breaker, monitoramento) cria um ponto de falha sistêmico que afeta múltiplos processos simultaneamente. |
+| **2º** | **RE-01** | Dependência de desenvolvedor único | O risco de paralisação total da evolução e manutenção do sistema por concentração de conhecimento técnico em um único profissional é classificado como crítico pela combinação de alta probabilidade (fato estrutural) com impacto institucional severo. |
 
 > **Nota v1.1:** O risco **RS-03** (Invocação não autenticada de Edge Functions) foi reclassificado de **Crítico** para **Médio** após implementação de `getClaims()` + validação de role server-side.
 > 
-> **Nota v1.2:** O risco **RS-01** (Escalonamento de privilégios) foi reclassificado de **Alto** para **Médio** após implementação do trigger `trg_validate_role_hierarchy` que bloqueia atribuição de perfis acima da hierarquia do caller diretamente no banco de dados.
+> **Nota v1.2:** O risco **RS-01** (Escalonamento de privilégios) foi reclassificado de **Alto** para **Médio** após implementação do trigger `trg_validate_role_hierarchy`.
+>
+> **Nota v1.3:** O risco **RC-01** (Trilha de auditoria) foi reclassificado de **Alto** para **Médio** após tornar `audit_logs` append-only (remoção da política de DELETE).
+>
+> **Nota v1.4:** O risco **ROP-02** (Exclusão indevida de dados históricos) foi reclassificado de **Crítico** para **Alto** após implementação de soft delete (`deleted_at`) nas tabelas `ordens_servico`, `chamados` e `contratos`, com remoção das políticas de DELETE via RLS.
 
 ---
 
@@ -166,8 +169,8 @@ A metodologia adotada baseia-se em abordagem qualitativa de avaliação de risco
 
 1. ~~**Habilitar verificação JWT nas Edge Functions críticas**~~ ✅ **CONCLUÍDO** — As funções `create-contract-user`, `delete-user` e `import-csv` agora utilizam `getClaims(token)` para validação de identidade e verificação de role server-side (`gestor_master`/`gestor_nacional` para `delete-user` e `import-csv`).
 2. ~~**Implementar trigger de validação server-side**~~ ✅ **CONCLUÍDO** — Trigger `trg_validate_role_hierarchy` implementado na tabela `user_roles`, validando hierarquia de perfis em INSERT e UPDATE (RS-01).
-3. **Tornar tabela `audit_logs` append-only**, removendo a política de DELETE e garantindo imutabilidade da trilha de auditoria (RC-01).
-4. **Implementar soft delete** (campo `deleted_at`) nas tabelas `ordens_servico`, `chamados` e `contratos` (ROP-02).
+3. ~~**Tornar tabela `audit_logs` append-only**~~ ✅ **CONCLUÍDO** — Política de DELETE removida, tabela agora é append-only (RC-01).
+4. ~~**Implementar soft delete**~~ ✅ **CONCLUÍDO** — Campo `deleted_at` adicionado às tabelas `ordens_servico`, `chamados` e `contratos`. Políticas de DELETE removidas. View `contratos_saldo` atualizada (ROP-02).
 
 ### 5.2. Ações de Curto Prazo (3-6 meses)
 
