@@ -368,7 +368,25 @@ export default function Chamados() {
                     <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground flex-wrap">
                       <span>📍 {chamado.local_servico}</span>
                       {chamado.regionais && <span>{chamado.regionais.sigla}</span>}
-                      {chamado.solicitante_profile && <span>Por: {chamado.solicitante_profile.full_name}</span>}
+                      {chamado.solicitante_profile && (
+                        <span>
+                          Por: {chamado.solicitante_profile.full_name}
+                          {chamado.solicitante_profile.phone && (
+                            <>
+                              {" · "}
+                              <a
+                                href={`https://wa.me/55${chamado.solicitante_profile.phone.replace(/\D/g, "")}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-green-600 dark:text-green-400 hover:underline"
+                                title={`WhatsApp: ${chamado.solicitante_profile.phone}`}
+                              >
+                                📞 {chamado.solicitante_profile.phone}
+                              </a>
+                            </>
+                          )}
+                        </span>
+                      )}
                       <span>{format(new Date(chamado.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</span>
                       {chamado.os_id && <Badge variant="outline" className="text-[10px]">OS vinculada</Badge>}
                     </div>
