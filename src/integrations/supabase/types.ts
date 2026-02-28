@@ -102,6 +102,7 @@ export type Database = {
           codigo: string
           created_at: string
           delegacia_id: string | null
+          deleted_at: string | null
           descricao: string
           foto: string | null
           gut_gravidade: number | null
@@ -125,6 +126,7 @@ export type Database = {
           codigo?: string
           created_at?: string
           delegacia_id?: string | null
+          deleted_at?: string | null
           descricao: string
           foto?: string | null
           gut_gravidade?: number | null
@@ -148,6 +150,7 @@ export type Database = {
           codigo?: string
           created_at?: string
           delegacia_id?: string | null
+          deleted_at?: string | null
           descricao?: string
           foto?: string | null
           gut_gravidade?: number | null
@@ -299,6 +302,7 @@ export type Database = {
           created_at: string
           data_fim: string
           data_inicio: string
+          deleted_at: string | null
           empresa: string
           id: string
           numero: string
@@ -317,6 +321,7 @@ export type Database = {
           created_at?: string
           data_fim: string
           data_inicio: string
+          deleted_at?: string | null
           empresa: string
           id?: string
           numero: string
@@ -335,6 +340,7 @@ export type Database = {
           created_at?: string
           data_fim?: string
           data_inicio?: string
+          deleted_at?: string | null
           empresa?: string
           id?: string
           numero?: string
@@ -605,6 +611,7 @@ export type Database = {
           created_at: string
           data_abertura: string
           data_encerramento: string | null
+          deleted_at: string | null
           descricao: string | null
           documentos_pagamento: Json | null
           equipamento_id: string | null
@@ -633,6 +640,7 @@ export type Database = {
           created_at?: string
           data_abertura?: string
           data_encerramento?: string | null
+          deleted_at?: string | null
           descricao?: string | null
           documentos_pagamento?: Json | null
           equipamento_id?: string | null
@@ -661,6 +669,7 @@ export type Database = {
           created_at?: string
           data_abertura?: string
           data_encerramento?: string | null
+          deleted_at?: string | null
           descricao?: string | null
           documentos_pagamento?: Json | null
           equipamento_id?: string | null
