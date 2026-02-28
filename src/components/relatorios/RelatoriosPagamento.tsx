@@ -72,30 +72,44 @@ export function RelatoriosPagamento() {
         .single();
       if (error) throw error;
 
-      const { data: custos } = await supabase
-        .from("os_custos")
-        .select("descricao, tipo, valor")
-        .eq("os_id", relatorio.os_id);
+      // Parallel fetches for performance
+      const [custosRes, chamadosRes, auditRes, contratoSaldoRes] = await Promise.all([
+        supabase.from("os_custos").select("descricao, tipo, valor").eq("os_id", relatorio.os_id),
+        supabase.from("chamados")
+          .select("codigo, tipo_demanda, local_servico, descricao, gut_gravidade, gut_urgencia, gut_tendencia, gut_score, prioridade, created_at, status, solicitante_id")
+          .eq("os_id", relatorio.os_id),
+        supabase.from("audit_logs")
+          .select("action, description, created_at, user_id")
+          .eq("table_name", "ordens_servico")
+          .eq("record_id", relatorio.os_id)
+          .in("action", ["STATUS_CHANGE", "RESPONSAVEL_CHANGE"])
+          .order("created_at", { ascending: true }),
+        os.contrato_id
+          ? supabase.from("contratos_saldo").select("*").eq("id", os.contrato_id).single()
+          : Promise.resolve({ data: null, error: null }),
+      ]);
 
-      // Fetch linked chamados
-      const { data: chamadosForReport } = await supabase
-        .from("chamados")
-        .select("codigo, tipo_demanda, local_servico, descricao, gut_gravidade, gut_urgencia, gut_tendencia, gut_score, prioridade, created_at, status, solicitante_id")
-        .eq("os_id", relatorio.os_id);
+      const custos = custosRes.data || [];
+      const chamadosForReport = chamadosRes.data || [];
 
-      const chamadoSolIds = [...new Set((chamadosForReport || []).map((c: any) => c.solicitante_id).filter(Boolean))];
-      let chamadoSolMap: Record<string, string> = {};
-      if (chamadoSolIds.length > 0) {
-        const { data: chamadoProfiles } = await supabase
+      // Resolve chamado solicitante names
+      const chamadoSolIds = [...new Set(chamadosForReport.map((c: any) => c.solicitante_id).filter(Boolean))];
+      // Resolve audit user names
+      const auditUserIds = [...new Set((auditRes.data || []).map((a: any) => a.user_id).filter(Boolean))];
+      const allUserIds = [...new Set([...chamadoSolIds, ...auditUserIds])];
+
+      let userMap: Record<string, string> = {};
+      if (allUserIds.length > 0) {
+        const { data: profiles } = await supabase
           .from("profiles")
           .select("user_id, full_name")
-          .in("user_id", chamadoSolIds);
-        if (chamadoProfiles) {
-          chamadoSolMap = Object.fromEntries(chamadoProfiles.map((p: any) => [p.user_id, p.full_name]));
+          .in("user_id", allUserIds);
+        if (profiles) {
+          userMap = Object.fromEntries(profiles.map((p: any) => [p.user_id, p.full_name]));
         }
       }
 
-      const chamadosData = (chamadosForReport || []).map((ch: any) => ({
+      const chamadosData = chamadosForReport.map((ch: any) => ({
         codigo: ch.codigo,
         tipo_demanda: ch.tipo_demanda,
         local_servico: ch.local_servico,
@@ -107,18 +121,57 @@ export function RelatoriosPagamento() {
         prioridade: ch.prioridade,
         created_at: ch.created_at,
         status: ch.status,
-        solicitante_nome: chamadoSolMap[ch.solicitante_id] || "—",
+        solicitante_nome: userMap[ch.solicitante_id] || "—",
       }));
+
+      // Build audit transitions
+      const auditoriaTransicoes = (auditRes.data || []).map((a: any) => {
+        const desc = a.description || a.action;
+        return {
+          etapa: desc,
+          acao: a.action === "STATUS_CHANGE" ? "Transição de Status" : "Alteração de Responsável",
+          usuario: userMap[a.user_id] || "Sistema",
+          data: new Date(a.created_at).toLocaleString("pt-BR"),
+        };
+      });
+
+      // Build contrato saldo info
+      const contratoSaldo = contratoSaldoRes.data ? {
+        valorTotal: Number(contratoSaldoRes.data.valor_total) || 0,
+        totalAditivos: Number(contratoSaldoRes.data.total_aditivos) || 0,
+        totalCustos: Number(contratoSaldoRes.data.total_custos) || 0,
+        saldo: Number(contratoSaldoRes.data.saldo) || 0,
+      } : null;
+
+      const totalCustos = custos.reduce((sum: number, c: any) => sum + Number(c.valor), 0);
+
+      // Resolve fiscal name (responsavel_id)
+      let fiscalNome: string | undefined;
+      if (os.responsavel_id) {
+        fiscalNome = userMap[os.responsavel_id];
+        if (!fiscalNome) {
+          const { data: fiscalProfile } = await supabase
+            .from("profiles")
+            .select("full_name")
+            .eq("user_id", os.responsavel_id)
+            .single();
+          fiscalNome = fiscalProfile?.full_name;
+        }
+      }
 
       generateOSReport({
         os: os as any,
         contrato: dados.contrato || null,
-        custos: (custos || []).map((c: any) => ({ descricao: c.descricao, tipo: c.tipo, valor: Number(c.valor) })),
+        custos: custos.map((c: any) => ({ descricao: c.descricao, tipo: c.tipo, valor: Number(c.valor) })),
         responsaveis: dados.responsaveis || [],
         valorAtestado: relatorio.valor_atestado,
         geradoPor: dados.gerado_por_nome || "",
         historicoFluxo: dados.historicoFluxo || [],
         chamados: chamadosData,
+        totalCustos,
+        contratoSaldo,
+        fiscalNome,
+        auditoriaTransicoes,
       });
       toast.success("PDF gerado com sucesso!");
     } catch (err: any) {
