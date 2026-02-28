@@ -862,6 +862,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          accepted_terms_at: string | null
           ativo: boolean
           created_at: string
           full_name: string
@@ -874,6 +875,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          accepted_terms_at?: string | null
           ativo?: boolean
           created_at?: string
           full_name?: string
@@ -886,6 +888,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          accepted_terms_at?: string | null
           ativo?: boolean
           created_at?: string
           full_name?: string
