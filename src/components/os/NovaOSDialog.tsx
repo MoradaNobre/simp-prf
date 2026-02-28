@@ -103,6 +103,7 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
         elevadores: "Elevadores",
         ar_condicionado: "Ar Condicionado",
         instalacoes_diversas: "Instalações Diversas",
+        usina_solar: "Usina Solar",
       };
 
       const descricaoFinal = `[Local: ${localServico.trim()}]\n\n${prioridade === "urgente"
@@ -177,6 +178,7 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
                 <SelectItem value="elevadores">Elevadores — Elevador parado, com degrau, etc.</SelectItem>
                 <SelectItem value="ar_condicionado">Ar Condicionado — Não funciona, pingando, etc.</SelectItem>
                 <SelectItem value="instalacoes_diversas">Instalações Diversas — Divisórias, forro, suportes, dispensers, etc.</SelectItem>
+                <SelectItem value="usina_solar">Usina Solar — Painéis solares, inversores, cabeamento fotovoltaico, etc.</SelectItem>
               </SelectContent>
             </Select>
           </div>
