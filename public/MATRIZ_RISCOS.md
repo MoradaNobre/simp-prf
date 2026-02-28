@@ -198,7 +198,7 @@ A metodologia adotada baseia-se em abordagem qualitativa de avaliação de risco
 | Dimensão | Nível Atual | Observação |
 |----------|-------------|------------|
 | **Controle de Acesso** | Avançado | Implementação robusta de RLS com 7 perfis hierárquicos, funções auxiliares com SECURITY DEFINER e segregação por regional. **[ATUALIZAÇÃO v1.2]** Trigger `trg_validate_role_hierarchy` implementado para validação server-side da hierarquia de atribuição de perfis, eliminando dependência exclusiva do frontend. |
-| **Trilha de Auditoria** | Intermediário | Tabela dedicada com registro de operações críticas, porém sem garantia de imutabilidade (permite DELETE), cobertura incompleta de tabelas e ausência de assinatura digital dos registros. |
+| **Trilha de Auditoria** | Avançado | Tabela dedicada com registro de operações críticas. **[ATUALIZAÇÃO v1.3]** Tabela `audit_logs` configurada como append-only (política de DELETE removida). **[ATUALIZAÇÃO v1.4]** Soft delete implementado nas tabelas `ordens_servico`, `chamados` e `contratos`, eliminando risco de perda irreversível de dados históricos. |
 | **Integridade Financeira** | Intermediário | Bloqueio automático por saldo com 4 níveis hierárquicos, porém vulnerável a race conditions e sem reconciliação automatizada. Views atendem ao propósito mas sem teste de consistência. |
 | **Segurança de Infraestrutura** | Intermediário | HTTPS/TLS implementado, criptografia em repouso. **[ATUALIZAÇÃO v1.1]** Edge Functions críticas possuem autenticação via `getClaims()` e verificação de role server-side. Lacunas remanescentes: ausência de MFA, storage sem políticas granulares de acesso, funções de notificação sem verificação de role. |
 | **Continuidade de Negócios** | Básico | Dependência de infraestrutura gerenciada sem SLA formal, PCN ausente, teste de restore não realizado, procedimento de operação offline inexistente. |
@@ -218,7 +218,7 @@ A implementação das recomendações estratégicas propostas elevaria o sistema
 
 _Documento elaborado conforme metodologia de avaliação qualitativa de riscos, com abordagem compatível com práticas reconhecidas de gestão de riscos no setor público._
 
-**Versão:** 1.2  
+**Versão:** 1.4  
 **Data:** 28/02/2026  
 **Responsável pela Elaboração:** Daniel Nunes de Ávila  
 **Próxima Revisão Programada:** 28/08/2026 (semestral)
@@ -230,3 +230,5 @@ _Documento elaborado conforme metodologia de avaliação qualitativa de riscos, 
 | 1.0 | 28/02/2026 | Elaboração inicial com 28 riscos em 7 categorias |
 | 1.1 | 28/02/2026 | Reclassificação de RS-03 (Crítico → Médio) após implementação de `getClaims()` + validação de role nas Edge Functions. Top 5 → Top 4. Segurança de Infraestrutura: Básico → Intermediário. Recomendação 5.1.1 concluída. |
 | 1.2 | 28/02/2026 | Reclassificação de RS-01 (Alto → Médio) após implementação do trigger `trg_validate_role_hierarchy` na tabela `user_roles`. Top 4 → Top 3. Recomendação 5.1.2 concluída. Controle de Acesso atualizado para refletir validação server-side da hierarquia. |
+| 1.3 | 28/02/2026 | Reclassificação de RC-01 (Alto → Médio) após tornar `audit_logs` append-only (remoção da política de DELETE). Recomendação 5.1.3 concluída. |
+| 1.4 | 28/02/2026 | Reclassificação de ROP-02 (Crítico → Alto) após implementação de soft delete (`deleted_at`) nas tabelas `ordens_servico`, `chamados` e `contratos`. Políticas de DELETE removidas via RLS. View `contratos_saldo` atualizada. Top 3 → Top 2. Trilha de Auditoria: Intermediário → Avançado. Recomendação 5.1.4 concluída. Todas as 4 ações imediatas (5.1) concluídas. |
