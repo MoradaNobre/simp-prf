@@ -35,7 +35,7 @@ const TIPOS_DEMANDA = [
   { value: "elevadores", label: "Elevadores", desc: "Elevador parado, com degrau, etc." },
   { value: "ar_condicionado", label: "Ar Condicionado", desc: "Não funciona, pingando, etc." },
   { value: "instalacoes_diversas", label: "Instalações Diversas", desc: "Divisórias, forro, suportes, dispensers, etc." },
-  { value: "usina_solar", label: "Usina Solar", desc: "Painéis solares, inversores, cabeamento fotovoltaico, etc." },
+  { value: "usina_solar", label: "Usina Solar", desc: "Painéis solares, inversores, cabeamento, etc." },
 ];
 
 export function NovoChamadoDialog({ open, onOpenChange }: Props) {
