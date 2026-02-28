@@ -1553,16 +1553,52 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
                         solicitante_nome: chamadoSolMap[ch.solicitante_id] || "—",
                       }));
 
+                      // Fetch contrato saldo for conformidade section
+                      let contratoSaldo = null;
+                      if (os.contrato_id) {
+                        const { data: saldoData } = await supabase
+                          .from("contratos_saldo")
+                          .select("*")
+                          .eq("id", os.contrato_id)
+                          .single();
+                        if (saldoData) {
+                          contratoSaldo = {
+                            valorTotal: Number(saldoData.valor_total) || 0,
+                            totalAditivos: Number(saldoData.total_aditivos) || 0,
+                            totalCustos: Number(saldoData.total_custos) || 0,
+                            saldo: Number(saldoData.saldo) || 0,
+                          };
+                        }
+                      }
+
+                      // Build audit transitions for extended responsibility matrix
+                      const auditoriaTransicoes = (auditLogs || []).map(log => ({
+                        etapa: log.description || log.action,
+                        acao: log.action === "restituicao" ? "Restituição" : "Transição de Status",
+                        usuario: log.user_id ? (auditProfileMap[log.user_id] || "Não identificado") : "Sistema",
+                        data: new Date(log.created_at).toLocaleString("pt-BR"),
+                      }));
+
+                      const custosArr = custos.data?.map(c => ({ descricao: c.descricao, tipo: c.tipo, valor: Number(c.valor) })) || [];
+                      const totalCustosVal = custosArr.reduce((sum, c) => sum + c.valor, 0);
+
+                      // Fiscal name
+                      const fiscalNome = os.responsavel_id ? getName(os.responsavel_id) : undefined;
+
                       // Generate PDF report
                       generateOSReport({
                         os,
                         contrato,
-                        custos: custos.data?.map(c => ({ descricao: c.descricao, tipo: c.tipo, valor: Number(c.valor) })) || [],
+                        custos: custosArr,
                         responsaveis,
                         valorAtestado,
                         geradoPor: geradoPorNome,
                         historicoFluxo,
                         chamados: chamadosData,
+                        totalCustos: totalCustosVal,
+                        contratoSaldo,
+                        fiscalNome,
+                        auditoriaTransicoes,
                       });
 
                       // Get regional_id
