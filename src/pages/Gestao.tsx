@@ -6,8 +6,9 @@ import { isAdminRole, isGlobalRole } from "@/utils/roles";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Shield, Users, Loader2, Map, Building2, MapPin, Upload, ScrollText, CreditCard, FileDown } from "lucide-react";
+import { Shield, Users, Loader2, Map, Building2, MapPin, Upload, ScrollText, CreditCard, FileDown, Activity } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { monitoredInvoke } from "@/utils/monitoredInvoke";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
 import GestaoUsuarios from "@/components/gestao/GestaoUsuarios";
@@ -16,6 +17,7 @@ import GestaoDelegacias from "@/components/gestao/GestaoDelegacias";
 import GestaoUops from "@/components/gestao/GestaoUops";
 import GestaoAuditLogs from "@/components/gestao/GestaoAuditLogs";
 import GestaoLimitesModalidade from "@/components/gestao/GestaoLimitesModalidade";
+import GestaoMonitoramento from "@/components/gestao/GestaoMonitoramento";
 import ExportarTelas from "@/pages/ExportarTelas";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -42,7 +44,7 @@ export default function Gestao() {
       }
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { toast.error("Faça login para importar"); return; }
-      const { data, error } = await supabase.functions.invoke("import-csv", { body: { data: csvText } });
+      const { data, error } = await monitoredInvoke("import-csv", { body: { data: csvText } });
       if (error) throw error;
       toast.success(`Importados: ${data.regionais} regionais, ${data.delegacias} delegacias, ${data.uops} UOPs`);
       queryClient.invalidateQueries({ queryKey: ["regionais"] });
@@ -125,6 +127,12 @@ export default function Gestao() {
             </TabsTrigger>
           )}
           {isNacional && (
+            <TabsTrigger value="monitoramento" className="flex items-center gap-1.5 text-xs sm:text-sm">
+              <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              {isMobile ? "Monitor" : "Monitoramento"}
+            </TabsTrigger>
+          )}
+          {isNacional && (
             <TabsTrigger value="logs" className="flex items-center gap-1.5 text-xs sm:text-sm">
               <ScrollText className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               Auditoria
@@ -179,6 +187,16 @@ export default function Gestao() {
             <Card>
               <CardContent className="pt-6 px-3 sm:px-6">
                 <ExportarTelas />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
+
+        {isNacional && (
+          <TabsContent value="monitoramento">
+            <Card>
+              <CardContent className="pt-6 px-3 sm:px-6">
+                <GestaoMonitoramento />
               </CardContent>
             </Card>
           </TabsContent>

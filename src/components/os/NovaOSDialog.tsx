@@ -17,6 +17,7 @@ import { useUserProfile } from "@/hooks/useUserProfile";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useDelegacias, useUops } from "@/hooks/useHierarchy";
 import { supabase } from "@/integrations/supabase/client";
+import { monitoredInvoke } from "@/utils/monitoredInvoke";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { Constants } from "@/integrations/supabase/types";
@@ -129,7 +130,7 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
       let emailWarning = false;
       if (result?.id) {
         try {
-          const { data: notifyData, error: notifyError } = await supabase.functions.invoke("notify-os-transition", {
+          const { data: notifyData, error: notifyError } = await monitoredInvoke("notify-os-transition", {
             body: { os_id: result.id, from_status: "", to_status: "aberta" },
           });
           if (notifyError) {

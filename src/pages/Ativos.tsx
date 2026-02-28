@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Building2, Plus, Search, Upload, ChevronRight, ChevronDown, MapPin, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { monitoredInvoke } from "@/utils/monitoredInvoke";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -84,7 +85,7 @@ export default function Ativos() {
         toast.error("Faça login para importar dados");
         return;
       }
-      const { data, error } = await supabase.functions.invoke("import-csv", {
+      const { data, error } = await monitoredInvoke("import-csv", {
         body: { data: text },
       });
       if (error) throw error;

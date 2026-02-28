@@ -23,6 +23,7 @@ import { useUserProfile } from "@/hooks/useUserProfile";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Constants } from "@/integrations/supabase/types";
 import { isAdminRole, isGlobalRole } from "@/utils/roles";
+import { monitoredInvoke } from "@/utils/monitoredInvoke";
 
 type SortField = "full_name" | "role" | "regionais" | "ativo";
 type SortDir = "asc" | "desc";
@@ -199,7 +200,7 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
     queryFn: async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return {};
-      const res = await supabase.functions.invoke("list-user-emails");
+      const res = await monitoredInvoke("list-user-emails");
       if (res.error) throw res.error;
       return (res.data || {}) as Record<string, { email: string; confirmed: boolean }>;
     },
@@ -375,7 +376,7 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
     if (!deleteConfirm) return;
     setDeleting(true);
     try {
-      const { data, error } = await supabase.functions.invoke("delete-user", {
+      const { data, error } = await monitoredInvoke("delete-user", {
         body: { user_id: deleteConfirm.user_id },
       });
       if (error) throw error;

@@ -22,6 +22,7 @@ import { useLimitesModalidade } from "@/hooks/useLimitesModalidade";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { supabase } from "@/integrations/supabase/client";
+import { monitoredInvoke } from "@/utils/monitoredInvoke";
 import { toast } from "sonner";
 import { Loader2, Camera, DollarSign, User, FileText, Upload, CheckCircle, Download, Undo2, AlertTriangle, ShieldAlert, FilePlus2, Archive } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
@@ -221,7 +222,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
 
   const sendTransitionNotification = async (fromStatus: string, toStatus: string, motivoRestituicao?: string): Promise<boolean> => {
     try {
-      const { data: notifyData, error: notifyError } = await supabase.functions.invoke("notify-os-transition", {
+      const { data: notifyData, error: notifyError } = await monitoredInvoke("notify-os-transition", {
         body: { os_id: os.id, from_status: fromStatus, to_status: toStatus, motivo_restituicao: motivoRestituicao },
       });
       if (notifyError) return false;
@@ -390,7 +391,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
             const pdfDoc = generateOSExecucaoReport(reportData);
             const pdfBase64 = pdfDoc.output("datauristring").split(",")[1];
 
-            await supabase.functions.invoke("send-os-execucao", {
+            await monitoredInvoke("send-os-execucao", {
               body: {
                 os_id: os.id,
                 relatorio_execucao_id: relatorio?.id || null,

@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/select";
 import { Shield, Loader2, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { monitoredInvoke } from "@/utils/monitoredInvoke";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -100,7 +101,7 @@ export default function Login() {
         setMode("login");
       } else if (mode === "forgot") {
         // Use custom edge function instead of default resetPasswordForEmail
-        const { data, error } = await supabase.functions.invoke("send-auth-email", {
+        const { data, error } = await monitoredInvoke("send-auth-email", {
           body: {
             email,
             type: "recovery",
