@@ -70,7 +70,8 @@ Deno.serve(async (req) => {
     }
 
     // Clean up references that block auth user deletion
-    await adminClient.from("ordens_servico").update({ solicitante_id: callerId }).eq("solicitante_id", user_id);
+    // Soft-delete OS where user is solicitante (instead of reassigning)
+    await adminClient.from("ordens_servico").update({ deleted_at: new Date().toISOString() }).eq("solicitante_id", user_id).is("deleted_at", null);
     await adminClient.from("ordens_servico").update({ responsavel_id: null }).eq("responsavel_id", user_id);
     await adminClient.from("ordens_servico").update({ responsavel_execucao_id: null }).eq("responsavel_execucao_id", user_id);
     await adminClient.from("ordens_servico").update({ responsavel_encerramento_id: null }).eq("responsavel_encerramento_id", user_id);
