@@ -173,36 +173,36 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border p-3 space-y-3">
+      <SidebarFooter className="border-t border-sidebar-border p-2 space-y-1">
         {profile && (
           <button
             onClick={() => setPerfilOpen(true)}
-            className="flex items-center gap-2 px-2 w-full rounded-md hover:bg-sidebar-accent/50 transition-colors py-1.5 text-left"
+            className="flex items-center gap-2 px-1.5 w-full rounded-md hover:bg-sidebar-accent/50 transition-colors py-1 text-left"
             title="Editar perfil"
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sidebar-accent">
-              <User className="h-4 w-4 text-sidebar-primary" />
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-sidebar-accent">
+              <User className="h-3.5 w-3.5 text-sidebar-primary" />
             </div>
-            <div className="flex flex-col min-w-0">
-              <span className="text-sm font-medium text-sidebar-foreground truncate">
+            <div className="flex flex-col min-w-0 gap-0">
+              <span className="text-xs font-medium text-sidebar-foreground truncate leading-tight">
                 {profile.full_name || "Sem nome"}
               </span>
               {(role || profile.is_suprido) && (
                 <div className="flex items-center gap-1 flex-wrap">
                   {role && (
-                    <Badge variant={(roleColors[role] || "secondary") as any} className="text-[10px] w-fit px-1.5 py-0">
+                    <Badge variant={(roleColors[role] || "secondary") as any} className="text-[9px] w-fit px-1 py-0 leading-tight">
                       {roleLabels[role] || role}
                     </Badge>
                   )}
                   {profile.is_suprido && (
-                    <Badge variant="outline" className="text-[10px] w-fit px-1.5 py-0 border-amber-500 text-amber-600 dark:text-amber-400">
+                    <Badge variant="outline" className="text-[9px] w-fit px-1 py-0 leading-tight border-amber-500 text-amber-600 dark:text-amber-400">
                       Suprido
                     </Badge>
                   )}
                 </div>
               )}
               {profile.regionais && profile.regionais.length > 0 && (
-                <span className="text-[10px] text-sidebar-foreground/50 truncate mt-0.5" title={profile.regionais.map((r: any) => r.sigla).join(", ")}>
+                <span className="text-[9px] text-sidebar-foreground/50 truncate leading-tight" title={profile.regionais.map((r: any) => r.sigla).join(", ")}>
                   {profile.regionais.map((r: any) => r.sigla).join(", ")}
                 </span>
               )}
