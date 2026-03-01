@@ -169,7 +169,7 @@ Deno.serve(async (req) => {
       console.error("Resend error:", emailError);
       return new Response(JSON.stringify({
         success: false,
-        warning: "Email não enviado: " + (emailError.message ?? JSON.stringify(emailError)),
+        warning: "Email não enviado. Tente novamente mais tarde.",
       }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -180,9 +180,8 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error: unknown) {
-    console.error("Error:", error);
-    const msg = error instanceof Error ? error.message : "Unknown error";
-    return new Response(JSON.stringify({ error: msg }), {
+    console.error("Erro send-os-execucao:", error);
+    return new Response(JSON.stringify({ error: "Erro ao processar solicitação." }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

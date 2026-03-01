@@ -98,8 +98,9 @@ Deno.serve(async (req) => {
         });
 
       if (createErr) {
+        console.error("Erro ao criar usuário:", createErr);
         return new Response(
-          JSON.stringify({ error: "Erro ao criar usuário: " + createErr.message }),
+          JSON.stringify({ error: "Erro ao criar usuário. Verifique os dados e tente novamente." }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -190,8 +191,9 @@ Deno.serve(async (req) => {
       .single();
 
     if (contatoErr) {
+      console.error("Erro ao vincular ao contrato:", contatoErr);
       return new Response(
-        JSON.stringify({ error: "Erro ao vincular ao contrato: " + contatoErr.message }),
+        JSON.stringify({ error: "Erro ao vincular usuário ao contrato." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -248,8 +250,9 @@ Deno.serve(async (req) => {
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
+    console.error("Erro interno create-contract-user:", err);
     return new Response(
-      JSON.stringify({ error: err.message || "Erro interno" }),
+      JSON.stringify({ error: "Erro ao processar solicitação." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

@@ -129,7 +129,7 @@ Deno.serve(async (req) => {
       if (linkError) {
         console.error("Generate link error:", linkError);
         return new Response(
-          JSON.stringify({ error: linkError.message }),
+          JSON.stringify({ error: "Erro ao gerar link de autenticação." }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -158,7 +158,7 @@ Deno.serve(async (req) => {
     if (emailError) {
       console.error("Resend error:", emailError);
       return new Response(
-        JSON.stringify({ error: "Falha ao enviar e-mail: " + (emailError.message ?? JSON.stringify(emailError)) }),
+        JSON.stringify({ error: "Erro ao enviar e-mail." }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -168,10 +168,9 @@ Deno.serve(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: unknown) {
-    console.error("Error:", error);
-    const msg = error instanceof Error ? error.message : "Unknown error";
+    console.error("Erro send-auth-email:", error);
     return new Response(
-      JSON.stringify({ error: msg }),
+      JSON.stringify({ error: "Erro ao processar solicitação." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
