@@ -6,6 +6,8 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -53,9 +55,12 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { user_id } = await req.json();
-    if (!user_id) {
-      return new Response(JSON.stringify({ error: "user_id é obrigatório" }), {
+    // --- Input Validation ---
+    const body = await req.json();
+    const { user_id } = body;
+
+    if (!user_id || typeof user_id !== "string" || !UUID_RE.test(user_id)) {
+      return new Response(JSON.stringify({ error: "user_id inválido" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -70,7 +75,6 @@ Deno.serve(async (req) => {
     }
 
     // Clean up references that block auth user deletion
-    // Soft-delete OS where user is solicitante (instead of reassigning)
     await adminClient.from("ordens_servico").update({ deleted_at: new Date().toISOString() }).eq("solicitante_id", user_id).is("deleted_at", null);
     await adminClient.from("ordens_servico").update({ responsavel_id: null }).eq("responsavel_id", user_id);
     await adminClient.from("ordens_servico").update({ responsavel_execucao_id: null }).eq("responsavel_execucao_id", user_id);

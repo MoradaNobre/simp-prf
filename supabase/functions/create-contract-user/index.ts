@@ -7,6 +7,15 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const EMAIL_RE = /^[^\s@]{1,64}@[^\s@]{1,255}$/;
+const VALID_ROLES = ["operador", "preposto", "terceirizado"];
+const URL_RE = /^https?:\/\/.{1,500}$/;
+
+function escapeHtml(str: string): string {
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -57,13 +66,44 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { nome, email, telefone, funcao, contrato_id, role, app_url } = await req.json();
+    // --- Input Validation ---
+    const body = await req.json();
+    const { nome, email, telefone, funcao, contrato_id, role, app_url } = body;
 
-    if (!nome?.trim() || !email?.trim() || !contrato_id) {
-      return new Response(
-        JSON.stringify({ error: "Nome, e-mail e contrato são obrigatórios" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    if (!nome || typeof nome !== "string" || nome.trim().length === 0 || nome.trim().length > 200) {
+      return new Response(JSON.stringify({ error: "Nome inválido (1-200 caracteres)" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (!email || typeof email !== "string" || !EMAIL_RE.test(email.trim()) || email.length > 320) {
+      return new Response(JSON.stringify({ error: "E-mail inválido" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (!contrato_id || typeof contrato_id !== "string" || !UUID_RE.test(contrato_id)) {
+      return new Response(JSON.stringify({ error: "contrato_id inválido" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (telefone && (typeof telefone !== "string" || telefone.length > 20)) {
+      return new Response(JSON.stringify({ error: "Telefone inválido (máx 20 caracteres)" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (funcao && (typeof funcao !== "string" || funcao.length > 100)) {
+      return new Response(JSON.stringify({ error: "Função inválida (máx 100 caracteres)" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (role && !VALID_ROLES.includes(role)) {
+      return new Response(JSON.stringify({ error: "Papel inválido. Deve ser: operador, preposto ou terceirizado" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (app_url && (typeof app_url !== "string" || !URL_RE.test(app_url))) {
+      return new Response(JSON.stringify({ error: "app_url inválido" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const trimmedEmail = email.trim().toLowerCase();
@@ -87,7 +127,6 @@ Deno.serve(async (req) => {
         .update({ full_name: trimmedName, phone: telefone || null })
         .eq("user_id", userId);
     } else {
-      // Create new user with a temporary password
       tempPassword = generateTempPassword();
       const { data: newUser, error: createErr } =
         await adminClient.auth.admin.createUser({
@@ -108,13 +147,9 @@ Deno.serve(async (req) => {
       userId = newUser.user.id;
       userCreated = true;
 
-      // Update profile with phone and must_change_password flag
       await adminClient
         .from("profiles")
-        .update({ 
-          phone: telefone || null,
-          must_change_password: true,
-        })
+        .update({ phone: telefone || null, must_change_password: true })
         .eq("user_id", userId);
     }
 
@@ -126,14 +161,9 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (!existingRole) {
-      await adminClient
-        .from("user_roles")
-        .insert({ user_id: userId, role: userRole });
+      await adminClient.from("user_roles").insert({ user_id: userId, role: userRole });
     } else if (existingRole.role === "operador" && userRole !== "operador") {
-      await adminClient
-        .from("user_roles")
-        .update({ role: userRole })
-        .eq("id", existingRole.id);
+      await adminClient.from("user_roles").update({ role: userRole }).eq("id", existingRole.id);
     }
 
     // Link user to the same regional as the contract
@@ -144,10 +174,7 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (contrato?.regional_id) {
-      await adminClient
-        .from("profiles")
-        .update({ regional_id: contrato.regional_id })
-        .eq("user_id", userId);
+      await adminClient.from("profiles").update({ regional_id: contrato.regional_id }).eq("user_id", userId);
 
       const { data: existingLink } = await adminClient
         .from("user_regionais")
@@ -157,9 +184,7 @@ Deno.serve(async (req) => {
         .maybeSingle();
 
       if (!existingLink) {
-        await adminClient
-          .from("user_regionais")
-          .insert({ user_id: userId, regional_id: contrato.regional_id });
+        await adminClient.from("user_regionais").insert({ user_id: userId, regional_id: contrato.regional_id });
       }
     }
 
@@ -211,12 +236,12 @@ Deno.serve(async (req) => {
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <h2 style="color: #1e3a5f;">SIMP-PRF — Bem-vindo(a) ao Sistema</h2>
-              <p>Olá, <strong>${trimmedName}</strong>!</p>
+              <p>Olá, <strong>${escapeHtml(trimmedName)}</strong>!</p>
               <p>Uma conta foi criada para você no <strong>SIMP-PRF</strong> (Sistema de Manutenção Predial da PRF).</p>
               <p>Utilize as credenciais abaixo para acessar o sistema:</p>
               <div style="background-color: #f4f4f5; border-radius: 8px; padding: 20px; margin: 20px 0;">
-                <p style="margin: 4px 0;"><strong>E-mail:</strong> ${trimmedEmail}</p>
-                <p style="margin: 4px 0;"><strong>Senha temporária:</strong> ${tempPassword}</p>
+                <p style="margin: 4px 0;"><strong>E-mail:</strong> ${escapeHtml(trimmedEmail)}</p>
+                <p style="margin: 4px 0;"><strong>Senha temporária:</strong> ${escapeHtml(tempPassword)}</p>
               </div>
               <p style="color: #dc2626; font-weight: bold;">⚠️ Por segurança, você deverá trocar sua senha no primeiro acesso.</p>
               <div style="text-align: center; margin: 30px 0;">
@@ -231,9 +256,7 @@ Deno.serve(async (req) => {
         });
 
         emailSent = !emailError;
-        if (emailError) {
-          console.error("Resend error:", emailError);
-        }
+        if (emailError) console.error("Resend error:", emailError);
       } catch (emailErr) {
         console.error("Email send error:", emailErr);
       }
