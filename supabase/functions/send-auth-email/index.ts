@@ -7,7 +7,11 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const EMAIL_RE = /^[^\s@]{1,64}@[^\s@]{1,255}$/;
+const URL_RE = /^https?:\/\/.{1,500}$/;
+
 type EmailType = "recovery" | "signup" | "invite";
+const VALID_TYPES: EmailType[] = ["recovery", "signup", "invite"];
 
 interface EmailTemplate {
   subject: string;
@@ -89,29 +93,81 @@ Deno.serve(async (req) => {
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-    const { email, type, redirect_to, app_url } = await req.json() as {
+    // --- Auth Check (optional for recovery, required for invite/signup) ---
+    const authHeader = req.headers.get("Authorization");
+
+    const body = await req.json();
+    const { email, type, redirect_to, app_url } = body as {
       email: string;
-      type: EmailType;
+      type: string;
       redirect_to?: string;
       app_url?: string;
     };
 
-    if (!email || !type) {
+    // --- Input Validation ---
+    if (!email || typeof email !== "string" || !EMAIL_RE.test(email.trim()) || email.length > 320) {
       return new Response(
-        JSON.stringify({ error: "email and type are required" }),
+        JSON.stringify({ error: "E-mail inválido" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const template = emailTemplates[type];
-    if (!template) {
+    if (!type || !VALID_TYPES.includes(type as EmailType)) {
       return new Response(
-        JSON.stringify({ error: `Invalid type: ${type}. Must be recovery, signup, or invite` }),
+        JSON.stringify({ error: "Tipo inválido. Deve ser: recovery, signup ou invite" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
+    if (redirect_to && (typeof redirect_to !== "string" || !URL_RE.test(redirect_to))) {
+      return new Response(
+        JSON.stringify({ error: "redirect_to inválido" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (app_url && (typeof app_url !== "string" || !URL_RE.test(app_url))) {
+      return new Response(
+        JSON.stringify({ error: "app_url inválido" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // For invite type, require authenticated caller with manager/fiscal role
+    if (type === "invite") {
+      if (!authHeader?.startsWith("Bearer ")) {
+        return new Response(JSON.stringify({ error: "Não autorizado" }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const callerClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const token = authHeader.replace("Bearer ", "");
+      const { data: claimsData, error: claimsError } = await callerClient.auth.getClaims(token);
+      if (claimsError || !claimsData?.claims?.sub) {
+        return new Response(JSON.stringify({ error: "Não autorizado" }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+      const { data: callerRole } = await adminClient
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", claimsData.claims.sub)
+        .maybeSingle();
+      const allowedRoles = ["gestor_master", "gestor_nacional", "gestor_regional", "fiscal_contrato"];
+      if (!callerRole || !allowedRoles.includes(callerRole.role)) {
+        return new Response(JSON.stringify({ error: "Sem permissão" }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
+    // --- Generate Link & Send Email ---
+    const template = emailTemplates[type as EmailType];
     let actionUrl: string;
 
     if (template.needsLink) {
@@ -137,7 +193,7 @@ Deno.serve(async (req) => {
       actionUrl = linkData?.properties?.action_link || "";
       if (!actionUrl) {
         return new Response(
-          JSON.stringify({ error: "Failed to generate action link" }),
+          JSON.stringify({ error: "Falha ao gerar link de ação" }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }

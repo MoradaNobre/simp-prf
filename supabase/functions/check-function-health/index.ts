@@ -15,11 +15,48 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
     const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
-    const supabase = createClient(supabaseUrl, serviceRoleKey);
+    // --- Auth & Role Check (managers only) ---
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Não autorizado" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-    // Read monitoring config
+    const callerClient = createClient(supabaseUrl, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await callerClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims?.sub) {
+      return new Response(JSON.stringify({ error: "Não autorizado" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
+    const callerId = claimsData.claims.sub as string;
+
+    const { data: callerRole } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", callerId)
+      .maybeSingle();
+
+    const allowedRoles = ["gestor_master", "gestor_nacional"];
+    if (!callerRole || !allowedRoles.includes(callerRole.role)) {
+      return new Response(JSON.stringify({ error: "Sem permissão" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // --- Business Logic ---
     const { data: configRows } = await supabase
       .from("monitoring_config")
       .select("config_key, config_value");
@@ -39,7 +76,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Query logs within the window
     const since = new Date(Date.now() - windowMinutes * 60 * 1000).toISOString();
 
     const { data: logs } = await supabase
@@ -53,7 +89,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Calculate per-function failure rate
     const stats: Record<string, { total: number; failures: number }> = {};
     for (const log of logs) {
       if (!stats[log.function_name]) stats[log.function_name] = { total: 0, failures: 0 };
@@ -75,7 +110,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Send alert email if recipients configured
     let emailSent = false;
     if (recipients.length > 0 && RESEND_API_KEY) {
       const resend = new Resend(RESEND_API_KEY);
@@ -94,7 +128,7 @@ Deno.serve(async (req) => {
             <h2 style="color:white;margin:0;">⚠️ SIMP-PRF — Alerta de Monitoramento</h2>
           </div>
           <div style="padding:20px;border:1px solid #e0e0e0;border-top:none;">
-            <p>As seguintes Edge Functions apresentaram taxa de falha acima de <strong>${threshold}%</strong> nos últimos <strong>${windowMinutes} minutos</strong>:</p>
+            <p>As seguintes funções apresentaram taxa de falha acima de <strong>${threshold}%</strong> nos últimos <strong>${windowMinutes} minutos</strong>:</p>
             <table style="width:100%;border-collapse:collapse;margin:16px 0;">
               <thead>
                 <tr style="background:#f9fafb;">
@@ -119,7 +153,7 @@ Deno.serve(async (req) => {
         const { error: emailError } = await resend.emails.send({
           from: "SIMP-PRF <noreply@simp.estudioai.site>",
           to: recipients,
-          subject: `[SIMP-PRF] ⚠️ Alerta: Edge Functions com alta taxa de falha`,
+          subject: `[SIMP-PRF] ⚠️ Alerta: Funções com alta taxa de falha`,
           html,
         });
         emailSent = !emailError;
