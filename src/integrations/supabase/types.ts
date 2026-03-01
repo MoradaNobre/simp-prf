@@ -1293,6 +1293,14 @@ export type Database = {
       }
     }
     Functions: {
+      get_preposto_contrato_ids: {
+        Args: { _user_id: string }
+        Returns: string[]
+      }
+      get_terceirizado_contrato_ids: {
+        Args: { _user_id: string }
+        Returns: string[]
+      }
       get_user_regional_ids: { Args: { _user_id: string }; Returns: string[] }
       get_users_in_same_regionals: {
         Args: { _user_id: string }
