@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   LayoutDashboard,
   ClipboardList,
@@ -23,6 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { isAdminRole } from "@/utils/roles";
+import { EditarPerfilDialog } from "@/components/EditarPerfilDialog";
 import {
   Sidebar,
   SidebarContent,
@@ -74,6 +76,7 @@ export function AppSidebar() {
   const { data: role } = useUserRole();
   const { data: profile } = useUserProfile();
   const { theme, setTheme } = useTheme();
+  const [perfilOpen, setPerfilOpen] = useState(false);
   const isAdmin = isAdminRole(role);
   const isRegional = role === "gestor_regional";
   const canManage = isAdmin || isRegional;
@@ -172,7 +175,11 @@ export function AppSidebar() {
 
       <SidebarFooter className="border-t border-sidebar-border p-3 space-y-3">
         {profile && (
-          <div className="flex items-center gap-2 px-2">
+          <button
+            onClick={() => setPerfilOpen(true)}
+            className="flex items-center gap-2 px-2 w-full rounded-md hover:bg-sidebar-accent/50 transition-colors py-1.5 text-left"
+            title="Editar perfil"
+          >
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sidebar-accent">
               <User className="h-4 w-4 text-sidebar-primary" />
             </div>
@@ -200,8 +207,9 @@ export function AppSidebar() {
                 </span>
               )}
             </div>
-          </div>
+          </button>
         )}
+        <EditarPerfilDialog open={perfilOpen} onOpenChange={setPerfilOpen} />
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
