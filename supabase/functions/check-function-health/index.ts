@@ -134,7 +134,7 @@ Deno.serve(async (req) => {
     });
   } catch (error: any) {
     console.error("Health check error:", error);
-    return new Response(JSON.stringify({ error: error.message || "Internal error" }), {
+    return new Response(JSON.stringify({ error: "Erro ao processar verificação de saúde." }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

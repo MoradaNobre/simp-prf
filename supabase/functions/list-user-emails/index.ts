@@ -51,6 +51,7 @@ Deno.serve(async (req) => {
 
     return new Response(JSON.stringify(emailMap), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    console.error("Erro list-user-emails:", err);
+    return new Response(JSON.stringify({ error: "Erro ao processar solicitação." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });
