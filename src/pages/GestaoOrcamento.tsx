@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { isAdminRole, isGlobalRole } from "@/utils/roles";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { Loader2, DollarSign, Plus, Pencil, Trash2, TrendingUp, TrendingDown, CircleDot, FileSpreadsheet, AlertTriangle, Landmark } from "lucide-react";
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -149,44 +149,64 @@ export default function GestaoOrcamento() {
     return consolidado.filter((item: any) => item.regional_id === filtroRegional);
   }, [consolidado, filtroRegional]);
 
-  const exportToXLS = () => {
+  const exportToXLS = async () => {
     if (!consolidado.length) { toast.error("Nenhum dado para exportar."); return; }
-    const wb = XLSX.utils.book_new();
+    const wb = new ExcelJS.Workbook();
 
     // Resumo
-    const resumoData = consolidado.map((item: any) => ({
-      "Regional": item.regional?.sigla || "—",
-      
-      "Exercício": exercicio,
-      "Cota Base": Number(item.valor_dotacao),
-      "Cota Total": item.dotacaoTotal,
-      "Custos OS": item.totalCustosOS,
-      "Empenhos Manuais": item.totalEmpenhos,
-      "Total Consumido": item.totalConsumido,
-      "Saldo": item.saldo,
-      "% Consumido": Number(item.percentual.toFixed(1)),
-      "Observações": item.observacoes || "",
-    }));
-    const wsResumo = XLSX.utils.json_to_sheet(resumoData);
-    XLSX.utils.book_append_sheet(wb, wsResumo, "Resumo");
+    const wsResumo = wb.addWorksheet("Resumo");
+    wsResumo.columns = [
+      { header: "Regional", key: "regional" },
+      { header: "Exercício", key: "exercicio" },
+      { header: "Cota Base", key: "cotaBase" },
+      { header: "Cota Total", key: "cotaTotal" },
+      { header: "Custos OS", key: "custosOS" },
+      { header: "Empenhos Manuais", key: "empenhos" },
+      { header: "Total Consumido", key: "totalConsumido" },
+      { header: "Saldo", key: "saldo" },
+      { header: "% Consumido", key: "percentual" },
+      { header: "Observações", key: "observacoes" },
+    ];
+    consolidado.forEach((item: any) => {
+      wsResumo.addRow({
+        regional: item.regional?.sigla || "—",
+        exercicio: exercicio,
+        cotaBase: Number(item.valor_dotacao),
+        cotaTotal: item.dotacaoTotal,
+        custosOS: item.totalCustosOS,
+        empenhos: item.totalEmpenhos,
+        totalConsumido: item.totalConsumido,
+        saldo: item.saldo,
+        percentual: Number(item.percentual.toFixed(1)),
+        observacoes: item.observacoes || "",
+      });
+    });
 
     // Créditos
     const creditosData: any[] = [];
     consolidado.forEach((item: any) => {
       (item.creditosList || []).forEach((c: any) => {
         creditosData.push({
-          "Regional": item.regional?.sigla || "—",
-          "Data": new Date(c.data_credito).toLocaleDateString("pt-BR"),
-          "Tipo": tipoLabels[c.tipo] || c.tipo,
-          "Nº Documento": c.numero_documento || "",
-          "Descrição": c.descricao,
-          "Valor": c.tipo === "reducao" ? -Number(c.valor) : Number(c.valor),
+          regional: item.regional?.sigla || "—",
+          data: new Date(c.data_credito).toLocaleDateString("pt-BR"),
+          tipo: tipoLabels[c.tipo] || c.tipo,
+          numDoc: c.numero_documento || "",
+          descricao: c.descricao,
+          valor: c.tipo === "reducao" ? -Number(c.valor) : Number(c.valor),
         });
       });
     });
     if (creditosData.length) {
-      const wsCreditos = XLSX.utils.json_to_sheet(creditosData);
-      XLSX.utils.book_append_sheet(wb, wsCreditos, "Créditos");
+      const wsCreditos = wb.addWorksheet("Créditos");
+      wsCreditos.columns = [
+        { header: "Regional", key: "regional" },
+        { header: "Data", key: "data" },
+        { header: "Tipo", key: "tipo" },
+        { header: "Nº Documento", key: "numDoc" },
+        { header: "Descrição", key: "descricao" },
+        { header: "Valor", key: "valor" },
+      ];
+      creditosData.forEach(row => wsCreditos.addRow(row));
     }
 
     // Empenhos
@@ -194,20 +214,34 @@ export default function GestaoOrcamento() {
     consolidado.forEach((item: any) => {
       (item.empenhosList || []).forEach((e: any) => {
         empenhosData.push({
-          "Regional": item.regional?.sigla || "—",
-          "Data": new Date(e.data_empenho).toLocaleDateString("pt-BR"),
-          "Nº Empenho": e.numero_empenho || "",
-          "Descrição": e.descricao,
-          "Valor": Number(e.valor),
+          regional: item.regional?.sigla || "—",
+          data: new Date(e.data_empenho).toLocaleDateString("pt-BR"),
+          numEmpenho: e.numero_empenho || "",
+          descricao: e.descricao,
+          valor: Number(e.valor),
         });
       });
     });
     if (empenhosData.length) {
-      const wsEmpenhos = XLSX.utils.json_to_sheet(empenhosData);
-      XLSX.utils.book_append_sheet(wb, wsEmpenhos, "Empenhos");
+      const wsEmpenhos = wb.addWorksheet("Empenhos");
+      wsEmpenhos.columns = [
+        { header: "Regional", key: "regional" },
+        { header: "Data", key: "data" },
+        { header: "Nº Empenho", key: "numEmpenho" },
+        { header: "Descrição", key: "descricao" },
+        { header: "Valor", key: "valor" },
+      ];
+      empenhosData.forEach(row => wsEmpenhos.addRow(row));
     }
 
-    XLSX.writeFile(wb, `Orcamento_${exercicio}.xlsx`);
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Orcamento_${exercicio}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
     toast.success("Planilha exportada!");
   };
 
