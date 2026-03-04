@@ -1,0 +1,262 @@
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { monitoredInvoke } from "@/utils/monitoredInvoke";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Loader2, RefreshCw, Download, CheckCircle2, XCircle, Clock, Globe } from "lucide-react";
+import { toast } from "sonner";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
+const fmt = (v: number) =>
+  v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+export default function GestaoContratosGov() {
+  const qc = useQueryClient();
+  const [activeTab, setActiveTab] = useState<"imports" | "logs">("imports");
+
+  // Fetch imported contracts
+  const { data: imports, isLoading: loadingImports } = useQuery({
+    queryKey: ["contratos-gov-import"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("contratos_gov_import" as any)
+        .select("*")
+        .order("atualizado_em", { ascending: false })
+        .limit(200);
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+
+  // Fetch sync logs
+  const { data: syncLogs, isLoading: loadingLogs } = useQuery({
+    queryKey: ["contratos-gov-sync-log"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("contratos_gov_sync_log" as any)
+        .select("*")
+        .order("iniciado_em", { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+
+  // Trigger sync
+  const syncMutation = useMutation({
+    mutationFn: async () => {
+      const result = await monitoredInvoke("sync-contratos-gov", { maxRetries: 0 });
+      if (result.error) throw result.error;
+      return result.data;
+    },
+    onSuccess: (data: any) => {
+      toast.success(
+        `Sincronização concluída! ${data?.total_importados ?? 0} contratos importados.`
+      );
+      qc.invalidateQueries({ queryKey: ["contratos-gov-import"] });
+      qc.invalidateQueries({ queryKey: ["contratos-gov-sync-log"] });
+    },
+    onError: (err: any) => {
+      toast.error("Erro ao iniciar sincronização: " + (err?.message || "Erro desconhecido"));
+    },
+  });
+
+  // Export to JSON
+  const handleExport = () => {
+    if (!imports?.length) return;
+    const blob = new Blob([JSON.stringify(imports, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `contratos_gov_prf_${format(new Date(), "yyyy-MM-dd")}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const statusBadge = (status: string) => {
+    switch (status) {
+      case "concluido":
+        return <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"><CheckCircle2 className="h-3 w-3 mr-1" />Concluído</Badge>;
+      case "concluido_com_erros":
+        return <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"><XCircle className="h-3 w-3 mr-1" />Com Erros</Badge>;
+      case "erro":
+        return <Badge variant="destructive"><XCircle className="h-3 w-3 mr-1" />Erro</Badge>;
+      default:
+        return <Badge variant="secondary"><Clock className="h-3 w-3 mr-1" />Em Andamento</Badge>;
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            <Globe className="h-5 w-5" />
+            Importação Contratos.gov.br
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            Coleta automática de contratos de manutenção predial da PRF via API ComprasNet
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExport}
+            disabled={!imports?.length}
+          >
+            <Download className="h-4 w-4 mr-1" />
+            Exportar JSON
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => syncMutation.mutate()}
+            disabled={syncMutation.isPending}
+          >
+            {syncMutation.isPending ? (
+              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4 mr-1" />
+            )}
+            {syncMutation.isPending ? "Sincronizando..." : "Sincronizar Agora"}
+          </Button>
+        </div>
+      </div>
+
+      {/* Tab toggle */}
+      <div className="flex gap-2">
+        <Button
+          variant={activeTab === "imports" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setActiveTab("imports")}
+        >
+          Contratos Importados ({imports?.length ?? 0})
+        </Button>
+        <Button
+          variant={activeTab === "logs" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setActiveTab("logs")}
+        >
+          Histórico de Sync ({syncLogs?.length ?? 0})
+        </Button>
+      </div>
+
+      {activeTab === "imports" && (
+        <div className="border rounded-lg overflow-auto max-h-[500px]">
+          {loadingImports ? (
+            <div className="flex justify-center p-8">
+              <Loader2 className="h-6 w-6 animate-spin" />
+            </div>
+          ) : !imports?.length ? (
+            <p className="text-sm text-muted-foreground p-4 text-center">
+              Nenhum contrato importado ainda. Clique em "Sincronizar Agora" para iniciar.
+            </p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>UASG</TableHead>
+                  <TableHead>Número</TableHead>
+                  <TableHead>Empresa</TableHead>
+                  <TableHead className="hidden lg:table-cell">Objeto</TableHead>
+                  <TableHead>Vigência</TableHead>
+                  <TableHead className="text-right">Valor Global</TableHead>
+                  <TableHead>Situação</TableHead>
+                  <TableHead className="text-right">Empenhos</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {imports.map((c: any) => (
+                  <TableRow key={c.id}>
+                    <TableCell className="font-mono text-xs">{c.uasg_codigo}</TableCell>
+                    <TableCell className="font-medium text-xs">{c.numero}</TableCell>
+                    <TableCell className="text-xs max-w-[150px] truncate">{c.empresa}</TableCell>
+                    <TableCell className="hidden lg:table-cell text-xs max-w-[200px] truncate">
+                      {c.objeto || "—"}
+                    </TableCell>
+                    <TableCell className="text-xs whitespace-nowrap">
+                      {c.vigencia_inicio
+                        ? format(new Date(c.vigencia_inicio), "dd/MM/yy")
+                        : "—"}{" "}
+                      a{" "}
+                      {c.vigencia_fim
+                        ? format(new Date(c.vigencia_fim), "dd/MM/yy")
+                        : "—"}
+                    </TableCell>
+                    <TableCell className="text-right text-xs">{fmt(c.valor_global || 0)}</TableCell>
+                    <TableCell>
+                      <Badge variant={c.situacao === "Ativo" ? "default" : "secondary"} className="text-xs">
+                        {c.situacao || "—"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right text-xs">
+                      {Array.isArray(c.empenhos) ? c.empenhos.length : 0}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </div>
+      )}
+
+      {activeTab === "logs" && (
+        <div className="border rounded-lg overflow-auto max-h-[400px]">
+          {loadingLogs ? (
+            <div className="flex justify-center p-8">
+              <Loader2 className="h-6 w-6 animate-spin" />
+            </div>
+          ) : !syncLogs?.length ? (
+            <p className="text-sm text-muted-foreground p-4 text-center">
+              Nenhuma sincronização realizada ainda.
+            </p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Data</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">UASGs</TableHead>
+                  <TableHead className="text-right">Contratos</TableHead>
+                  <TableHead className="text-right">Importados</TableHead>
+                  <TableHead className="text-right">Erros</TableHead>
+                  <TableHead>Duração</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {syncLogs.map((log: any) => {
+                  const duracao =
+                    log.finalizado_em && log.iniciado_em
+                      ? Math.round(
+                          (new Date(log.finalizado_em).getTime() -
+                            new Date(log.iniciado_em).getTime()) /
+                            1000
+                        )
+                      : null;
+                  return (
+                    <TableRow key={log.id}>
+                      <TableCell className="text-xs whitespace-nowrap">
+                        {format(new Date(log.iniciado_em), "dd/MM/yy HH:mm", { locale: ptBR })}
+                      </TableCell>
+                      <TableCell>{statusBadge(log.status)}</TableCell>
+                      <TableCell className="text-right">{log.total_uasgs}</TableCell>
+                      <TableCell className="text-right">{log.total_contratos}</TableCell>
+                      <TableCell className="text-right">{log.total_importados}</TableCell>
+                      <TableCell className="text-right">{log.total_erros}</TableCell>
+                      <TableCell className="text-xs">
+                        {duracao !== null ? `${duracao}s` : "—"}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
