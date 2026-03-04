@@ -255,7 +255,7 @@ export function NovoChamadoDialog({ open, onOpenChange }: Props) {
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={handleSubmit} disabled={submitting || !tipoDemanda || !descricao.trim() || !localServico.trim() || !regionalId || (prioridade === "urgente" && !justificativaUrgente.trim())}>
+          <Button onClick={handleSubmit} disabled={submitting || !tipoDemanda || !descricao.trim() || !localServico.trim() || !regionalId || (prioridade === "urgente" && !justificativaUrgente.trim()) || (tipoDemanda === "ar_condicionado" && !patrimonio.trim())}>
             {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Abrir Chamado
           </Button>
