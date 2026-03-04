@@ -88,10 +88,15 @@ export default function Chamados() {
     search: search || undefined,
   });
 
+  // Filter by tipo_demanda client-side
+  const filteredByTipo = tipoFilter === "all"
+    ? chamados
+    : chamados.filter(c => c.tipo_demanda === tipoFilter);
+
   // Sort by GUT score descending if enabled
   const sortedChamados = sortByScore
-    ? [...chamados].sort((a, b) => (b.gut_score ?? 0) - (a.gut_score ?? 0))
-    : chamados;
+    ? [...filteredByTipo].sort((a, b) => (b.gut_score ?? 0) - (a.gut_score ?? 0))
+    : filteredByTipo;
 
   // Fetch OS data for viewed chamado
   const viewOsId = viewChamado?.os_id;
