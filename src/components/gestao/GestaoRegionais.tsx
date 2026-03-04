@@ -188,6 +188,7 @@ export default function GestaoRegionais() {
             <div><Label>Sigla</Label><Input value={form.sigla} onChange={(e) => setForm({ ...form, sigla: e.target.value })} placeholder="Ex: SPRF/PE" /></div>
             <div><Label>Nome</Label><Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} placeholder="Nome completo" /></div>
             <div><Label>UF</Label><Input value={form.uf} onChange={(e) => setForm({ ...form, uf: e.target.value.toUpperCase() })} placeholder="Ex: PE" maxLength={2} /></div>
+            <div><Label>Código UASG</Label><Input value={form.uasg_codigo} onChange={(e) => setForm({ ...form, uasg_codigo: e.target.value })} placeholder="Ex: 200113" maxLength={6} /></div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={closeDialog}>Cancelar</Button>
