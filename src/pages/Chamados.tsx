@@ -69,6 +69,7 @@ export default function Chamados() {
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [tipoFilter, setTipoFilter] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedChamados, setSelectedChamados] = useState<Set<string>>(new Set());
   const [viewChamado, setViewChamado] = useState<Chamado | null>(null);
@@ -87,10 +88,15 @@ export default function Chamados() {
     search: search || undefined,
   });
 
+  // Filter by tipo_demanda client-side
+  const filteredByTipo = tipoFilter === "all"
+    ? chamados
+    : chamados.filter(c => c.tipo_demanda === tipoFilter);
+
   // Sort by GUT score descending if enabled
   const sortedChamados = sortByScore
-    ? [...chamados].sort((a, b) => (b.gut_score ?? 0) - (a.gut_score ?? 0))
-    : chamados;
+    ? [...filteredByTipo].sort((a, b) => (b.gut_score ?? 0) - (a.gut_score ?? 0))
+    : filteredByTipo;
 
   // Fetch OS data for viewed chamado
   const viewOsId = viewChamado?.os_id;
@@ -284,6 +290,15 @@ export default function Chamados() {
             <SelectItem value="analisado">Analisados</SelectItem>
             <SelectItem value="vinculado">Vinculados</SelectItem>
             <SelectItem value="cancelado">Cancelados</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={tipoFilter} onValueChange={setTipoFilter}>
+          <SelectTrigger className="w-[200px]"><SelectValue placeholder="Tipo de Demanda" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os Tipos</SelectItem>
+            {Object.entries(TIPO_LABELS).map(([key, label]) => (
+              <SelectItem key={key} value={key}>{label}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <RegionalFilterSelect value={regionalId} onChange={setRegionalId} />
