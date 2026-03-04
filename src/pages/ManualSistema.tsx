@@ -313,8 +313,8 @@ const SECTIONS: ManualSection[] = [
         title: "Legendas por Perfil",
         description: "A tela exibe guias de status personalizados conforme o perfil do usuário logado.",
         details: [
-          "Perfis externos (Preposto/Terceirizado): Destaque em Orçamento, Execução e Pagamento",
-          "Perfis internos (Gestores/Fiscais): Destaque em Autorização e Ateste",
+           "Perfis externos (Preposto/Terceirizado): Destaque em Orçamento, Execução e Faturamento",
+          "Perfis internos (Gestores/Fiscais): Destaque em Autorização e Receb. Serviço",
           "Cores e ícones indicam a ação esperada do usuário em cada status",
         ],
       },
