@@ -150,10 +150,10 @@ export default function GestaoRegionais() {
               <TableHead className="w-10">
                 <Checkbox checked={filtered.length > 0 && selected.size === filtered.length} onCheckedChange={toggleAll} />
               </TableHead>
+              <TableHead>UASG</TableHead>
               <TableHead>Sigla</TableHead>
               <TableHead>Nome</TableHead>
               <TableHead>UF</TableHead>
-              <TableHead>UASG</TableHead>
               <TableHead className="w-24">Ações</TableHead>
             </TableRow>
           </TableHeader>
@@ -161,10 +161,10 @@ export default function GestaoRegionais() {
             {filtered.map((r) => (
               <TableRow key={r.id}>
                 <TableCell><Checkbox checked={selected.has(r.id)} onCheckedChange={() => toggleSelect(r.id)} /></TableCell>
+                <TableCell className="font-mono text-xs text-muted-foreground">{r.uasg_codigo || "—"}</TableCell>
                 <TableCell className="font-medium">{r.sigla}</TableCell>
                 <TableCell>{r.nome}</TableCell>
                 <TableCell>{r.uf}</TableCell>
-                <TableCell className="font-mono text-xs text-muted-foreground">{r.uasg_codigo || "—"}</TableCell>
                 <TableCell>
                   <div className="flex gap-1">
                     <Button variant="ghost" size="icon" onClick={() => openEdit(r)}><Pencil className="h-4 w-4" /></Button>
