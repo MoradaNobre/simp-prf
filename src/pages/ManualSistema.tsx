@@ -261,7 +261,7 @@ const SECTIONS: ManualSection[] = [
           "Código gerado automaticamente: [SIGLA_REGIONAL]-OS-[SEQUENCIAL]/[ANO]",
           "A prioridade da OS é derivada do maior score GUT dos chamados vinculados",
         ],
-        roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato"],
+         roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato", "Auxiliar de Fiscal"],
       },
       {
         title: "Fluxo de Status (8 etapas)",
