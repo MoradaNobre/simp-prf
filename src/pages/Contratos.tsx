@@ -257,6 +257,20 @@ export default function Contratos() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  {canDelete && (
+                    <TableHead className="w-10">
+                      <Checkbox
+                        checked={filtered.length > 0 && filtered.every((c) => selected.has(c.id))}
+                        onCheckedChange={() => {
+                          if (filtered.every((c) => selected.has(c.id))) {
+                            setSelected(new Set());
+                          } else {
+                            setSelected(new Set(filtered.map((c) => c.id)));
+                          }
+                        }}
+                      />
+                    </TableHead>
+                  )}
                   <TableHead>Número</TableHead>
                   <TableHead>Regional</TableHead>
                   <TableHead>Empresa</TableHead>
