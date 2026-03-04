@@ -162,6 +162,16 @@ export default function Gestao() {
         )}
 
         {isNacional && (
+          <TabsContent value="contratos-gov">
+            <Card>
+              <CardContent className="pt-6 px-3 sm:px-6">
+                <GestaoContratosGov />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
+
+        {isNacional && (
           <TabsContent value="logs">
             <Card>
               <CardContent className="pt-6 px-3 sm:px-6">
