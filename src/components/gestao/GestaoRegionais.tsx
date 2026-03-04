@@ -30,7 +30,7 @@ export default function GestaoRegionais() {
   const [search, setSearch] = useState("");
   const [editItem, setEditItem] = useState<Regional | null>(null);
   const [isNew, setIsNew] = useState(false);
-  const [form, setForm] = useState({ nome: "", sigla: "", uf: "" });
+  const [form, setForm] = useState({ nome: "", sigla: "", uf: "", uasg_codigo: "" });
   const [deleteConfirm, setDeleteConfirm] = useState<Regional | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
