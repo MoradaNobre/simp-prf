@@ -403,7 +403,7 @@ const SECTIONS: ManualSection[] = [
           "Dados do preposto: nome, e-mail, telefone",
           "Seleção de preposto filtrada por regional vinculada ao contrato",
         ],
-        roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional"],
+         roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato", "Auxiliar de Fiscal"],
       },
       {
         title: "Aditivos Contratuais",
