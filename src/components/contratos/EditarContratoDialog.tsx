@@ -37,6 +37,20 @@ export function EditarContratoDialog({ contrato, open, onOpenChange }: Props) {
     },
   });
   const regionais = isGlobal ? allRegionais : userRegionais;
+
+  const [form, setForm] = useState({
+    numero: "",
+    empresa: "",
+    regional_id: "",
+    tipo_servico: "manutencao_predial",
+    objeto: "",
+    valor_total: "",
+    data_inicio: "",
+    data_fim: "",
+    status: "vigente",
+    preposto_user_id: "",
+  });
+
   const { data: allPrepostos = [] } = useUsersByRole(["preposto"]);
   const { data: regionalUserIds = new Set<string>() } = useQuery({
     queryKey: ["user-regionais-map", form.regional_id],
@@ -70,19 +84,6 @@ export function EditarContratoDialog({ contrato, open, onOpenChange }: Props) {
         role: "suprido",
       }));
     },
-  });
-
-  const [form, setForm] = useState({
-    numero: "",
-    empresa: "",
-    regional_id: "",
-    tipo_servico: "manutencao_predial",
-    objeto: "",
-    valor_total: "",
-    data_inicio: "",
-    data_fim: "",
-    status: "vigente",
-    preposto_user_id: "",
   });
 
   useEffect(() => {
