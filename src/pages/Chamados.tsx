@@ -65,7 +65,7 @@ export default function Chamados() {
   const { selectedRegionalId: regionalId, setSelectedRegionalId: setRegionalId } = useRegionalFilter();
   const isMaster = role === "gestor_master";
   const isGestor = isAdminRole(role) || role === "gestor_regional";
-  const isGestorOrFiscal = isGestor || role === "fiscal_contrato";
+  const isGestorOrFiscal = isGestor || isFiscalRole(role);
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");

@@ -38,7 +38,7 @@ export default function GestaoSolicitacoesCredito({ filtroRegional }: { filtroRe
 
   const isNacional = isAdminRole(role);
   const isRegional = role === "gestor_regional";
-  const isFiscal = role === "fiscal_contrato";
+  const isFiscal = isFiscalRole(role);
   const canSolicitar = isRegional || isFiscal;
 
   const currentYear = new Date().getFullYear();

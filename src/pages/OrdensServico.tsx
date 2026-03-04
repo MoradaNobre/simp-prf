@@ -248,7 +248,7 @@ export default function OrdensServico() {
         </div>
       </div>
 
-      {(role === "gestor_regional" || isAdminRole(role) || role === "fiscal_contrato") && (
+      {(role === "gestor_regional" || isAdminRole(role) || isFiscalRole(role)) && (
         <Card className="border-primary/30 bg-primary/5">
           <CardContent className="py-3 px-4">
             <div className="flex items-start gap-2">

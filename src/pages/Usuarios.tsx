@@ -113,6 +113,7 @@ const roleLabels: Record<string, string> = {
   gestor_nacional: "Gestor Nacional",
   gestor_regional: "Gestor Regional",
   fiscal_contrato: "Fiscal de Contrato",
+  auxiliar_fiscal: "Auxiliar de Fiscal",
   operador: "Operador",
 };
 
@@ -121,6 +122,7 @@ const roleColors: Record<string, string> = {
   gestor_nacional: "destructive",
   gestor_regional: "default",
   fiscal_contrato: "secondary",
+  auxiliar_fiscal: "secondary",
   operador: "secondary",
 };
 

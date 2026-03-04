@@ -49,7 +49,7 @@ export default function GestaoOrcamento() {
   const isNacional = isAdminRole(role);
   const isGlobal = isGlobalRole(role);
   const isRegional = role === "gestor_regional";
-  const isFiscal = role === "fiscal_contrato";
+  const isFiscal = isFiscalRole(role);
   const canAccessPage = isNacional || isRegional || isFiscal;
 
   const { data: profile } = useUserProfile();

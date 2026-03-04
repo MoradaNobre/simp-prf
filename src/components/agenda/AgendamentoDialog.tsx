@@ -34,7 +34,7 @@ export function AgendamentoDialog({ open, onOpenChange, agendamento, osId, osCod
   const deleteMut = useDeleteAgendamento();
 
   const isEdit = !!agendamento;
-  const isGestorOrFiscal = role === "gestor_master" || role === "gestor_nacional" || role === "gestor_regional" || role === "fiscal_contrato";
+  const isGestorOrFiscal = role === "gestor_master" || role === "gestor_nacional" || role === "gestor_regional" || isFiscalRole(role);
   const canEdit = isGestorOrFiscal || role === "preposto" || role === "terceirizado";
 
   const [date, setDate] = useState<Date | undefined>(undefined);

@@ -12,7 +12,7 @@ export default function Agenda() {
   const [selectedAgendamento, setSelectedAgendamento] = useState<Agendamento | null>(null);
   const [newDate, setNewDate] = useState<Date | undefined>(undefined);
 
-  const canCreate = role === "preposto" || role === "terceirizado" || role === "gestor_master" || role === "gestor_nacional" || role === "gestor_regional" || role === "fiscal_contrato";
+  const canCreate = role === "preposto" || role === "terceirizado" || role === "gestor_master" || role === "gestor_nacional" || role === "gestor_regional" || isFiscalRole(role);
 
   const { data: agendamentos = [], isLoading } = useAgendamentos({
     month: currentDate.getMonth(),

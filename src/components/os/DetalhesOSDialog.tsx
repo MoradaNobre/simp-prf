@@ -69,7 +69,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   const { data: role } = useUserRole();
   const { data: profile } = useUserProfile();
   
-  const isGestorOrFiscal = isAdminRole(role) || role === "gestor_regional" || role === "fiscal_contrato";
+  const isGestorOrFiscal = isAdminRole(role) || role === "gestor_regional" || isFiscalRole(role);
   const isPreposto = role === "preposto";
   const isTerceirizado = role === "terceirizado";
   const isOperador = role === "operador";
