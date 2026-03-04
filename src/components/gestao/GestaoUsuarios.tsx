@@ -305,7 +305,7 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
     // Prevent editing users with higher/equal privilege
     if (!isGlobalRole(currentUserRole) && user.role === "gestor_master") return;
     if (!isNacional && user.role === "gestor_nacional") return;
-    if (isFiscal && (user.role === "gestor_regional" || user.role === "fiscal_contrato")) return;
+    if (isFiscal && (user.role === "gestor_regional" || isFiscalRole(user.role))) return;
     setEditUser(user);
     setEditName(user.full_name);
     const rawPhone = (user.phone || "").replace(/\D/g, "");
