@@ -48,6 +48,7 @@ export default function Contratos() {
   const [aditivosContrato, setAditivosContrato] = useState<{ id: string; empresa: string } | null>(null);
   const [generatingPdf, setGeneratingPdf] = useState<string | null>(null);
   const [duplicateValues, setDuplicateValues] = useState<NovoContratoInitialValues | undefined>(undefined);
+  const [statusFilter, setStatusFilter] = useState<"todos" | "vigente" | "encerrado">("todos");
 
   const handleDuplicate = (c: any) => {
     setDuplicateValues({
