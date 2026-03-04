@@ -269,14 +269,14 @@ export default function OrdensServico() {
                   <span className="text-xs text-muted-foreground">— Aprovar ou restituir o orçamento para execução</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors["ateste"]}`}>
-                    Ateste
+                   <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors["ateste"]}`}>
+                    Receb. Serviço
                   </span>
                   <span className="text-xs text-muted-foreground">— Validar a execução e autorizar emissão da NF</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors["pagamento"]}`}>
-                    Pagamento
+                    Ateste
                   </span>
                   <span className="text-xs text-muted-foreground">— Verificar NF/certidões e encerrar a OS</span>
                 </div>
