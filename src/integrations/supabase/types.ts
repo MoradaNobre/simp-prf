@@ -14,6 +14,38 @@ export type Database = {
   }
   public: {
     Tables: {
+      agendamento_participantes: {
+        Row: {
+          agendamento_id: string
+          cpf: string
+          created_at: string
+          id: string
+          nome: string
+        }
+        Insert: {
+          agendamento_id: string
+          cpf: string
+          created_at?: string
+          id?: string
+          nome: string
+        }
+        Update: {
+          agendamento_id?: string
+          cpf?: string
+          created_at?: string
+          id?: string
+          nome?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agendamento_participantes_agendamento_id_fkey"
+            columns: ["agendamento_id"]
+            isOneToOne: false
+            referencedRelation: "agendamentos_visita"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agendamentos_visita: {
         Row: {
           created_at: string

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Plus, Clock, CheckCircle, XCircle, User, CalendarClock } from "lucide-react";
+import { Plus, Clock, CheckCircle, XCircle, User, CalendarClock, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
