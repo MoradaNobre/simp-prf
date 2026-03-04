@@ -93,9 +93,9 @@ export default function Contratos() {
     if (!deleteId) return;
     try {
       await deleteContrato.mutateAsync(deleteId);
-      toast({ title: "Contrato excluído com sucesso" });
+      sonnerToast.success("Contrato excluído com sucesso");
     } catch {
-      toast({ title: "Erro ao excluir contrato", variant: "destructive" });
+      sonnerToast.error("Erro ao excluir contrato");
     }
     setDeleteId(null);
   };
