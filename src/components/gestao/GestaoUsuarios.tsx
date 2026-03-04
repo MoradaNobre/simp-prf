@@ -207,7 +207,7 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
       if (res.error) throw res.error;
       return (res.data || {}) as Record<string, { email: string; confirmed: boolean }>;
     },
-    enabled: isAdminRole(currentUserRole) || currentUserRole === "gestor_regional" || currentUserRole === "fiscal_contrato",
+    enabled: isAdminRole(currentUserRole) || currentUserRole === "gestor_regional" || isFiscalRole(currentUserRole),
   });
   const isMobile = useIsMobile();
   const [search, setSearch] = useState("");
