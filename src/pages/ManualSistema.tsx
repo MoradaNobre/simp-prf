@@ -197,7 +197,7 @@ const SECTIONS: ManualSection[] = [
           "Geração automática de código sequencial por regional",
           "Prioridade padrão 'Baixa' (ajustada após análise GUT)",
         ],
-        roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato", "Operador"],
+         roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato", "Auxiliar de Fiscal", "Operador"],
       },
       {
         title: "Análise GUT (Matriz de Priorização)",
