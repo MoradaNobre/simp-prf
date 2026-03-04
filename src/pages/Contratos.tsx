@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FileText, Plus, Users, Phone, Pencil, Trash2, FileDown, Loader2, FilePlus2, Copy, Filter } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useContratos, useContratosSaldo, useDeleteContrato, type Contrato } from "@/hooks/useContratos";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useRegionalFilter } from "@/hooks/useRegionalFilter";
@@ -50,6 +51,28 @@ export default function Contratos() {
   const [generatingPdf, setGeneratingPdf] = useState<string | null>(null);
   const [duplicateValues, setDuplicateValues] = useState<NovoContratoInitialValues | undefined>(undefined);
   const [statusFilter, setStatusFilter] = useState<"todos" | "vigente" | "encerrado">("todos");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
+
+  const toggleSelect = (id: string) => {
+    const next = new Set(selected);
+    next.has(id) ? next.delete(id) : next.add(id);
+    setSelected(next);
+  };
+
+  const handleBulkDelete = async () => {
+    const ids = Array.from(selected);
+    let success = 0;
+    for (const id of ids) {
+      try {
+        await deleteContrato.mutateAsync(id);
+        success++;
+      } catch {}
+    }
+    sonnerToast.success(`${success} contrato(s) excluído(s)`);
+    setSelected(new Set());
+    setBulkDeleteConfirm(false);
+  };
 
   const handleDuplicate = (c: any) => {
     setDuplicateValues({
@@ -132,6 +155,11 @@ export default function Contratos() {
             <SelectItem value="encerrado">Encerrado</SelectItem>
           </SelectContent>
         </Select>
+        {canDelete && selected.size > 0 && (
+          <Button variant="destructive" size="sm" onClick={() => setBulkDeleteConfirm(true)}>
+            <Trash2 className="h-4 w-4 mr-1" /> Excluir {selected.size}
+          </Button>
+        )}
       </div>
 
       <Card>
@@ -164,6 +192,9 @@ export default function Contratos() {
                   <Card key={c.id} className="border">
                     <CardContent className="p-4 space-y-2">
                       <div className="flex items-start justify-between gap-2">
+                        {canDelete && (
+                          <Checkbox checked={selected.has(c.id)} onCheckedChange={() => toggleSelect(c.id)} className="mt-1" />
+                        )}
                         <div className="min-w-0 flex-1">
                           <p className="font-mono text-xs text-muted-foreground">{c.numero}</p>
                           <p className="font-medium text-sm">{c.empresa}</p>
@@ -226,6 +257,20 @@ export default function Contratos() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  {canDelete && (
+                    <TableHead className="w-10">
+                      <Checkbox
+                        checked={filtered.length > 0 && filtered.every((c) => selected.has(c.id))}
+                        onCheckedChange={() => {
+                          if (filtered.every((c) => selected.has(c.id))) {
+                            setSelected(new Set());
+                          } else {
+                            setSelected(new Set(filtered.map((c) => c.id)));
+                          }
+                        }}
+                      />
+                    </TableHead>
+                  )}
                   <TableHead>Número</TableHead>
                   <TableHead>Regional</TableHead>
                   <TableHead>Empresa</TableHead>
@@ -241,6 +286,9 @@ export default function Contratos() {
               <TableBody>
                 {filtered.map((c) => (
                   <TableRow key={c.id}>
+                    {canDelete && (
+                      <TableCell><Checkbox checked={selected.has(c.id)} onCheckedChange={() => toggleSelect(c.id)} /></TableCell>
+                    )}
                     <TableCell className="font-medium">{c.numero}</TableCell>
                     <TableCell className="text-sm">{(c as any).regionais?.sigla ?? "—"}</TableCell>
                     <TableCell>{c.empresa}</TableCell>
@@ -366,6 +414,21 @@ export default function Contratos() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete}>Excluir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={bulkDeleteConfirm} onOpenChange={setBulkDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir {selected.size} contrato(s)?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. Os contratos selecionados serão removidos permanentemente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleBulkDelete}>Excluir {selected.size}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
