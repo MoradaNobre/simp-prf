@@ -185,7 +185,7 @@ const SECTIONS: ManualSection[] = [
     icon: MessageSquarePlus,
     color: "text-orange-600 dark:text-orange-400",
     description:
-      "Módulo de registro e gestão de demandas de manutenção predial. É a etapa inicial obrigatória do fluxo operacional.",
+      "Módulo de registro e gestão de demandas de manutenção predial. É a etapa inicial obrigatória do fluxo operacional. Suporta 10 tipos de demanda: Hidráulico, Elétrico, Iluminação, Incêndio, Estrutura, Rede Lógica, Elevadores, Ar Condicionado, Instalações Diversas e Usina Solar.",
     features: [
       {
         title: "Abertura de Chamado",
