@@ -150,10 +150,10 @@ export default function GestaoRegionais() {
               <TableHead className="w-10">
                 <Checkbox checked={filtered.length > 0 && selected.size === filtered.length} onCheckedChange={toggleAll} />
               </TableHead>
+              <TableHead>UASG</TableHead>
               <TableHead>Sigla</TableHead>
               <TableHead>Nome</TableHead>
               <TableHead>UF</TableHead>
-              <TableHead>UASG</TableHead>
               <TableHead className="w-24">Ações</TableHead>
             </TableRow>
           </TableHeader>
