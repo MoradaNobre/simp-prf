@@ -12,6 +12,7 @@ import GestaoUops from "@/components/gestao/GestaoUops";
 import GestaoAuditLogs from "@/components/gestao/GestaoAuditLogs";
 import GestaoLimitesModalidade from "@/components/gestao/GestaoLimitesModalidade";
 import GestaoMonitoramento from "@/components/gestao/GestaoMonitoramento";
+import GestaoContratosGov from "@/components/gestao/GestaoContratosGov";
 import ExportarTelas from "@/pages/ExportarTelas";
 import { useIsMobile } from "@/hooks/use-mobile";
 
