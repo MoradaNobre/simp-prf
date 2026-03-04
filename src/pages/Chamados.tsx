@@ -292,6 +292,15 @@ export default function Chamados() {
             <SelectItem value="cancelado">Cancelados</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={tipoFilter} onValueChange={setTipoFilter}>
+          <SelectTrigger className="w-[200px]"><SelectValue placeholder="Tipo de Demanda" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os Tipos</SelectItem>
+            {Object.entries(TIPO_LABELS).map(([key, label]) => (
+              <SelectItem key={key} value={key}>{label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <RegionalFilterSelect value={regionalId} onChange={setRegionalId} />
         <Button
           variant={sortByScore ? "default" : "outline"}
