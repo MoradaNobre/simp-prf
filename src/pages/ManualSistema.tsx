@@ -155,7 +155,7 @@ const SECTIONS: ManualSection[] = [
           "Gráfico de pizza por prioridade (Baixa, Média, Alta, Urgente)",
           "Indicador de OS em atraso ou com pendências",
         ],
-        roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato"],
+         roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato", "Auxiliar de Fiscal"],
       },
       {
         title: "Aba Orçamento",
