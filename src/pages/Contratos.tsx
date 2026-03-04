@@ -286,6 +286,9 @@ export default function Contratos() {
               <TableBody>
                 {filtered.map((c) => (
                   <TableRow key={c.id}>
+                    {canDelete && (
+                      <TableCell><Checkbox checked={selected.has(c.id)} onCheckedChange={() => toggleSelect(c.id)} /></TableCell>
+                    )}
                     <TableCell className="font-medium">{c.numero}</TableCell>
                     <TableCell className="text-sm">{(c as any).regionais?.sigla ?? "—"}</TableCell>
                     <TableCell>{c.empresa}</TableCell>
