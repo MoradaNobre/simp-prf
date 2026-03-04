@@ -113,11 +113,14 @@ export function useDeleteContrato() {
   return useMutation({
     mutationFn: async (id: string) => {
       // Soft delete: set deleted_at instead of physical deletion
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("contratos")
         .update({ deleted_at: new Date().toISOString() } as any)
-        .eq("id", id);
+        .eq("id", id)
+        .select("id")
+        .maybeSingle();
       if (error) throw error;
+      if (!data) throw new Error("Não foi possível excluir o contrato. Verifique suas permissões.");
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["contratos"] });
