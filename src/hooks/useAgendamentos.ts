@@ -23,6 +23,14 @@ export interface Agendamento {
   } | null;
 }
 
+export interface Participante {
+  id: string;
+  agendamento_id: string;
+  nome: string;
+  cpf: string;
+  created_at: string;
+}
+
 export function useAgendamentos(filters?: { osId?: string; month?: number; year?: number }) {
   return useQuery({
     queryKey: ["agendamentos_visita", filters],
@@ -45,6 +53,47 @@ export function useAgendamentos(filters?: { osId?: string; month?: number; year?
       const { data, error } = await q;
       if (error) throw error;
       return data as Agendamento[];
+    },
+  });
+}
+
+export function useAgendamentoParticipantes(agendamentoId?: string) {
+  return useQuery({
+    queryKey: ["agendamento_participantes", agendamentoId],
+    queryFn: async () => {
+      if (!agendamentoId) return [];
+      const { data, error } = await supabase
+        .from("agendamento_participantes" as any)
+        .select("*")
+        .eq("agendamento_id", agendamentoId)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as Participante[];
+    },
+    enabled: !!agendamentoId,
+  });
+}
+
+export function useSaveParticipantes() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ agendamentoId, participantes }: { agendamentoId: string; participantes: { nome: string; cpf: string }[] }) => {
+      // Delete existing
+      await (supabase.from("agendamento_participantes" as any).delete() as any).eq("agendamento_id", agendamentoId);
+
+      // Insert new
+      if (participantes.length > 0) {
+        const rows = participantes.map(p => ({
+          agendamento_id: agendamentoId,
+          nome: p.nome,
+          cpf: p.cpf,
+        }));
+        const { error } = await supabase.from("agendamento_participantes" as any).insert(rows as any);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["agendamento_participantes"] });
     },
   });
 }
