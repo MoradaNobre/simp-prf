@@ -90,6 +90,7 @@ export function NovoChamadoDialog({ open, onOpenChange }: Props) {
 
   const handleSubmit = async () => {
     if (!tipoDemanda || !descricao.trim() || !localServico.trim() || !user) return;
+    if (tipoDemanda === "ar_condicionado" && !patrimonio.trim()) return;
     if (prioridade === "urgente" && !justificativaUrgente.trim()) return;
     setSubmitting(true);
     try {
@@ -153,12 +154,15 @@ export function NovoChamadoDialog({ open, onOpenChange }: Props) {
 
           {tipoDemanda === "ar_condicionado" && (
             <div>
-              <Label>Patrimônio do Ar Condicionado</Label>
+              <Label>Patrimônio / Nº de Série do Ar Condicionado *</Label>
               <Input
                 value={patrimonio}
                 onChange={(e) => setPatrimonio(e.target.value)}
-                placeholder="Informe o número de patrimônio (opcional)"
+                placeholder="Informe o nº de patrimônio ou nº de série"
               />
+              {!patrimonio.trim() && (
+                <p className="text-xs text-destructive mt-1">O patrimônio ou número de série é obrigatório para Ar Condicionado.</p>
+              )}
             </div>
           )}
 
@@ -251,7 +255,7 @@ export function NovoChamadoDialog({ open, onOpenChange }: Props) {
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={handleSubmit} disabled={submitting || !tipoDemanda || !descricao.trim() || !localServico.trim() || !regionalId || (prioridade === "urgente" && !justificativaUrgente.trim())}>
+          <Button onClick={handleSubmit} disabled={submitting || !tipoDemanda || !descricao.trim() || !localServico.trim() || !regionalId || (prioridade === "urgente" && !justificativaUrgente.trim()) || (tipoDemanda === "ar_condicionado" && !patrimonio.trim())}>
             {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Abrir Chamado
           </Button>
