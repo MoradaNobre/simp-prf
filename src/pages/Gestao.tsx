@@ -4,7 +4,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { isAdminRole, isGlobalRole } from "@/utils/roles";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Shield, Users, Loader2, Map, Building2, MapPin, ScrollText, CreditCard, FileDown, Activity } from "lucide-react";
+import { Shield, Users, Loader2, Map, Building2, MapPin, ScrollText, CreditCard, FileDown, Activity, Globe } from "lucide-react";
 import GestaoUsuarios from "@/components/gestao/GestaoUsuarios";
 import GestaoRegionais from "@/components/gestao/GestaoRegionais";
 import GestaoDelegacias from "@/components/gestao/GestaoDelegacias";
