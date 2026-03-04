@@ -165,7 +165,18 @@ export default function Contratos() {
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
-            <FileText className="h-5 w-5" /> Contratos Vigentes
+            <FileText className="h-5 w-5" /> Contratos
+            <Badge variant="outline" className="ml-1 text-xs font-normal">
+              {(() => {
+                const hoje = new Date();
+                const total = contratos.filter((c) => {
+                  if (statusFilter === "todos") return true;
+                  const isVigente = hoje >= new Date(c.data_inicio + "T00:00:00") && hoje <= new Date(c.data_fim + "T23:59:59");
+                  return statusFilter === "vigente" ? isVigente : !isVigente;
+                }).length;
+                return `${total} encontrado${total !== 1 ? "s" : ""}`;
+              })()}
+            </Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0 sm:p-6 sm:pt-0">
