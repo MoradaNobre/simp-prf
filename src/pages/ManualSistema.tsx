@@ -78,6 +78,7 @@ const ROLE_COLORS: Record<string, string> = {
   "Gestor Nacional": "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
   "Gestor Regional": "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
   "Fiscal de Contrato": "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
+  "Auxiliar de Fiscal": "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
   "Operador": "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
   "Preposto": "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
   "Terceirizado": "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
@@ -91,7 +92,7 @@ const SECTIONS: ManualSection[] = [
     icon: BookOpen,
     color: "text-primary",
     description:
-      "O SIMP-PRF (Sistema Integrado de Manutenção Predial) é o sistema oficial da Polícia Rodoviária Federal para gerenciamento de manutenção predial. Organizado em uma hierarquia de Regional → Delegacia → UOP, o sistema controla todo o ciclo de vida desde a abertura de chamados até o pagamento de serviços executados.",
+       "O SIMP-PRF (Sistema Integrado de Manutenção Predial) é o sistema oficial da Polícia Rodoviária Federal para gerenciamento de manutenção predial. Organizado em uma hierarquia de Regional → Delegacia → UOP, o sistema controla todo o ciclo de vida desde a abertura de chamados até o encerramento de serviços executados.",
     features: [
       {
         title: "Hierarquia Organizacional",
@@ -102,14 +103,15 @@ const SECTIONS: ManualSection[] = [
           "UOP (Unidade Operacional): Unidade física onde os serviços são realizados, com endereço, área (m²) e coordenadas GPS",
         ],
       },
-      {
+       {
         title: "Perfis de Acesso",
-        description: "O sistema possui 7 perfis com diferentes níveis de permissão, garantindo segregação de funções.",
+        description: "O sistema possui 8 perfis com diferentes níveis de permissão, garantindo segregação de funções.",
         details: [
           "Gestor Master: Acesso global a todas as regionais e funcionalidades; único perfil que pode excluir chamados e OS",
           "Gestor Nacional: Acesso administrativo restrito às regionais vinculadas ao seu perfil",
           "Gestor Regional: Gestão da sua regional, incluindo orçamento e contratos",
           "Fiscal de Contrato: Análise GUT, agrupamento de chamados em OS e fiscalização de contratos",
+          "Auxiliar de Fiscal: Mesmas permissões do Fiscal de Contrato, atuando como apoio na fiscalização",
           "Operador: Abertura e acompanhamento de chamados na sua regional",
           "Preposto: Representante da empresa contratada, acesso às OS e agendamentos do contrato",
           "Terceirizado: Execução de serviços, visualização de OS atribuídas",
@@ -117,7 +119,7 @@ const SECTIONS: ManualSection[] = [
       },
       {
         title: "Fluxo Operacional Principal",
-        description: "O ciclo de vida completo segue a sequência: Chamado → Análise GUT → Agrupamento → Ordem de Serviço → Execução → Pagamento.",
+        description: "O ciclo de vida completo segue a sequência: Chamado → Análise GUT → Agrupamento → Ordem de Serviço → Execução → Encerramento.",
         details: [
           "1. Abertura do Chamado: Operador ou Fiscal registra a demanda de manutenção",
           "2. Análise GUT: Fiscal avalia Gravidade, Urgência e Tendência (escala 1-5)",
@@ -143,7 +145,7 @@ const SECTIONS: ManualSection[] = [
           "Gráfico de barras com distribuição por tipo de demanda",
           "Filtro por regional disponível para gestores",
         ],
-        roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato", "Operador"],
+         roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato", "Auxiliar de Fiscal", "Operador"],
       },
       {
         title: "Aba Ordens de Serviço",
@@ -153,7 +155,7 @@ const SECTIONS: ManualSection[] = [
           "Gráfico de pizza por prioridade (Baixa, Média, Alta, Urgente)",
           "Indicador de OS em atraso ou com pendências",
         ],
-        roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato"],
+         roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato", "Auxiliar de Fiscal"],
       },
       {
         title: "Aba Orçamento",
@@ -183,7 +185,7 @@ const SECTIONS: ManualSection[] = [
     icon: MessageSquarePlus,
     color: "text-orange-600 dark:text-orange-400",
     description:
-      "Módulo de registro e gestão de demandas de manutenção predial. É a etapa inicial obrigatória do fluxo operacional.",
+      "Módulo de registro e gestão de demandas de manutenção predial. É a etapa inicial obrigatória do fluxo operacional. Suporta 10 tipos de demanda: Hidráulico, Elétrico, Iluminação, Incêndio, Estrutura, Rede Lógica, Elevadores, Ar Condicionado, Instalações Diversas e Usina Solar.",
     features: [
       {
         title: "Abertura de Chamado",
@@ -195,7 +197,7 @@ const SECTIONS: ManualSection[] = [
           "Geração automática de código sequencial por regional",
           "Prioridade padrão 'Baixa' (ajustada após análise GUT)",
         ],
-        roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato", "Operador"],
+         roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato", "Auxiliar de Fiscal", "Operador"],
       },
       {
         title: "Análise GUT (Matriz de Priorização)",
@@ -206,7 +208,7 @@ const SECTIONS: ManualSection[] = [
           "A prioridade do chamado é derivada automaticamente do score GUT",
           "Chamado passa de 'Aberto' para 'Analisado' após avaliação GUT",
         ],
-        roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato"],
+         roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato", "Auxiliar de Fiscal"],
         tip: "A análise GUT é fundamental pois define a prioridade da Ordem de Serviço gerada a partir dos chamados vinculados.",
       },
       {
@@ -227,7 +229,7 @@ const SECTIONS: ManualSection[] = [
           "Justificativa de cancelamento é campo obrigatório",
           "Após cancelamento, o chamado não pode ser reaberto",
         ],
-        roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato", "Operador"],
+        roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato", "Auxiliar de Fiscal", "Operador"],
         tip: "Operadores só podem cancelar seus próprios chamados.",
       },
       {
@@ -247,8 +249,8 @@ const SECTIONS: ManualSection[] = [
     title: "Ordens de Serviço",
     icon: ClipboardList,
     color: "text-green-600 dark:text-green-400",
-    description:
-      "Módulo central do sistema para gestão do ciclo completo de manutenção, desde a criação da OS até o encerramento com pagamento.",
+     description:
+      "Módulo central do sistema para gestão do ciclo completo de manutenção, desde a criação da OS até o encerramento. Inclui stepper visual com design de chevron e ícones para acompanhamento do fluxo.",
     features: [
       {
         title: "Criação de OS",
@@ -259,7 +261,7 @@ const SECTIONS: ManualSection[] = [
           "Código gerado automaticamente: [SIGLA_REGIONAL]-OS-[SEQUENCIAL]/[ANO]",
           "A prioridade da OS é derivada do maior score GUT dos chamados vinculados",
         ],
-        roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato"],
+         roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato", "Auxiliar de Fiscal"],
       },
       {
         title: "Fluxo de Status (8 etapas)",
@@ -307,7 +309,7 @@ const SECTIONS: ManualSection[] = [
           "Permite alterar tipo entre Corretiva e Preventiva",
           "Disponível apenas enquanto a OS está na etapa Aberta",
         ],
-        roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato"],
+        roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato", "Auxiliar de Fiscal"],
       },
       {
         title: "Legendas por Perfil",
@@ -368,7 +370,7 @@ const SECTIONS: ManualSection[] = [
           "Envio automático por e-mail para destinatários cadastrados",
           "Histórico de relatórios gerados com data e autor",
         ],
-        roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato", "Preposto", "Terceirizado"],
+        roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato", "Auxiliar de Fiscal", "Preposto", "Terceirizado"],
       },
       {
         title: "Relatórios de Pagamento",
@@ -401,7 +403,7 @@ const SECTIONS: ManualSection[] = [
           "Dados do preposto: nome, e-mail, telefone",
           "Seleção de preposto filtrada por regional vinculada ao contrato",
         ],
-        roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional"],
+         roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato", "Auxiliar de Fiscal"],
       },
       {
         title: "Aditivos Contratuais",
@@ -498,8 +500,8 @@ const SECTIONS: ManualSection[] = [
     title: "Gestão do Sistema",
     icon: Shield,
     color: "text-purple-600 dark:text-purple-400",
-    description:
-      "Módulo administrativo para gerenciamento de usuários, hierarquia organizacional, limites de modalidade e auditoria.",
+     description:
+      "Módulo administrativo com 9 abas: Usuários, Regionais, Delegacias, UOPs, Limites de Modalidade, Exportar Telas, Monitoramento, Contratos Gov.br e Auditoria.",
     features: [
       {
         title: "Gestão de Usuários",
@@ -564,6 +566,29 @@ const SECTIONS: ManualSection[] = [
         roles: ["Gestor Master", "Gestor Nacional"],
       },
       {
+        title: "Monitoramento de Edge Functions",
+        description: "Painel de observabilidade das funções serverless do sistema.",
+        details: [
+          "Dashboard com taxa de sucesso, latência média e total de chamadas por função",
+          "Gráficos de distribuição de chamadas e latência ao longo do tempo",
+          "Logs detalhados com status, tempo de resposta e mensagens de erro",
+          "Botão de teste de saúde (health check) para validar funções ativas",
+          "Configuração de alertas e limiares de monitoramento",
+        ],
+        roles: ["Gestor Master", "Gestor Nacional"],
+      },
+      {
+        title: "Exportar Telas",
+        description: "Ferramenta para captura e exportação de telas do sistema em formato de imagem.",
+        details: [
+          "Lista de todas as telas e módulos disponíveis para captura",
+          "Exportação individual ou em lote de capturas de tela",
+          "Download como imagens PNG de alta resolução",
+          "Útil para documentação, apresentações e auditorias",
+        ],
+        roles: ["Gestor Master"],
+      },
+      {
         title: "Logs de Auditoria",
         description: "Registro automático de todas as operações críticas realizadas no sistema.",
         details: [
@@ -571,6 +596,7 @@ const SECTIONS: ManualSection[] = [
           "Dados anteriores (old_data) e posteriores (new_data) em JSON",
           "Data/hora e identificação do usuário",
           "Filtros por tabela, ação e período",
+          "Exclusão de logs disponível apenas para Gestor Master",
         ],
         roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional"],
       },
