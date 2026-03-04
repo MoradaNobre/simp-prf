@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { isAdminRole, isFiscalRole } from "@/utils/roles";
+import { isAdminRole, isFiscalRole, isGlobalRole } from "@/utils/roles";
 import { format } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -81,6 +81,7 @@ export default function OrdensServico() {
   const { data: role } = useUserRole();
   const isMobile = useIsMobile();
   const canManage = role && !["operador", "preposto", "terceirizado"].includes(role);
+  const canDeleteOS = isGlobalRole(role);
   const isExternalUser = role === "preposto" || role === "terceirizado";
   const canCreateOS = role && !isExternalUser;
   const { canFilterRegional, effectiveRegionalId, selectedRegionalId, setSelectedRegionalId } = useRegionalFilter();
@@ -336,6 +337,7 @@ export default function OrdensServico() {
                 key={os.id}
                 os={os}
                 canManage={!!canManage}
+                canDelete={canDeleteOS}
                 onSelect={setSelectedOS}
                 onEdit={setEditOS}
                 onDelete={setDeleteId}
@@ -472,9 +474,11 @@ export default function OrdensServico() {
                           <Button size="icon" variant="ghost" title="Editar OS" onClick={() => setEditOS(os)}>
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button size="icon" variant="ghost" title="Excluir OS" onClick={() => setDeleteId(os.id)}>
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
+                          {canDeleteOS && (
+                            <Button size="icon" variant="ghost" title="Excluir OS" onClick={() => setDeleteId(os.id)}>
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     )}

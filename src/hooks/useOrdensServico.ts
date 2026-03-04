@@ -168,11 +168,7 @@ export function useDeleteOS() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      // Soft delete: set deleted_at instead of physical deletion
-      const { error } = await supabase
-        .from("ordens_servico")
-        .update({ deleted_at: new Date().toISOString() } as any)
-        .eq("id", id);
+      const { error } = await supabase.rpc("soft_delete_ordem_servico" as any, { _os_id: id } as any);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["ordens_servico"] }),

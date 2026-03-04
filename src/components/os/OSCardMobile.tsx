@@ -26,12 +26,13 @@ const prioridadeColors: Record<string, string> = {
 interface OSCardMobileProps {
   os: any;
   canManage: boolean;
+  canDelete: boolean;
   onSelect: (os: any) => void;
   onEdit: (os: any) => void;
   onDelete: (id: string) => void;
 }
 
-export function OSCardMobile({ os, canManage, onSelect, onEdit, onDelete }: OSCardMobileProps) {
+export function OSCardMobile({ os, canManage, canDelete, onSelect, onEdit, onDelete }: OSCardMobileProps) {
   const uop = os.uops as any;
   const delegacia = uop?.delegacias;
   const regional = os.regionais || delegacia?.regionais;
@@ -130,9 +131,11 @@ export function OSCardMobile({ os, canManage, onSelect, onEdit, onDelete }: OSCa
             <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => onEdit(os)}>
               <Pencil className="h-3.5 w-3.5" />
             </Button>
-            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => onDelete(os.id)}>
-              <Trash2 className="h-3.5 w-3.5 text-destructive" />
-            </Button>
+            {canDelete && (
+              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => onDelete(os.id)}>
+                <Trash2 className="h-3.5 w-3.5 text-destructive" />
+              </Button>
+            )}
           </div>
         )}
       </CardContent>
