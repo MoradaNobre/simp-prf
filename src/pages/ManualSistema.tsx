@@ -249,8 +249,8 @@ const SECTIONS: ManualSection[] = [
     title: "Ordens de Serviço",
     icon: ClipboardList,
     color: "text-green-600 dark:text-green-400",
-    description:
-      "Módulo central do sistema para gestão do ciclo completo de manutenção, desde a criação da OS até o encerramento com pagamento.",
+     description:
+      "Módulo central do sistema para gestão do ciclo completo de manutenção, desde a criação da OS até o encerramento. Inclui stepper visual com design de chevron e ícones para acompanhamento do fluxo.",
     features: [
       {
         title: "Criação de OS",
