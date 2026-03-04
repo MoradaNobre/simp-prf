@@ -92,7 +92,7 @@ const SECTIONS: ManualSection[] = [
     icon: BookOpen,
     color: "text-primary",
     description:
-      "O SIMP-PRF (Sistema Integrado de Manutenção Predial) é o sistema oficial da Polícia Rodoviária Federal para gerenciamento de manutenção predial. Organizado em uma hierarquia de Regional → Delegacia → UOP, o sistema controla todo o ciclo de vida desde a abertura de chamados até o pagamento de serviços executados.",
+       "O SIMP-PRF (Sistema Integrado de Manutenção Predial) é o sistema oficial da Polícia Rodoviária Federal para gerenciamento de manutenção predial. Organizado em uma hierarquia de Regional → Delegacia → UOP, o sistema controla todo o ciclo de vida desde a abertura de chamados até o encerramento de serviços executados.",
     features: [
       {
         title: "Hierarquia Organizacional",
