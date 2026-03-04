@@ -325,9 +325,9 @@ export default function GestaoContratosGov() {
               <div className="flex justify-center p-8">
                 <Loader2 className="h-6 w-6 animate-spin" />
               </div>
-            ) : !imports?.length ? (
+            ) : filteredImports.length === 0 ? (
               <p className="text-sm text-muted-foreground p-4 text-center">
-                Nenhum contrato importado ainda. Clique em "Sincronizar Agora" para iniciar.
+                {imports?.length ? "Nenhum contrato encontrado para os filtros selecionados." : 'Nenhum contrato importado ainda. Clique em "Sincronizar Agora" para iniciar.'}
               </p>
             ) : (
               <Table>
