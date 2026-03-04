@@ -188,9 +188,10 @@ const SECTIONS: ManualSection[] = [
       {
         title: "Abertura de Chamado",
         description: "Formulário completo para registro de nova demanda de manutenção.",
-        details: [
+         details: [
           "Campos obrigatórios: Tipo de Demanda, Descrição, Local do Serviço, Regional",
           "Campos opcionais: Delegacia, UOP, Foto anexa, Justificativa de urgência",
+          "Para demandas de Ar Condicionado: o campo 'Patrimônio ou Nº de Série' é obrigatório",
           "Geração automática de código sequencial por regional",
           "Prioridade padrão 'Baixa' (ajustada após análise GUT)",
         ],
