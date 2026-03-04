@@ -40,7 +40,7 @@ export function NovoContratoDialog({ open, onOpenChange, initialValues }: Props)
   const { data: allRegionais = [] } = useRegionais();
   const { data: role } = useUserRole();
   const { data: profile } = useUserProfile();
-  const { data: prepostos = [] } = useUsersByRole(["preposto"]);
+  const { data: allPrepostos = [] } = useUsersByRole(["preposto"]);
   const { data: supridos = [] } = useQuery<UserOption[]>({
     queryKey: ["users-supridos"],
     queryFn: async () => {
@@ -76,6 +76,23 @@ export function NovoContratoDialog({ open, onOpenChange, initialValues }: Props)
   if (open !== lastOpen) setLastOpen(open);
 
   const set = (field: string, value: string) => setForm((f) => ({ ...f, [field]: value }));
+
+  const { data: regionalUserIds = new Set<string>() } = useQuery({
+    queryKey: ["user-regionais-map", form.regional_id],
+    queryFn: async () => {
+      if (!form.regional_id) return new Set<string>();
+      const { data, error } = await supabase
+        .from("user_regionais")
+        .select("user_id")
+        .eq("regional_id", form.regional_id);
+      if (error) throw error;
+      return new Set((data || []).map((r) => r.user_id));
+    },
+    enabled: !!form.regional_id,
+  });
+  const prepostos = form.regional_id
+    ? allPrepostos.filter((p) => regionalUserIds.has(p.user_id))
+    : allPrepostos;
 
   const isCartaoCorporativo = form.tipo_servico === "cartao_corporativo";
   const prepostoOptions = isCartaoCorporativo ? supridos : prepostos;
