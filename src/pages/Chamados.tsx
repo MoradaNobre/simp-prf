@@ -295,7 +295,7 @@ export default function Chamados() {
         <Select value={tipoFilter} onValueChange={setTipoFilter}>
           <SelectTrigger className="w-[200px]"><SelectValue placeholder="Tipo de Demanda" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos os Tipos</SelectItem>
+            <SelectItem value="all">Todos os Tipos de Demanda</SelectItem>
             {Object.entries(TIPO_LABELS).map(([key, label]) => (
               <SelectItem key={key} value={key}>{label}</SelectItem>
             ))}
