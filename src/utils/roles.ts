@@ -14,3 +14,11 @@ export function isAdminRole(role: string | null | undefined): boolean {
 export function isGlobalRole(role: string | null | undefined): boolean {
   return role === "gestor_master";
 }
+
+/**
+ * Checks if a role is fiscal_contrato or auxiliar_fiscal.
+ * Both share the same permissions and access level.
+ */
+export function isFiscalRole(role: string | null | undefined): boolean {
+  return role === "fiscal_contrato" || role === "auxiliar_fiscal";
+}
