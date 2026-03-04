@@ -629,7 +629,7 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
                 </SelectContent>
               </Select>
             </div>
-            {["gestor_regional", "gestor_nacional", "gestor_master", "fiscal_contrato"].includes(editRole) && (
+            {["gestor_regional", "gestor_nacional", "gestor_master", "fiscal_contrato", "auxiliar_fiscal"].includes(editRole) && (
               <div className="flex items-center gap-2 border rounded-md p-3">
                 <Checkbox
                   id="suprido-check"
