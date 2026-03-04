@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { monitoredInvoke } from "@/utils/monitoredInvoke";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Loader2, RefreshCw, Download, CheckCircle2, XCircle, Clock, Globe, Zap, ZapOff } from "lucide-react";
+import { Loader2, RefreshCw, Download, CheckCircle2, XCircle, Clock, Globe, Zap, ZapOff, Search, Filter } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
