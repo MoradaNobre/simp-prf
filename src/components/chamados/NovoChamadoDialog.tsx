@@ -154,7 +154,7 @@ export function NovoChamadoDialog({ open, onOpenChange }: Props) {
 
           {tipoDemanda === "ar_condicionado" && (
             <div>
-              <Label>Patrimônio / Nº de Série do Ar Condicionado *</Label>
+              <Label>Patrimônio ou Nº de Série do Ar Condicionado *</Label>
               <Input
                 value={patrimonio}
                 onChange={(e) => setPatrimonio(e.target.value)}
