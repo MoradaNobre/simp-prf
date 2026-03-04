@@ -153,12 +153,15 @@ export function NovoChamadoDialog({ open, onOpenChange }: Props) {
 
           {tipoDemanda === "ar_condicionado" && (
             <div>
-              <Label>Patrimônio do Ar Condicionado</Label>
+              <Label>Patrimônio / Nº de Série do Ar Condicionado *</Label>
               <Input
                 value={patrimonio}
                 onChange={(e) => setPatrimonio(e.target.value)}
-                placeholder="Informe o número de patrimônio (opcional)"
+                placeholder="Informe o nº de patrimônio ou nº de série"
               />
+              {!patrimonio.trim() && (
+                <p className="text-xs text-destructive mt-1">O patrimônio ou número de série é obrigatório para Ar Condicionado.</p>
+              )}
             </div>
           )}
 
