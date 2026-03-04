@@ -51,6 +51,28 @@ export default function Contratos() {
   const [generatingPdf, setGeneratingPdf] = useState<string | null>(null);
   const [duplicateValues, setDuplicateValues] = useState<NovoContratoInitialValues | undefined>(undefined);
   const [statusFilter, setStatusFilter] = useState<"todos" | "vigente" | "encerrado">("todos");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
+
+  const toggleSelect = (id: string) => {
+    const next = new Set(selected);
+    next.has(id) ? next.delete(id) : next.add(id);
+    setSelected(next);
+  };
+
+  const handleBulkDelete = async () => {
+    const ids = Array.from(selected);
+    let success = 0;
+    for (const id of ids) {
+      try {
+        await deleteContrato.mutateAsync(id);
+        success++;
+      } catch {}
+    }
+    sonnerToast.success(`${success} contrato(s) excluído(s)`);
+    setSelected(new Set());
+    setBulkDeleteConfirm(false);
+  };
 
   const handleDuplicate = (c: any) => {
     setDuplicateValues({
