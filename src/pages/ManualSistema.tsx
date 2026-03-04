@@ -292,10 +292,10 @@ const SECTIONS: ManualSection[] = [
         title: "Evidências e Documentação",
         description: "Sistema de upload de evidências fotográficas e assinatura digital.",
         details: [
-          "Foto Antes: Registrada na abertura ou orçamento",
-          "Foto Depois: Registrada no ateste, comparação visual",
+           "Foto Antes: Registrada na abertura ou orçamento",
+          "Foto Depois: Registrada no recebimento do serviço, comparação visual",
           "Arquivo de Orçamento: PDF ou imagem do orçamento da empresa",
-          "Assinatura Digital: Capturada no ateste pelo fiscal",
+          "Assinatura Digital: Capturada no recebimento do serviço pelo fiscal",
           "Documentos de Pagamento: Notas fiscais e comprovantes",
         ],
       },
