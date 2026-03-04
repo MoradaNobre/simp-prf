@@ -552,6 +552,17 @@ const SECTIONS: ManualSection[] = [
         ],
         roles: ["Gestor Master"],
       },
+       {
+        title: "Importação Contratos Gov.br",
+        description: "Importação e ativação de contratos do portal Compras.gov.br com filtros avançados.",
+        details: [
+          "Sincronização automática por código UASG das regionais cadastradas",
+          "Filtros: busca por texto (número, empresa, objeto), UASG/Regional, situação (Ativo/Inativo) e status SIMP (Pendente/Ativado)",
+          "Ativação individual ou em lote dos contratos importados",
+          "Histórico de sincronizações com totais importados e erros",
+        ],
+        roles: ["Gestor Master", "Gestor Nacional"],
+      },
       {
         title: "Logs de Auditoria",
         description: "Registro automático de todas as operações críticas realizadas no sistema.",
