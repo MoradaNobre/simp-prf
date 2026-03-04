@@ -26,12 +26,13 @@ const prioridadeColors: Record<string, string> = {
 interface OSCardMobileProps {
   os: any;
   canManage: boolean;
+  canDelete: boolean;
   onSelect: (os: any) => void;
   onEdit: (os: any) => void;
   onDelete: (id: string) => void;
 }
 
-export function OSCardMobile({ os, canManage, onSelect, onEdit, onDelete }: OSCardMobileProps) {
+export function OSCardMobile({ os, canManage, canDelete, onSelect, onEdit, onDelete }: OSCardMobileProps) {
   const uop = os.uops as any;
   const delegacia = uop?.delegacias;
   const regional = os.regionais || delegacia?.regionais;
