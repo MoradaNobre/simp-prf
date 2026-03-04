@@ -37,7 +37,23 @@ export function EditarContratoDialog({ contrato, open, onOpenChange }: Props) {
     },
   });
   const regionais = isGlobal ? allRegionais : userRegionais;
-  const { data: prepostos = [] } = useUsersByRole(["preposto"]);
+  const { data: allPrepostos = [] } = useUsersByRole(["preposto"]);
+  const { data: regionalUserIds = new Set<string>() } = useQuery({
+    queryKey: ["user-regionais-map", form.regional_id],
+    queryFn: async () => {
+      if (!form.regional_id) return new Set<string>();
+      const { data, error } = await supabase
+        .from("user_regionais")
+        .select("user_id")
+        .eq("regional_id", form.regional_id);
+      if (error) throw error;
+      return new Set((data || []).map((r) => r.user_id));
+    },
+    enabled: !!form.regional_id,
+  });
+  const prepostos = form.regional_id
+    ? allPrepostos.filter((p) => regionalUserIds.has(p.user_id))
+    : allPrepostos;
   const { data: supridos = [] } = useQuery<UserOption[]>({
     queryKey: ["users-supridos"],
     queryFn: async () => {
