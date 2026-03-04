@@ -370,7 +370,7 @@ const SECTIONS: ManualSection[] = [
           "Envio automático por e-mail para destinatários cadastrados",
           "Histórico de relatórios gerados com data e autor",
         ],
-        roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato", "Preposto", "Terceirizado"],
+        roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato", "Auxiliar de Fiscal", "Preposto", "Terceirizado"],
       },
       {
         title: "Relatórios de Pagamento",
