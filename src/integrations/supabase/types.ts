@@ -1045,6 +1045,7 @@ export type Database = {
           id: string
           nome: string
           sigla: string
+          uasg_codigo: string | null
           uf: string
         }
         Insert: {
@@ -1052,6 +1053,7 @@ export type Database = {
           id?: string
           nome: string
           sigla: string
+          uasg_codigo?: string | null
           uf: string
         }
         Update: {
@@ -1059,6 +1061,7 @@ export type Database = {
           id?: string
           nome?: string
           sigla?: string
+          uasg_codigo?: string | null
           uf?: string
         }
         Relationships: []
