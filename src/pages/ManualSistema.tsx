@@ -500,8 +500,8 @@ const SECTIONS: ManualSection[] = [
     title: "Gestão do Sistema",
     icon: Shield,
     color: "text-purple-600 dark:text-purple-400",
-    description:
-      "Módulo administrativo para gerenciamento de usuários, hierarquia organizacional, limites de modalidade e auditoria.",
+     description:
+      "Módulo administrativo com 9 abas: Usuários, Regionais, Delegacias, UOPs, Limites de Modalidade, Exportar Telas, Monitoramento, Contratos Gov.br e Auditoria.",
     features: [
       {
         title: "Gestão de Usuários",
