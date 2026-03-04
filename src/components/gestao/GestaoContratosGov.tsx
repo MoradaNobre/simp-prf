@@ -345,7 +345,7 @@ export default function GestaoContratosGov() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {imports.map((c: any) => {
+                  {filteredImports.map((c: any) => {
                     const autoRegional = mapping?.[c.uasg_codigo];
                     const isActivated = !!c.contrato_simp_id;
                     return (
