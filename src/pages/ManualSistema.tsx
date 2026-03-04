@@ -286,7 +286,7 @@ const SECTIONS: ManualSection[] = [
           "O sistema exibe apenas o bloqueio de maior prioridade ativo",
         ],
         roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional"],
-        tip: "Contratos 'Cartão Corporativo' abreviam o fluxo (Ateste → Encerrada). 'Contrata + Brasil' ignora bloqueios de saldo contratual.",
+        tip: "Contratos 'Cartão Corporativo' abreviam o fluxo (Receb. Serviço → Encerrada). 'Contrata + Brasil' ignora bloqueios de saldo contratual.",
       },
       {
         title: "Evidências e Documentação",
