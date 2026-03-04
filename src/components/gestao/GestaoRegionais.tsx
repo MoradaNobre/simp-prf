@@ -83,7 +83,7 @@ export default function GestaoRegionais() {
 
   const handleSave = () => {
     if (!form.nome || !form.sigla || !form.uf) { toast.error("Preencha todos os campos."); return; }
-    upsert.mutate({ id: isNew ? undefined : editItem?.id, ...form });
+    upsert.mutate({ id: isNew ? undefined : editItem?.id, nome: form.nome, sigla: form.sigla, uf: form.uf, uasg_codigo: form.uasg_codigo || null });
   };
 
   const filtered = (regionais || []).filter((r) =>
