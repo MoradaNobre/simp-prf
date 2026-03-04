@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { isAdminRole } from "@/utils/roles";
+import { isAdminRole, isFiscalRole } from "@/utils/roles";
 import { useSolicitacoesCredito, useRespondSolicitacaoCredito, useCreateSolicitacaoCredito, useDeleteSolicitacaoCredito } from "@/hooks/useSaldoOrcamentario";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -38,7 +38,7 @@ export default function GestaoSolicitacoesCredito({ filtroRegional }: { filtroRe
 
   const isNacional = isAdminRole(role);
   const isRegional = role === "gestor_regional";
-  const isFiscal = role === "fiscal_contrato";
+  const isFiscal = isFiscalRole(role);
   const canSolicitar = isRegional || isFiscal;
 
   const currentYear = new Date().getFullYear();

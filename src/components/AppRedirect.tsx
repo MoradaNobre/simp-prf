@@ -1,5 +1,6 @@
 import { Navigate } from "react-router-dom";
 import { useUserRole } from "@/hooks/useUserRole";
+import { isAdminRole, isFiscalRole } from "@/utils/roles";
 import { Loader2 } from "lucide-react";
 
 export function AppRedirect() {
@@ -13,11 +14,11 @@ export function AppRedirect() {
     );
   }
 
-  if (role === "gestor_nacional" || role === "gestor_master") {
+  if (isAdminRole(role)) {
     return <Navigate to="/app/orcamento" replace />;
   }
 
-  if (role === "operador" || role === "fiscal_contrato" || role === "gestor_regional") {
+  if (role === "operador" || isFiscalRole(role) || role === "gestor_regional") {
     return <Navigate to="/app/chamados" replace />;
   }
 

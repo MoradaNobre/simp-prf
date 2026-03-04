@@ -45,6 +45,7 @@ const roleLabels: Record<string, string> = {
   gestor_nacional: "Gestor Nacional",
   gestor_regional: "Gestor Regional",
   fiscal_contrato: "Fiscal de Contrato",
+  auxiliar_fiscal: "Auxiliar de Fiscal",
   operador: "Operador",
   preposto: "Preposto",
   terceirizado: "Terceirizado",
@@ -55,18 +56,19 @@ const roleColors: Record<string, string> = {
   gestor_nacional: "destructive",
   gestor_regional: "default",
   fiscal_contrato: "warning",
+  auxiliar_fiscal: "warning",
   operador: "secondary",
   preposto: "success",
   terceirizado: "secondary",
 };
 
 const allMenuItems = [
-  { title: "Dashboard", url: "/app/dashboard", icon: LayoutDashboard, roles: ["gestor_master", "gestor_nacional", "gestor_regional", "fiscal_contrato", "operador"] },
-  { title: "Chamados", url: "/app/chamados", icon: MessageSquarePlus, roles: ["gestor_master", "gestor_nacional", "gestor_regional", "fiscal_contrato", "operador"] },
-  { title: "Ordens de Serviço", url: "/app/ordens", icon: ClipboardList, roles: ["gestor_master", "gestor_nacional", "gestor_regional", "fiscal_contrato", "preposto", "terceirizado"] },
+  { title: "Dashboard", url: "/app/dashboard", icon: LayoutDashboard, roles: ["gestor_master", "gestor_nacional", "gestor_regional", "fiscal_contrato", "auxiliar_fiscal", "operador"] },
+  { title: "Chamados", url: "/app/chamados", icon: MessageSquarePlus, roles: ["gestor_master", "gestor_nacional", "gestor_regional", "fiscal_contrato", "auxiliar_fiscal", "operador"] },
+  { title: "Ordens de Serviço", url: "/app/ordens", icon: ClipboardList, roles: ["gestor_master", "gestor_nacional", "gestor_regional", "fiscal_contrato", "auxiliar_fiscal", "preposto", "terceirizado"] },
   { title: "Agenda de Visitas", url: "/app/agenda", icon: CalendarClock, roles: null }, // all roles
-  { title: "Relatórios OS", url: "/app/relatorios", icon: FileBarChart, roles: ["gestor_master", "gestor_nacional", "gestor_regional", "fiscal_contrato", "preposto", "terceirizado"] },
-  { title: "Contratos", url: "/app/contratos", icon: FileText, roles: ["gestor_master", "gestor_nacional", "gestor_regional", "fiscal_contrato", "preposto"] },
+  { title: "Relatórios OS", url: "/app/relatorios", icon: FileBarChart, roles: ["gestor_master", "gestor_nacional", "gestor_regional", "fiscal_contrato", "auxiliar_fiscal", "preposto", "terceirizado"] },
+  { title: "Contratos", url: "/app/contratos", icon: FileText, roles: ["gestor_master", "gestor_nacional", "gestor_regional", "fiscal_contrato", "auxiliar_fiscal", "preposto"] },
 ];
 
 export function AppSidebar() {

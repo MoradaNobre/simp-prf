@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSignedUrl } from "@/hooks/useSignedUrl";
 import { useNavigate } from "react-router-dom";
-import { isAdminRole } from "@/utils/roles";
+import { isAdminRole, isFiscalRole } from "@/utils/roles";
 import { getStatusFlowForTipo, bypassesContractBalance, bypassesBudgetBlocking, tipoServicoLabel } from "@/utils/modalidade";
 import { OSStatusStepper } from "@/components/os/OSStatusStepper";
 
@@ -69,7 +69,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   const { data: role } = useUserRole();
   const { data: profile } = useUserProfile();
   
-  const isGestorOrFiscal = isAdminRole(role) || role === "gestor_regional" || role === "fiscal_contrato";
+  const isGestorOrFiscal = isAdminRole(role) || role === "gestor_regional" || isFiscalRole(role);
   const isPreposto = role === "preposto";
   const isTerceirizado = role === "terceirizado";
   const isOperador = role === "operador";

@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { useAgendamentos, type Agendamento } from "@/hooks/useAgendamentos";
 import { AgendamentoDialog } from "@/components/agenda/AgendamentoDialog";
 import { useUserRole } from "@/hooks/useUserRole";
+import { isFiscalRole } from "@/utils/roles";
 
 const statusConfig: Record<string, { label: string; color: string; icon: typeof CheckCircle }> = {
   agendada: { label: "Agendada", color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200", icon: Clock },
@@ -27,7 +28,7 @@ export function OSAgendamentosTab({ osId, osCodigo, osStatus }: Props) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedAgendamento, setSelectedAgendamento] = useState<Agendamento | null>(null);
 
-  const canCreate = osStatus === "execucao" && (role === "preposto" || role === "terceirizado" || role === "gestor_master" || role === "gestor_nacional" || role === "gestor_regional" || role === "fiscal_contrato");
+  const canCreate = osStatus === "execucao" && (role === "preposto" || role === "terceirizado" || role === "gestor_master" || role === "gestor_nacional" || role === "gestor_regional" || isFiscalRole(role));
 
   const handleNew = () => {
     setSelectedAgendamento(null);

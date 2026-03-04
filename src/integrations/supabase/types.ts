@@ -1339,6 +1339,7 @@ export type Database = {
         | "preposto"
         | "terceirizado"
         | "gestor_master"
+        | "auxiliar_fiscal"
       frequencia_manutencao: "mensal" | "trimestral" | "semestral" | "anual"
       os_prioridade: "baixa" | "media" | "alta" | "urgente"
       os_status:
@@ -1486,6 +1487,7 @@ export const Constants = {
         "preposto",
         "terceirizado",
         "gestor_master",
+        "auxiliar_fiscal",
       ],
       frequencia_manutencao: ["mensal", "trimestral", "semestral", "anual"],
       os_prioridade: ["baixa", "media", "alta", "urgente"],

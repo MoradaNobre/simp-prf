@@ -22,7 +22,7 @@ import { Search, Loader2, Trash2, Ban, CheckCircle, AlertTriangle, ArrowUpDown, 
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Constants } from "@/integrations/supabase/types";
-import { isAdminRole, isGlobalRole } from "@/utils/roles";
+import { isAdminRole, isGlobalRole, isFiscalRole } from "@/utils/roles";
 import { monitoredInvoke } from "@/utils/monitoredInvoke";
 
 type SortField = "full_name" | "role" | "regionais" | "ativo";
@@ -149,6 +149,7 @@ const roleLabels: Record<string, string> = {
   gestor_nacional: "Gestor Nacional",
   gestor_regional: "Gestor Regional",
   fiscal_contrato: "Fiscal de Contrato",
+  auxiliar_fiscal: "Auxiliar de Fiscal",
   operador: "Operador",
   preposto: "Preposto",
   terceirizado: "Terceirizado",
@@ -159,6 +160,7 @@ const roleColors: Record<string, string> = {
   gestor_nacional: "destructive",
   gestor_regional: "default",
   fiscal_contrato: "warning",
+  auxiliar_fiscal: "warning",
   operador: "secondary",
   preposto: "success",
   terceirizado: "secondary",
@@ -177,6 +179,7 @@ function getAssignableRoles(currentRole: string): string[] {
     case "gestor_regional":
       return allRoles.filter(r => r !== "gestor_master" && r !== "gestor_nacional");
     case "fiscal_contrato":
+    case "auxiliar_fiscal":
       return ["preposto", "operador", "terceirizado"];
     default:
       return [];
@@ -204,7 +207,7 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
       if (res.error) throw res.error;
       return (res.data || {}) as Record<string, { email: string; confirmed: boolean }>;
     },
-    enabled: isAdminRole(currentUserRole) || currentUserRole === "gestor_regional" || currentUserRole === "fiscal_contrato",
+    enabled: isAdminRole(currentUserRole) || currentUserRole === "gestor_regional" || isFiscalRole(currentUserRole),
   });
   const isMobile = useIsMobile();
   const [search, setSearch] = useState("");
@@ -225,7 +228,7 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
 
   const isNacional = isAdminRole(currentUserRole);
   const isRegional = currentUserRole === "gestor_regional";
-  const isFiscal = currentUserRole === "fiscal_contrato";
+  const isFiscal = isFiscalRole(currentUserRole);
   const canManageUsers = isNacional || isRegional || isFiscal;
   const isRegionalScoped = !isGlobalRole(currentUserRole) && (currentUserRole === "gestor_nacional" || isRegional);
   const assignableRoles = getAssignableRoles(currentUserRole);
@@ -302,7 +305,7 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
     // Prevent editing users with higher/equal privilege
     if (!isGlobalRole(currentUserRole) && user.role === "gestor_master") return;
     if (!isNacional && user.role === "gestor_nacional") return;
-    if (isFiscal && (user.role === "gestor_regional" || user.role === "fiscal_contrato")) return;
+    if (isFiscal && (user.role === "gestor_regional" || isFiscalRole(user.role))) return;
     setEditUser(user);
     setEditName(user.full_name);
     const rawPhone = (user.phone || "").replace(/\D/g, "");
@@ -626,7 +629,7 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
                 </SelectContent>
               </Select>
             </div>
-            {["gestor_regional", "gestor_nacional", "gestor_master", "fiscal_contrato"].includes(editRole) && (
+            {["gestor_regional", "gestor_nacional", "gestor_master", "fiscal_contrato", "auxiliar_fiscal"].includes(editRole) && (
               <div className="flex items-center gap-2 border rounded-md p-3">
                 <Checkbox
                   id="suprido-check"

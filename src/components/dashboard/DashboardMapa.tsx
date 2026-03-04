@@ -16,6 +16,7 @@ const ROLE_OPTIONS = [
   { value: "gestor_nacional", label: "Gestor Nacional" },
   { value: "gestor_regional", label: "Gestor Regional" },
   { value: "fiscal_contrato", label: "Fiscal de Contrato" },
+  { value: "auxiliar_fiscal", label: "Auxiliar de Fiscal" },
   { value: "operador", label: "Operador" },
   { value: "preposto", label: "Preposto" },
   { value: "terceirizado", label: "Terceirizado" },

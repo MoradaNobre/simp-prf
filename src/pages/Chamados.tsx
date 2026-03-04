@@ -19,7 +19,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useRegionalFilter } from "@/hooks/useRegionalFilter";
 import { RegionalFilterSelect } from "@/components/RegionalFilterSelect";
-import { isAdminRole } from "@/utils/roles";
+import { isAdminRole, isFiscalRole } from "@/utils/roles";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -65,7 +65,7 @@ export default function Chamados() {
   const { selectedRegionalId: regionalId, setSelectedRegionalId: setRegionalId } = useRegionalFilter();
   const isMaster = role === "gestor_master";
   const isGestor = isAdminRole(role) || role === "gestor_regional";
-  const isGestorOrFiscal = isGestor || role === "fiscal_contrato";
+  const isGestorOrFiscal = isGestor || isFiscalRole(role);
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
