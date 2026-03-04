@@ -103,14 +103,15 @@ const SECTIONS: ManualSection[] = [
           "UOP (Unidade Operacional): Unidade física onde os serviços são realizados, com endereço, área (m²) e coordenadas GPS",
         ],
       },
-      {
+       {
         title: "Perfis de Acesso",
-        description: "O sistema possui 7 perfis com diferentes níveis de permissão, garantindo segregação de funções.",
+        description: "O sistema possui 8 perfis com diferentes níveis de permissão, garantindo segregação de funções.",
         details: [
           "Gestor Master: Acesso global a todas as regionais e funcionalidades; único perfil que pode excluir chamados e OS",
           "Gestor Nacional: Acesso administrativo restrito às regionais vinculadas ao seu perfil",
           "Gestor Regional: Gestão da sua regional, incluindo orçamento e contratos",
           "Fiscal de Contrato: Análise GUT, agrupamento de chamados em OS e fiscalização de contratos",
+          "Auxiliar de Fiscal: Mesmas permissões do Fiscal de Contrato, atuando como apoio na fiscalização",
           "Operador: Abertura e acompanhamento de chamados na sua regional",
           "Preposto: Representante da empresa contratada, acesso às OS e agendamentos do contrato",
           "Terceirizado: Execução de serviços, visualização de OS atribuídas",
