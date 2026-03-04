@@ -20,6 +20,7 @@ type Regional = {
   nome: string;
   sigla: string;
   uf: string;
+  uasg_codigo: string | null;
   created_at: string;
 };
 
@@ -29,7 +30,7 @@ export default function GestaoRegionais() {
   const [search, setSearch] = useState("");
   const [editItem, setEditItem] = useState<Regional | null>(null);
   const [isNew, setIsNew] = useState(false);
-  const [form, setForm] = useState({ nome: "", sigla: "", uf: "" });
+  const [form, setForm] = useState({ nome: "", sigla: "", uf: "", uasg_codigo: "" });
   const [deleteConfirm, setDeleteConfirm] = useState<Regional | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
@@ -44,12 +45,13 @@ export default function GestaoRegionais() {
   });
 
   const upsert = useMutation({
-    mutationFn: async (values: { id?: string; nome: string; sigla: string; uf: string }) => {
+    mutationFn: async (values: { id?: string; nome: string; sigla: string; uf: string; uasg_codigo?: string | null }) => {
+      const payload = { nome: values.nome, sigla: values.sigla, uf: values.uf, uasg_codigo: values.uasg_codigo || null } as any;
       if (values.id) {
-        const { error } = await supabase.from("regionais").update({ nome: values.nome, sigla: values.sigla, uf: values.uf }).eq("id", values.id);
+        const { error } = await supabase.from("regionais").update(payload).eq("id", values.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("regionais").insert({ nome: values.nome, sigla: values.sigla, uf: values.uf });
+        const { error } = await supabase.from("regionais").insert(payload);
         if (error) throw error;
       }
     },
@@ -76,13 +78,13 @@ export default function GestaoRegionais() {
     onError: (err: any) => toast.error("Erro: " + err.message),
   });
 
-  const openNew = () => { setIsNew(true); setForm({ nome: "", sigla: "", uf: "" }); setEditItem({} as Regional); };
-  const openEdit = (r: Regional) => { setIsNew(false); setForm({ nome: r.nome, sigla: r.sigla, uf: r.uf }); setEditItem(r); };
+  const openNew = () => { setIsNew(true); setForm({ nome: "", sigla: "", uf: "", uasg_codigo: "" }); setEditItem({} as Regional); };
+  const openEdit = (r: Regional) => { setIsNew(false); setForm({ nome: r.nome, sigla: r.sigla, uf: r.uf, uasg_codigo: r.uasg_codigo || "" }); setEditItem(r); };
   const closeDialog = () => { setEditItem(null); setIsNew(false); };
 
   const handleSave = () => {
     if (!form.nome || !form.sigla || !form.uf) { toast.error("Preencha todos os campos."); return; }
-    upsert.mutate({ id: isNew ? undefined : editItem?.id, ...form });
+    upsert.mutate({ id: isNew ? undefined : editItem?.id, nome: form.nome, sigla: form.sigla, uf: form.uf, uasg_codigo: form.uasg_codigo || null });
   };
 
   const filtered = (regionais || []).filter((r) =>
@@ -130,7 +132,7 @@ export default function GestaoRegionais() {
                 <div className="min-w-0 flex-1">
                   <p className="font-medium text-sm">{r.sigla}</p>
                   <p className="text-xs text-muted-foreground">{r.nome}</p>
-                  <p className="text-xs text-muted-foreground">UF: {r.uf}</p>
+                  <p className="text-xs text-muted-foreground">UF: {r.uf} · UASG: {r.uasg_codigo || "—"}</p>
                 </div>
               </div>
               <div className="flex gap-2 pt-1">
@@ -151,6 +153,7 @@ export default function GestaoRegionais() {
               <TableHead>Sigla</TableHead>
               <TableHead>Nome</TableHead>
               <TableHead>UF</TableHead>
+              <TableHead>UASG</TableHead>
               <TableHead className="w-24">Ações</TableHead>
             </TableRow>
           </TableHeader>
@@ -161,6 +164,7 @@ export default function GestaoRegionais() {
                 <TableCell className="font-medium">{r.sigla}</TableCell>
                 <TableCell>{r.nome}</TableCell>
                 <TableCell>{r.uf}</TableCell>
+                <TableCell className="font-mono text-xs text-muted-foreground">{r.uasg_codigo || "—"}</TableCell>
                 <TableCell>
                   <div className="flex gap-1">
                     <Button variant="ghost" size="icon" onClick={() => openEdit(r)}><Pencil className="h-4 w-4" /></Button>
@@ -184,6 +188,7 @@ export default function GestaoRegionais() {
             <div><Label>Sigla</Label><Input value={form.sigla} onChange={(e) => setForm({ ...form, sigla: e.target.value })} placeholder="Ex: SPRF/PE" /></div>
             <div><Label>Nome</Label><Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} placeholder="Nome completo" /></div>
             <div><Label>UF</Label><Input value={form.uf} onChange={(e) => setForm({ ...form, uf: e.target.value.toUpperCase() })} placeholder="Ex: PE" maxLength={2} /></div>
+            <div><Label>Código UASG</Label><Input value={form.uasg_codigo} onChange={(e) => setForm({ ...form, uasg_codigo: e.target.value })} placeholder="Ex: 200113" maxLength={6} /></div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={closeDialog}>Cancelar</Button>
