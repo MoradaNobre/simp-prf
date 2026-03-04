@@ -169,14 +169,11 @@ export function useDeleteOS() {
   return useMutation({
     mutationFn: async (id: string) => {
       // Soft delete: set deleted_at instead of physical deletion
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("ordens_servico")
         .update({ deleted_at: new Date().toISOString() } as any)
-        .eq("id", id)
-        .select("id")
-        .maybeSingle();
+        .eq("id", id);
       if (error) throw error;
-      if (!data) throw new Error("Não foi possível excluir a OS. Verifique suas permissões.");
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["ordens_servico"] }),
   });

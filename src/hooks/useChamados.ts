@@ -116,14 +116,11 @@ export function useDeleteChamado() {
   return useMutation({
     mutationFn: async (id: string) => {
       // Soft delete: set deleted_at instead of physical deletion
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("chamados")
         .update({ deleted_at: new Date().toISOString() } as any)
-        .eq("id", id)
-        .select("id")
-        .maybeSingle();
+        .eq("id", id);
       if (error) throw error;
-      if (!data) throw new Error("Não foi possível excluir o chamado. Verifique suas permissões.");
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["chamados"] }),
   });
