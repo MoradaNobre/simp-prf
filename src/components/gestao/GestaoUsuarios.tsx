@@ -228,7 +228,7 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
 
   const isNacional = isAdminRole(currentUserRole);
   const isRegional = currentUserRole === "gestor_regional";
-  const isFiscal = currentUserRole === "fiscal_contrato";
+  const isFiscal = isFiscalRole(currentUserRole);
   const canManageUsers = isNacional || isRegional || isFiscal;
   const isRegionalScoped = !isGlobalRole(currentUserRole) && (currentUserRole === "gestor_nacional" || isRegional);
   const assignableRoles = getAssignableRoles(currentUserRole);
