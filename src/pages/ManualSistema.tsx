@@ -122,7 +122,7 @@ const SECTIONS: ManualSection[] = [
           "1. Abertura do Chamado: Operador ou Fiscal registra a demanda de manutenção",
           "2. Análise GUT: Fiscal avalia Gravidade, Urgência e Tendência (escala 1-5)",
           "3. Agrupamento: Chamados analisados são vinculados a uma Ordem de Serviço",
-          "4. Ciclo da OS: Aberta → Orçamento → Autorização → Execução → Ateste → Faturamento → Pagamento → Encerrada",
+           "4. Ciclo da OS: Aberta → Orçamento → Autorização → Execução → Receb. Serviço → Faturamento → Ateste → Encerrada",
         ],
       },
     ],
@@ -188,9 +188,10 @@ const SECTIONS: ManualSection[] = [
       {
         title: "Abertura de Chamado",
         description: "Formulário completo para registro de nova demanda de manutenção.",
-        details: [
+         details: [
           "Campos obrigatórios: Tipo de Demanda, Descrição, Local do Serviço, Regional",
           "Campos opcionais: Delegacia, UOP, Foto anexa, Justificativa de urgência",
+          "Para demandas de Ar Condicionado: o campo 'Patrimônio ou Nº de Série' é obrigatório",
           "Geração automática de código sequencial por regional",
           "Prioridade padrão 'Baixa' (ajustada após análise GUT)",
         ],
@@ -264,13 +265,13 @@ const SECTIONS: ManualSection[] = [
         title: "Fluxo de Status (8 etapas)",
         description: "A OS percorre 8 etapas obrigatórias, representadas visualmente por um stepper.",
         details: [
-          "1. Aberta: OS criada, aguardando orçamento da empresa",
+           "1. Aberta: OS criada, aguardando orçamento da empresa",
           "2. Orçamento: Preposto/terceirizado envia proposta de valor e arquivo",
           "3. Autorização: Gestor analisa orçamento, verifica saldos e autoriza ou restitui",
           "4. Execução: Serviço em andamento pela equipe contratada",
-          "5. Ateste: Fiscal verifica execução com foto 'depois' e assinatura digital",
-          "6. Faturamento: Empresa emite documentos de cobrança",
-          "7. Pagamento: Gestor registra pagamento e anexa comprovantes",
+          "5. Receb. Serviço: Fiscal verifica execução, upload de foto 'depois' e autorização para emissão da NF",
+          "6. Faturamento: Empresa emite nota fiscal e certidões exigidas",
+          "7. Ateste: Gestor verifica NF/certidões, registra ateste e anexa documentos fiscais",
           "8. Encerrada: OS finalizada com todos os registros completos",
         ],
       },
@@ -285,16 +286,16 @@ const SECTIONS: ManualSection[] = [
           "O sistema exibe apenas o bloqueio de maior prioridade ativo",
         ],
         roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional"],
-        tip: "Contratos 'Cartão Corporativo' abreviam o fluxo (Ateste → Encerrada). 'Contrata + Brasil' ignora bloqueios de saldo contratual.",
+        tip: "Contratos 'Cartão Corporativo' abreviam o fluxo (Receb. Serviço → Encerrada). 'Contrata + Brasil' ignora bloqueios de saldo contratual.",
       },
       {
         title: "Evidências e Documentação",
         description: "Sistema de upload de evidências fotográficas e assinatura digital.",
         details: [
-          "Foto Antes: Registrada na abertura ou orçamento",
-          "Foto Depois: Registrada no ateste, comparação visual",
+           "Foto Antes: Registrada na abertura ou orçamento",
+          "Foto Depois: Registrada no recebimento do serviço, comparação visual",
           "Arquivo de Orçamento: PDF ou imagem do orçamento da empresa",
-          "Assinatura Digital: Capturada no ateste pelo fiscal",
+          "Assinatura Digital: Capturada no recebimento do serviço pelo fiscal",
           "Documentos de Pagamento: Notas fiscais e comprovantes",
         ],
       },
@@ -312,8 +313,8 @@ const SECTIONS: ManualSection[] = [
         title: "Legendas por Perfil",
         description: "A tela exibe guias de status personalizados conforme o perfil do usuário logado.",
         details: [
-          "Perfis externos (Preposto/Terceirizado): Destaque em Orçamento, Execução e Pagamento",
-          "Perfis internos (Gestores/Fiscais): Destaque em Autorização e Ateste",
+           "Perfis externos (Preposto/Terceirizado): Destaque em Orçamento, Execução e Faturamento",
+          "Perfis internos (Gestores/Fiscais): Destaque em Autorização e Receb. Serviço",
           "Cores e ícones indicam a ação esperada do usuário em cada status",
         ],
       },
@@ -392,12 +393,13 @@ const SECTIONS: ManualSection[] = [
       {
         title: "Cadastro de Contrato",
         description: "Registro completo de contratos com dados da empresa, vigência e valores.",
-        details: [
+         details: [
           "Número do contrato, empresa, tipo de serviço",
           "Datas de início e fim (vigência)",
           "Valor total do contrato",
           "Objeto contratual e regional vinculada",
           "Dados do preposto: nome, e-mail, telefone",
+          "Seleção de preposto filtrada por regional vinculada ao contrato",
         ],
         roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional"],
       },
@@ -514,8 +516,9 @@ const SECTIONS: ManualSection[] = [
       {
         title: "Gestão de Regionais",
         description: "Cadastro e manutenção das regionais da PRF.",
-        details: [
-          "Nome, sigla e UF da regional",
+         details: [
+          "Código UASG, nome, sigla e UF da regional",
+          "UASG exibido como primeira coluna da tabela",
           "Base para toda a segmentação de dados do sistema",
         ],
         roles: ["Gestor Master"],
@@ -548,6 +551,17 @@ const SECTIONS: ManualSection[] = [
           "Modalidades: Dispensa, Cotação Eletrônica, Pregão, etc.",
         ],
         roles: ["Gestor Master"],
+      },
+       {
+        title: "Importação Contratos Gov.br",
+        description: "Importação e ativação de contratos do portal Compras.gov.br com filtros avançados.",
+        details: [
+          "Sincronização automática por código UASG das regionais cadastradas",
+          "Filtros: busca por texto (número, empresa, objeto), UASG/Regional, situação (Ativo/Inativo) e status SIMP (Pendente/Ativado)",
+          "Ativação individual ou em lote dos contratos importados",
+          "Histórico de sincronizações com totais importados e erros",
+        ],
+        roles: ["Gestor Master", "Gestor Nacional"],
       },
       {
         title: "Logs de Auditoria",
