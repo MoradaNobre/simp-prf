@@ -229,7 +229,7 @@ export default function GestaoContratosGov() {
           size="sm"
           onClick={() => setActiveTab("imports")}
         >
-          Contratos Importados ({imports?.length ?? 0})
+          Contratos Importados ({filteredImports.length})
         </Button>
         <Button
           variant={activeTab === "logs" ? "default" : "outline"}
@@ -238,7 +238,7 @@ export default function GestaoContratosGov() {
         >
           Histórico de Sync ({syncLogs?.length ?? 0})
         </Button>
-        {pendingCount > 0 && activeTab === "imports" && (
+        {filteredPendingCount > 0 && activeTab === "imports" && (
           <Button
             size="sm"
             variant="default"
@@ -251,17 +251,73 @@ export default function GestaoContratosGov() {
             ) : (
               <Zap className="h-4 w-4 mr-1" />
             )}
-            Ativar Todos ({pendingCount})
+            Ativar Todos ({filteredPendingCount})
           </Button>
         )}
       </div>
 
       {activeTab === "imports" && (
         <>
+          {/* Filters */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar número, empresa, objeto..."
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                className="pl-9 h-9 w-[250px]"
+              />
+            </div>
+            <Select value={filterUasg} onValueChange={setFilterUasg}>
+              <SelectTrigger className="w-[180px] h-9">
+                <SelectValue placeholder="UASG / Regional" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todas UASGs</SelectItem>
+                {uasgOptions.map((u) => (
+                  <SelectItem key={u.code} value={u.code}>{u.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={filterSituacao} onValueChange={setFilterSituacao}>
+              <SelectTrigger className="w-[140px] h-9">
+                <SelectValue placeholder="Situação" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todas Situações</SelectItem>
+                <SelectItem value="ativo">Ativo</SelectItem>
+                <SelectItem value="inativo">Inativo</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={filterSimp} onValueChange={setFilterSimp}>
+              <SelectTrigger className="w-[150px] h-9">
+                <SelectValue placeholder="Status SIMP" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos</SelectItem>
+                <SelectItem value="pendente">Pendentes</SelectItem>
+                <SelectItem value="ativado">Ativados</SelectItem>
+              </SelectContent>
+            </Select>
+            {(searchText || filterUasg !== "todos" || filterSituacao !== "todos" || filterSimp !== "todos") && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => { setSearchText(""); setFilterUasg("todos"); setFilterSituacao("todos"); setFilterSimp("todos"); }}
+              >
+                Limpar filtros
+              </Button>
+            )}
+          </div>
+
           {activatedCount > 0 && (
             <p className="text-sm text-muted-foreground">
               <CheckCircle2 className="h-3.5 w-3.5 inline mr-1 text-green-600" />
               {activatedCount} ativados · {pendingCount} pendentes
+              {filteredImports.length !== (imports?.length ?? 0) && (
+                <span> · Exibindo {filteredImports.length} de {imports?.length}</span>
+              )}
             </p>
           )}
           <div className="border rounded-lg overflow-auto max-h-[500px]">
