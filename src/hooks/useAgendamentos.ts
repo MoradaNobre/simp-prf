@@ -68,7 +68,7 @@ export function useAgendamentoParticipantes(agendamentoId?: string) {
         .eq("agendamento_id", agendamentoId)
         .order("created_at", { ascending: true });
       if (error) throw error;
-      return (data ?? []) as Participante[];
+      return (data ?? []) as unknown as Participante[];
     },
     enabled: !!agendamentoId,
   });
