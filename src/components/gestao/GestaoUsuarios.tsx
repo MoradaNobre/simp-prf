@@ -179,6 +179,7 @@ function getAssignableRoles(currentRole: string): string[] {
     case "gestor_regional":
       return allRoles.filter(r => r !== "gestor_master" && r !== "gestor_nacional");
     case "fiscal_contrato":
+    case "auxiliar_fiscal":
       return ["preposto", "operador", "terceirizado"];
     default:
       return [];
