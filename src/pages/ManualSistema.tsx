@@ -119,7 +119,7 @@ const SECTIONS: ManualSection[] = [
       },
       {
         title: "Fluxo Operacional Principal",
-        description: "O ciclo de vida completo segue a sequência: Chamado → Análise GUT → Agrupamento → Ordem de Serviço → Execução → Pagamento.",
+        description: "O ciclo de vida completo segue a sequência: Chamado → Análise GUT → Agrupamento → Ordem de Serviço → Execução → Encerramento.",
         details: [
           "1. Abertura do Chamado: Operador ou Fiscal registra a demanda de manutenção",
           "2. Análise GUT: Fiscal avalia Gravidade, Urgência e Tendência (escala 1-5)",
