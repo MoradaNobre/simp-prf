@@ -393,12 +393,13 @@ const SECTIONS: ManualSection[] = [
       {
         title: "Cadastro de Contrato",
         description: "Registro completo de contratos com dados da empresa, vigência e valores.",
-        details: [
+         details: [
           "Número do contrato, empresa, tipo de serviço",
           "Datas de início e fim (vigência)",
           "Valor total do contrato",
           "Objeto contratual e regional vinculada",
           "Dados do preposto: nome, e-mail, telefone",
+          "Seleção de preposto filtrada por regional vinculada ao contrato",
         ],
         roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional"],
       },
