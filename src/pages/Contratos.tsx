@@ -117,11 +117,22 @@ export default function Contratos() {
         )}
       </div>
 
-      {isNacional && (
-        <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
+        {isNacional && (
           <RegionalFilterSelect value={selectedRegionalId} onChange={setSelectedRegionalId} />
-        </div>
-      )}
+        )}
+        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
+          <SelectTrigger className="w-[160px]">
+            <Filter className="h-4 w-4 mr-2 text-muted-foreground" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todos os Status</SelectItem>
+            <SelectItem value="vigente">Vigente</SelectItem>
+            <SelectItem value="encerrado">Encerrado</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
       <Card>
         <CardHeader className="pb-3">
