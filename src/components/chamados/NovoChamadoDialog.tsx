@@ -90,6 +90,7 @@ export function NovoChamadoDialog({ open, onOpenChange }: Props) {
 
   const handleSubmit = async () => {
     if (!tipoDemanda || !descricao.trim() || !localServico.trim() || !user) return;
+    if (tipoDemanda === "ar_condicionado" && !patrimonio.trim()) return;
     if (prioridade === "urgente" && !justificativaUrgente.trim()) return;
     setSubmitting(true);
     try {
