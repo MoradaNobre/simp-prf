@@ -20,6 +20,7 @@ type Regional = {
   nome: string;
   sigla: string;
   uf: string;
+  uasg_codigo: string | null;
   created_at: string;
 };
 
