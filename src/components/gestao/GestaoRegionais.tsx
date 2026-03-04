@@ -164,6 +164,7 @@ export default function GestaoRegionais() {
                 <TableCell className="font-medium">{r.sigla}</TableCell>
                 <TableCell>{r.nome}</TableCell>
                 <TableCell>{r.uf}</TableCell>
+                <TableCell className="font-mono text-xs text-muted-foreground">{r.uasg_codigo || "—"}</TableCell>
                 <TableCell>
                   <div className="flex gap-1">
                     <Button variant="ghost" size="icon" onClick={() => openEdit(r)}><Pencil className="h-4 w-4" /></Button>
