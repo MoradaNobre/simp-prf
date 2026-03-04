@@ -77,8 +77,8 @@ export default function GestaoRegionais() {
     onError: (err: any) => toast.error("Erro: " + err.message),
   });
 
-  const openNew = () => { setIsNew(true); setForm({ nome: "", sigla: "", uf: "" }); setEditItem({} as Regional); };
-  const openEdit = (r: Regional) => { setIsNew(false); setForm({ nome: r.nome, sigla: r.sigla, uf: r.uf }); setEditItem(r); };
+  const openNew = () => { setIsNew(true); setForm({ nome: "", sigla: "", uf: "", uasg_codigo: "" }); setEditItem({} as Regional); };
+  const openEdit = (r: Regional) => { setIsNew(false); setForm({ nome: r.nome, sigla: r.sigla, uf: r.uf, uasg_codigo: r.uasg_codigo || "" }); setEditItem(r); };
   const closeDialog = () => { setEditItem(null); setIsNew(false); };
 
   const handleSave = () => {
