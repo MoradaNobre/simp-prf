@@ -1316,6 +1316,7 @@ export type Database = {
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_manager: { Args: { _user_id: string }; Returns: boolean }
       is_nacional: { Args: { _user_id: string }; Returns: boolean }
+      soft_delete_chamado: { Args: { _chamado_id: string }; Returns: undefined }
       transition_os_status: {
         Args: {
           _expected_status: Database["public"]["Enums"]["os_status"]
