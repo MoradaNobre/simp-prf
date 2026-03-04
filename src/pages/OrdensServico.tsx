@@ -81,9 +81,9 @@ export default function OrdensServico() {
   const { data: role } = useUserRole();
   const isMobile = useIsMobile();
   const canManage = role && !["operador", "preposto", "terceirizado"].includes(role);
+  const canDeleteOS = isGlobalRole(role);
   const isExternalUser = role === "preposto" || role === "terceirizado";
   const canCreateOS = role && !isExternalUser;
-  const { canFilterRegional, effectiveRegionalId, selectedRegionalId, setSelectedRegionalId } = useRegionalFilter();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [prioridadeFilter, setPrioridadeFilter] = useState("");
