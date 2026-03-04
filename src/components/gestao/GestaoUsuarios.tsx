@@ -22,7 +22,7 @@ import { Search, Loader2, Trash2, Ban, CheckCircle, AlertTriangle, ArrowUpDown, 
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Constants } from "@/integrations/supabase/types";
-import { isAdminRole, isGlobalRole } from "@/utils/roles";
+import { isAdminRole, isGlobalRole, isFiscalRole } from "@/utils/roles";
 import { monitoredInvoke } from "@/utils/monitoredInvoke";
 
 type SortField = "full_name" | "role" | "regionais" | "ativo";
