@@ -132,7 +132,7 @@ export default function GestaoRegionais() {
                 <div className="min-w-0 flex-1">
                   <p className="font-medium text-sm">{r.sigla}</p>
                   <p className="text-xs text-muted-foreground">{r.nome}</p>
-                  <p className="text-xs text-muted-foreground">UF: {r.uf}</p>
+                  <p className="text-xs text-muted-foreground">UF: {r.uf} · UASG: {r.uasg_codigo || "—"}</p>
                 </div>
               </div>
               <div className="flex gap-2 pt-1">
