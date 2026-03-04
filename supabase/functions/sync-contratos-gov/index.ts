@@ -150,24 +150,10 @@ Deno.serve(async (req) => {
   const errors: string[] = [];
 
   try {
-    // Step 1: Get all units with active contracts
-    console.log("[sync] Fetching unidades...");
-    const unidadesRes = await fetchWithRetry(`${API_BASE}/api/contrato/unidades`);
-    const unidades = await unidadesRes.json();
-
-    // Filter PRF UASGs (codes starting with 194)
-    const prfUnidades: any[] = [];
-    if (Array.isArray(unidades)) {
-      for (const u of unidades) {
-        const codigo = String(u.codigo || u.unidade_codigo || "");
-        if (codigo.startsWith(PRF_PREFIX)) {
-          prfUnidades.push(codigo);
-        }
-      }
-    }
-
+    // Step 1: Use official PRF UASG codes directly
+    const prfUnidades = PRF_UASGS;
     totalUasgs = prfUnidades.length;
-    console.log(`[sync] Found ${totalUasgs} PRF UASGs`);
+    console.log(`[sync] Using ${totalUasgs} official PRF UASGs`);
 
     // Step 2: For each UASG, fetch contracts and filter
     for (const uasgCodigo of prfUnidades) {
