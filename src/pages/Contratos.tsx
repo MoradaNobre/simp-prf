@@ -192,6 +192,9 @@ export default function Contratos() {
                   <Card key={c.id} className="border">
                     <CardContent className="p-4 space-y-2">
                       <div className="flex items-start justify-between gap-2">
+                        {canDelete && (
+                          <Checkbox checked={selected.has(c.id)} onCheckedChange={() => toggleSelect(c.id)} className="mt-1" />
+                        )}
                         <div className="min-w-0 flex-1">
                           <p className="font-mono text-xs text-muted-foreground">{c.numero}</p>
                           <p className="font-medium text-sm">{c.empresa}</p>
