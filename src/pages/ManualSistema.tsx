@@ -309,7 +309,7 @@ const SECTIONS: ManualSection[] = [
           "Permite alterar tipo entre Corretiva e Preventiva",
           "Disponível apenas enquanto a OS está na etapa Aberta",
         ],
-        roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato"],
+        roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato", "Auxiliar de Fiscal"],
       },
       {
         title: "Legendas por Perfil",
