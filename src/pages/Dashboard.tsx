@@ -22,7 +22,7 @@ import {
 
 const statusLabels: Record<string, string> = {
   aberta: "Aberta", orcamento: "Orçamento", autorizacao: "Aguard. Autorização",
-  execucao: "Execução", ateste: "Ateste", pagamento: "Pagamento", encerrada: "Encerrada",
+  execucao: "Execução", ateste: "Receb. Serviço", pagamento: "Ateste", encerrada: "Encerrada",
 };
 
 const statusIcons: Record<string, any> = {

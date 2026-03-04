@@ -18,9 +18,9 @@ const OS_STATUS_FLOW = [
   { key: "orcamento", label: "Orçamento" },
   { key: "autorizacao", label: "Autorização" },
   { key: "execucao", label: "Execução" },
-  { key: "ateste", label: "Ateste" },
+  { key: "ateste", label: "Receb. Serviço" },
   { key: "faturamento", label: "Faturamento" },
-  { key: "pagamento", label: "Pagamento" },
+  { key: "pagamento", label: "Ateste" },
   { key: "encerrada", label: "Encerrada" },
 ];
 

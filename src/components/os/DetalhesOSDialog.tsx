@@ -35,7 +35,7 @@ import { OSAgendamentosTab } from "@/components/os/OSAgendamentosTab";
 
 const statusLabels: Record<string, string> = {
   aberta: "Aberta", orcamento: "Orçamento", autorizacao: "Aguardando Autorização",
-  execucao: "Execução", ateste: "Ateste", faturamento: "Faturamento", pagamento: "Pagamento", encerrada: "Encerrada",
+  execucao: "Execução", ateste: "Receb. Serviço", faturamento: "Faturamento", pagamento: "Ateste", encerrada: "Encerrada",
 };
 const prioridadeLabels: Record<string, string> = {
   baixa: "Baixa", media: "Média", alta: "Alta", urgente: "Urgente",

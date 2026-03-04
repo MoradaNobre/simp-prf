@@ -38,8 +38,8 @@ const stepConfig: Record<string, { label: string; desc: string; icon: React.Elem
     activeColor: "bg-amber-500",
   },
   ateste: {
-    label: "Ateste",
-    desc: 'Upload Foto "Depois"',
+    label: "Receb. Serviço",
+    desc: "Autorização p/ Emissão da NF",
     icon: Camera,
     color: "from-emerald-500 to-emerald-600",
     activeColor: "bg-emerald-500",
@@ -52,7 +52,7 @@ const stepConfig: Record<string, { label: string; desc: string; icon: React.Elem
     activeColor: "bg-emerald-600",
   },
   pagamento: {
-    label: "Pagamento",
+    label: "Ateste",
     desc: "Documentos fiscais",
     icon: DollarSign,
     color: "from-emerald-700 to-teal-700",

@@ -16,7 +16,7 @@ const statusColors: Record<string, string> = {
 
 const statusLabels: Record<string, string> = {
   aberta: "Aberta", orcamento: "Orçamento", autorizacao: "Aguard. Autorização",
-  execucao: "Execução", ateste: "Ateste", faturamento: "Faturamento", pagamento: "Pagamento", encerrada: "Encerrada",
+  execucao: "Execução", ateste: "Receb. Serviço", faturamento: "Faturamento", pagamento: "Ateste", encerrada: "Encerrada",
 };
 
 const prioridadeColors: Record<string, string> = {

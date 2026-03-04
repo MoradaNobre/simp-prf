@@ -50,9 +50,9 @@ const statusLabels: Record<string, string> = {
   orcamento: "Orçamento",
   autorizacao: "Aguard. Autorização",
   execucao: "Execução",
-  ateste: "Ateste",
+  ateste: "Receb. Serviço",
   faturamento: "Faturamento",
-  pagamento: "Pagamento",
+  pagamento: "Ateste",
   encerrada: "Encerrada",
 };
 
