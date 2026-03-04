@@ -208,7 +208,7 @@ const SECTIONS: ManualSection[] = [
           "A prioridade do chamado é derivada automaticamente do score GUT",
           "Chamado passa de 'Aberto' para 'Analisado' após avaliação GUT",
         ],
-        roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato"],
+         roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato", "Auxiliar de Fiscal"],
         tip: "A análise GUT é fundamental pois define a prioridade da Ordem de Serviço gerada a partir dos chamados vinculados.",
       },
       {
