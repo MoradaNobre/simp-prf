@@ -566,6 +566,29 @@ const SECTIONS: ManualSection[] = [
         roles: ["Gestor Master", "Gestor Nacional"],
       },
       {
+        title: "Monitoramento de Edge Functions",
+        description: "Painel de observabilidade das funções serverless do sistema.",
+        details: [
+          "Dashboard com taxa de sucesso, latência média e total de chamadas por função",
+          "Gráficos de distribuição de chamadas e latência ao longo do tempo",
+          "Logs detalhados com status, tempo de resposta e mensagens de erro",
+          "Botão de teste de saúde (health check) para validar funções ativas",
+          "Configuração de alertas e limiares de monitoramento",
+        ],
+        roles: ["Gestor Master", "Gestor Nacional"],
+      },
+      {
+        title: "Exportar Telas",
+        description: "Ferramenta para captura e exportação de telas do sistema em formato de imagem.",
+        details: [
+          "Lista de todas as telas e módulos disponíveis para captura",
+          "Exportação individual ou em lote de capturas de tela",
+          "Download como imagens PNG de alta resolução",
+          "Útil para documentação, apresentações e auditorias",
+        ],
+        roles: ["Gestor Master"],
+      },
+      {
         title: "Logs de Auditoria",
         description: "Registro automático de todas as operações críticas realizadas no sistema.",
         details: [
@@ -573,6 +596,7 @@ const SECTIONS: ManualSection[] = [
           "Dados anteriores (old_data) e posteriores (new_data) em JSON",
           "Data/hora e identificação do usuário",
           "Filtros por tabela, ação e período",
+          "Exclusão de logs disponível apenas para Gestor Master",
         ],
         roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional"],
       },
