@@ -145,7 +145,7 @@ const SECTIONS: ManualSection[] = [
           "Gráfico de barras com distribuição por tipo de demanda",
           "Filtro por regional disponível para gestores",
         ],
-        roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato", "Operador"],
+         roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato", "Auxiliar de Fiscal", "Operador"],
       },
       {
         title: "Aba Ordens de Serviço",
