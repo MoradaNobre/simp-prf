@@ -30,6 +30,10 @@ export default function GestaoContratosGov() {
   const qc = useQueryClient();
   const [activeTab, setActiveTab] = useState<"imports" | "logs">("imports");
   const [selectedRegionalOverride, setSelectedRegionalOverride] = useState<Record<string, string>>({});
+  const [searchText, setSearchText] = useState("");
+  const [filterUasg, setFilterUasg] = useState<string>("todos");
+  const [filterSituacao, setFilterSituacao] = useState<string>("todos");
+  const [filterSimp, setFilterSimp] = useState<string>("todos");
 
   const { data: mapping } = useUasgRegionalMapping();
   const activateMutation = useActivateGovContract();
