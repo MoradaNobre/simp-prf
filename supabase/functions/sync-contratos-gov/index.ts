@@ -8,8 +8,37 @@ const corsHeaders = {
 
 const API_BASE = "https://contratos.comprasnet.gov.br";
 
-// PRF UASGs typically start with 194
-const PRF_PREFIX = "194";
+// Official PRF UASG codes
+const PRF_UASGS = [
+  "200109", // Sede Nacional (Brasília-DF)
+  "200235", // SPRF/AC
+  "200129", // SPRF/AL
+  "200110", // SPRF/AM
+  "200233", // SPRF/AP
+  "200114", // SPRF/BA
+  "200112", // SPRF/CE
+  "200141", // SPRF/DF
+  "200126", // SPRF/ES
+  "200121", // SPRF/GO
+  "200124", // SPRF/MA
+  "200120", // SPRF/MT
+  "200128", // SPRF/MS
+  "200115", // SPRF/MG
+  "200111", // SPRF/PA
+  "200122", // SPRF/PB
+  "200113", // SPRF/PE
+  "200127", // SPRF/PI
+  "200116", // SPRF/RJ
+  "200123", // SPRF/RN
+  "200119", // SPRF/RS
+  "200131", // SPRF/RO
+  "200232", // SPRF/RR
+  "200125", // SPRF/SC
+  "200117", // SPRF/SP
+  "200130", // SPRF/SE
+  "200139", // SPRF/TO
+  "200229", // UniPRF
+];
 
 // Terms to filter for "manutenção predial"
 const FILTER_TERMS = [
@@ -121,24 +150,10 @@ Deno.serve(async (req) => {
   const errors: string[] = [];
 
   try {
-    // Step 1: Get all units with active contracts
-    console.log("[sync] Fetching unidades...");
-    const unidadesRes = await fetchWithRetry(`${API_BASE}/api/contrato/unidades`);
-    const unidades = await unidadesRes.json();
-
-    // Filter PRF UASGs (codes starting with 194)
-    const prfUnidades: any[] = [];
-    if (Array.isArray(unidades)) {
-      for (const u of unidades) {
-        const codigo = String(u.codigo || u.unidade_codigo || "");
-        if (codigo.startsWith(PRF_PREFIX)) {
-          prfUnidades.push(codigo);
-        }
-      }
-    }
-
+    // Step 1: Use official PRF UASG codes directly
+    const prfUnidades = PRF_UASGS;
     totalUasgs = prfUnidades.length;
-    console.log(`[sync] Found ${totalUasgs} PRF UASGs`);
+    console.log(`[sync] Using ${totalUasgs} official PRF UASGs`);
 
     // Step 2: For each UASG, fetch contracts and filter
     for (const uasgCodigo of prfUnidades) {
