@@ -63,13 +63,22 @@ export default function Contratos() {
   const handleBulkDelete = async () => {
     const ids = Array.from(selected);
     let success = 0;
+    let lastError: any = null;
     for (const id of ids) {
       try {
         await deleteContrato.mutateAsync(id);
         success++;
-      } catch {}
+      } catch (err) {
+        lastError = err;
+        console.error("Erro ao excluir contrato:", id, err);
+      }
     }
-    sonnerToast.success(`${success} contrato(s) excluído(s)`);
+    if (success > 0) {
+      sonnerToast.success(`${success} contrato(s) excluído(s)`);
+    }
+    if (lastError) {
+      sonnerToast.error(`Falha ao excluir ${ids.length - success} contrato(s). Verifique suas permissões.`);
+    }
     setSelected(new Set());
     setBulkDeleteConfirm(false);
   };
