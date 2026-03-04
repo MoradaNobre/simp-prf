@@ -143,6 +143,35 @@ export default function GestaoContratosGov() {
   const pendingCount = imports?.filter((i: any) => !i.contrato_simp_id).length ?? 0;
   const activatedCount = imports?.filter((i: any) => i.contrato_simp_id).length ?? 0;
 
+  // Unique UASG codes for filter
+  const uasgOptions = useMemo(() => {
+    if (!imports?.length) return [];
+    const unique = [...new Set(imports.map((i: any) => i.uasg_codigo))].sort();
+    return unique.map((code) => ({
+      code,
+      label: mapping?.[code] ? `${code} (${mapping[code].sigla})` : code,
+    }));
+  }, [imports, mapping]);
+
+  // Filtered imports
+  const filteredImports = useMemo(() => {
+    if (!imports) return [];
+    return imports.filter((c: any) => {
+      if (filterUasg !== "todos" && c.uasg_codigo !== filterUasg) return false;
+      if (filterSituacao !== "todos" && (c.situacao || "").toLowerCase() !== filterSituacao) return false;
+      if (filterSimp === "pendente" && c.contrato_simp_id) return false;
+      if (filterSimp === "ativado" && !c.contrato_simp_id) return false;
+      if (searchText) {
+        const q = searchText.toLowerCase();
+        const haystack = `${c.numero} ${c.empresa} ${c.objeto || ""}`.toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [imports, filterUasg, filterSituacao, filterSimp, searchText]);
+
+  const filteredPendingCount = filteredImports.filter((i: any) => !i.contrato_simp_id).length;
+
   const statusBadge = (status: string) => {
     switch (status) {
       case "concluido":
