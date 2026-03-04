@@ -4,7 +4,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { isAdminRole, isGlobalRole } from "@/utils/roles";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Shield, Users, Loader2, Map, Building2, MapPin, ScrollText, CreditCard, FileDown, Activity } from "lucide-react";
+import { Shield, Users, Loader2, Map, Building2, MapPin, ScrollText, CreditCard, FileDown, Activity, Globe } from "lucide-react";
 import GestaoUsuarios from "@/components/gestao/GestaoUsuarios";
 import GestaoRegionais from "@/components/gestao/GestaoRegionais";
 import GestaoDelegacias from "@/components/gestao/GestaoDelegacias";
@@ -12,6 +12,7 @@ import GestaoUops from "@/components/gestao/GestaoUops";
 import GestaoAuditLogs from "@/components/gestao/GestaoAuditLogs";
 import GestaoLimitesModalidade from "@/components/gestao/GestaoLimitesModalidade";
 import GestaoMonitoramento from "@/components/gestao/GestaoMonitoramento";
+import GestaoContratosGov from "@/components/gestao/GestaoContratosGov";
 import ExportarTelas from "@/pages/ExportarTelas";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -85,6 +86,12 @@ export default function Gestao() {
             </TabsTrigger>
           )}
           {isNacional && (
+            <TabsTrigger value="contratos-gov" className="flex items-center gap-1.5 text-xs sm:text-sm">
+              <Globe className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              {isMobile ? "Gov.br" : "Contratos Gov"}
+            </TabsTrigger>
+          )}
+          {isNacional && (
             <TabsTrigger value="logs" className="flex items-center gap-1.5 text-xs sm:text-sm">
               <ScrollText className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               Auditoria
@@ -149,6 +156,16 @@ export default function Gestao() {
             <Card>
               <CardContent className="pt-6 px-3 sm:px-6">
                 <GestaoMonitoramento />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
+
+        {isNacional && (
+          <TabsContent value="contratos-gov">
+            <Card>
+              <CardContent className="pt-6 px-3 sm:px-6">
+                <GestaoContratosGov />
               </CardContent>
             </Card>
           </TabsContent>

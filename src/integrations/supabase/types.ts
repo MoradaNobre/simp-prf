@@ -365,6 +365,135 @@ export type Database = {
           },
         ]
       }
+      contratos_gov_import: {
+        Row: {
+          atualizado_em: string
+          categoria: string | null
+          cnpj: string | null
+          contrato_gov_id: number
+          contrato_simp_id: string | null
+          data_assinatura: string | null
+          empenhos: Json | null
+          empresa: string
+          historico: Json | null
+          id: string
+          importado_em: string
+          modalidade: string | null
+          numero: string
+          objeto: string | null
+          processo: string | null
+          situacao: string | null
+          uasg_codigo: string
+          valor_acumulado: number | null
+          valor_global: number | null
+          valor_inicial: number | null
+          vigencia_fim: string | null
+          vigencia_inicio: string | null
+        }
+        Insert: {
+          atualizado_em?: string
+          categoria?: string | null
+          cnpj?: string | null
+          contrato_gov_id: number
+          contrato_simp_id?: string | null
+          data_assinatura?: string | null
+          empenhos?: Json | null
+          empresa: string
+          historico?: Json | null
+          id?: string
+          importado_em?: string
+          modalidade?: string | null
+          numero: string
+          objeto?: string | null
+          processo?: string | null
+          situacao?: string | null
+          uasg_codigo: string
+          valor_acumulado?: number | null
+          valor_global?: number | null
+          valor_inicial?: number | null
+          vigencia_fim?: string | null
+          vigencia_inicio?: string | null
+        }
+        Update: {
+          atualizado_em?: string
+          categoria?: string | null
+          cnpj?: string | null
+          contrato_gov_id?: number
+          contrato_simp_id?: string | null
+          data_assinatura?: string | null
+          empenhos?: Json | null
+          empresa?: string
+          historico?: Json | null
+          id?: string
+          importado_em?: string
+          modalidade?: string | null
+          numero?: string
+          objeto?: string | null
+          processo?: string | null
+          situacao?: string | null
+          uasg_codigo?: string
+          valor_acumulado?: number | null
+          valor_global?: number | null
+          valor_inicial?: number | null
+          vigencia_fim?: string | null
+          vigencia_inicio?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contratos_gov_import_contrato_simp_id_fkey"
+            columns: ["contrato_simp_id"]
+            isOneToOne: false
+            referencedRelation: "contratos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contratos_gov_import_contrato_simp_id_fkey"
+            columns: ["contrato_simp_id"]
+            isOneToOne: false
+            referencedRelation: "contratos_saldo"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contratos_gov_sync_log: {
+        Row: {
+          detalhes: Json | null
+          finalizado_em: string | null
+          id: string
+          iniciado_em: string
+          iniciado_por: string | null
+          status: string
+          total_contratos: number | null
+          total_erros: number | null
+          total_importados: number | null
+          total_uasgs: number | null
+        }
+        Insert: {
+          detalhes?: Json | null
+          finalizado_em?: string | null
+          id?: string
+          iniciado_em?: string
+          iniciado_por?: string | null
+          status?: string
+          total_contratos?: number | null
+          total_erros?: number | null
+          total_importados?: number | null
+          total_uasgs?: number | null
+        }
+        Update: {
+          detalhes?: Json | null
+          finalizado_em?: string | null
+          id?: string
+          iniciado_em?: string
+          iniciado_por?: string | null
+          status?: string
+          total_contratos?: number | null
+          total_erros?: number | null
+          total_importados?: number | null
+          total_uasgs?: number | null
+        }
+        Relationships: []
+      }
       delegacias: {
         Row: {
           created_at: string
