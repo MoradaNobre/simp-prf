@@ -45,12 +45,13 @@ export default function GestaoRegionais() {
   });
 
   const upsert = useMutation({
-    mutationFn: async (values: { id?: string; nome: string; sigla: string; uf: string }) => {
+    mutationFn: async (values: { id?: string; nome: string; sigla: string; uf: string; uasg_codigo?: string | null }) => {
+      const payload = { nome: values.nome, sigla: values.sigla, uf: values.uf, uasg_codigo: values.uasg_codigo || null } as any;
       if (values.id) {
-        const { error } = await supabase.from("regionais").update({ nome: values.nome, sigla: values.sigla, uf: values.uf }).eq("id", values.id);
+        const { error } = await supabase.from("regionais").update(payload).eq("id", values.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("regionais").insert({ nome: values.nome, sigla: values.sigla, uf: values.uf });
+        const { error } = await supabase.from("regionais").insert(payload);
         if (error) throw error;
       }
     },
