@@ -473,9 +473,11 @@ export default function OrdensServico() {
                           <Button size="icon" variant="ghost" title="Editar OS" onClick={() => setEditOS(os)}>
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button size="icon" variant="ghost" title="Excluir OS" onClick={() => setDeleteId(os.id)}>
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
+                          {canDeleteOS && (
+                            <Button size="icon" variant="ghost" title="Excluir OS" onClick={() => setDeleteId(os.id)}>
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     )}
