@@ -586,7 +586,7 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
 
       {/* Edit Dialog - only for gestor_nacional */}
       <Dialog open={!!editUser} onOpenChange={(o) => { if (!o) setEditUser(null); }}>
-        <DialogContent className="sm:max-w-md max-h-[85vh] flex flex-col">
+        <DialogContent className="sm:max-w-lg max-h-[85vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Editar Usuário</DialogTitle>
             <DialogDescription>{editUser?.full_name}</DialogDescription>
