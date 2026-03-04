@@ -516,8 +516,9 @@ const SECTIONS: ManualSection[] = [
       {
         title: "Gestão de Regionais",
         description: "Cadastro e manutenção das regionais da PRF.",
-        details: [
-          "Nome, sigla e UF da regional",
+         details: [
+          "Código UASG, nome, sigla e UF da regional",
+          "UASG exibido como primeira coluna da tabela",
           "Base para toda a segmentação de dados do sistema",
         ],
         roles: ["Gestor Master"],
