@@ -52,7 +52,7 @@ const stepConfig: Record<string, { label: string; desc: string; icon: React.Elem
     activeColor: "bg-emerald-600",
   },
   pagamento: {
-    label: "Pagamento",
+    label: "Ateste",
     desc: "Documentos fiscais",
     icon: DollarSign,
     color: "from-emerald-700 to-teal-700",
