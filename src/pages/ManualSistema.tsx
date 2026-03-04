@@ -122,7 +122,7 @@ const SECTIONS: ManualSection[] = [
           "1. Abertura do Chamado: Operador ou Fiscal registra a demanda de manutenção",
           "2. Análise GUT: Fiscal avalia Gravidade, Urgência e Tendência (escala 1-5)",
           "3. Agrupamento: Chamados analisados são vinculados a uma Ordem de Serviço",
-          "4. Ciclo da OS: Aberta → Orçamento → Autorização → Execução → Ateste → Faturamento → Pagamento → Encerrada",
+           "4. Ciclo da OS: Aberta → Orçamento → Autorização → Execução → Receb. Serviço → Faturamento → Ateste → Encerrada",
         ],
       },
     ],
