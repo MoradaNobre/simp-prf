@@ -141,13 +141,17 @@ export default function Contratos() {
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0 sm:p-6 sm:pt-0">
-          {isLoading ? (
-            <p className="text-muted-foreground text-sm p-4">Carregando...</p>
-          ) : contratos.length === 0 ? (
-            <p className="text-muted-foreground text-sm p-4">Nenhum contrato cadastrado.</p>
-          ) : isMobile ? (
+          {(() => {
+            const hoje = new Date();
+            const filtered = contratos.filter((c) => {
+              if (statusFilter === "todos") return true;
+              const isVigente = hoje >= new Date(c.data_inicio + "T00:00:00") && hoje <= new Date(c.data_fim + "T23:59:59");
+              return statusFilter === "vigente" ? isVigente : !isVigente;
+            });
+            if (filtered.length === 0) return <p className="text-muted-foreground text-sm p-4">Nenhum contrato encontrado.</p>;
+            return isMobile ? (
             <div className="space-y-3 p-3">
-              {contratos.map((c) => {
+              {filtered.map((c) => {
                 const s = saldos.find((x: any) => x.id === c.id);
                 const saldo = s ? Number(s.saldo) : null;
                 const pct = s && c.valor_total > 0 ? Math.round((Number(s.total_custos) / c.valor_total) * 100) : 0;
