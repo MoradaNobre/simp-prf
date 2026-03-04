@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSignedUrl } from "@/hooks/useSignedUrl";
 import { useNavigate } from "react-router-dom";
-import { isAdminRole } from "@/utils/roles";
+import { isAdminRole, isFiscalRole } from "@/utils/roles";
 import { getStatusFlowForTipo, bypassesContractBalance, bypassesBudgetBlocking, tipoServicoLabel } from "@/utils/modalidade";
 import { OSStatusStepper } from "@/components/os/OSStatusStepper";
 

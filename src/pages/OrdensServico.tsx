@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { isAdminRole } from "@/utils/roles";
+import { isAdminRole, isFiscalRole } from "@/utils/roles";
 import { format } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

@@ -19,7 +19,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useRegionalFilter } from "@/hooks/useRegionalFilter";
 import { RegionalFilterSelect } from "@/components/RegionalFilterSelect";
-import { isAdminRole } from "@/utils/roles";
+import { isAdminRole, isFiscalRole } from "@/utils/roles";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { format } from "date-fns";

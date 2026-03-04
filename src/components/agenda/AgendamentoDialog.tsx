@@ -13,6 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon, Loader2, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCreateAgendamento, useUpdateAgendamento, useDeleteAgendamento, type Agendamento } from "@/hooks/useAgendamentos";
+import { isFiscalRole } from "@/utils/roles";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { toast } from "sonner";

@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { isAdminRole, isGlobalRole } from "@/utils/roles";
+import { isAdminRole, isGlobalRole, isFiscalRole } from "@/utils/roles";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { Loader2, DollarSign, Plus, Pencil, Trash2, TrendingUp, TrendingDown, CircleDot, FileSpreadsheet, AlertTriangle, Landmark } from "lucide-react";
 import ExcelJS from "exceljs";

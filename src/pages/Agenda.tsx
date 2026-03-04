@@ -4,6 +4,7 @@ import { useAgendamentos, type Agendamento } from "@/hooks/useAgendamentos";
 import { AgendaCalendar } from "@/components/agenda/AgendaCalendar";
 import { AgendamentoDialog } from "@/components/agenda/AgendamentoDialog";
 import { useUserRole } from "@/hooks/useUserRole";
+import { isFiscalRole } from "@/utils/roles";
 
 export default function Agenda() {
   const { data: role } = useUserRole();

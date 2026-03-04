@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { isAdminRole } from "@/utils/roles";
+import { isAdminRole, isFiscalRole } from "@/utils/roles";
 import { useSolicitacoesCredito, useRespondSolicitacaoCredito, useCreateSolicitacaoCredito, useDeleteSolicitacaoCredito } from "@/hooks/useSaldoOrcamentario";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
