@@ -86,6 +86,12 @@ export default function Gestao() {
             </TabsTrigger>
           )}
           {isNacional && (
+            <TabsTrigger value="contratos-gov" className="flex items-center gap-1.5 text-xs sm:text-sm">
+              <Globe className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              {isMobile ? "Gov.br" : "Contratos Gov"}
+            </TabsTrigger>
+          )}
+          {isNacional && (
             <TabsTrigger value="logs" className="flex items-center gap-1.5 text-xs sm:text-sm">
               <ScrollText className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               Auditoria
