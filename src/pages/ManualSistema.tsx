@@ -229,7 +229,7 @@ const SECTIONS: ManualSection[] = [
           "Justificativa de cancelamento é campo obrigatório",
           "Após cancelamento, o chamado não pode ser reaberto",
         ],
-        roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato", "Operador"],
+        roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato", "Auxiliar de Fiscal", "Operador"],
         tip: "Operadores só podem cancelar seus próprios chamados.",
       },
       {
