@@ -5,7 +5,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { FileText, Plus, Users, Phone, Pencil, Trash2, FileDown, Loader2, FilePlus2, Copy } from "lucide-react";
+import { FileText, Plus, Users, Phone, Pencil, Trash2, FileDown, Loader2, FilePlus2, Copy, Filter } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useContratos, useContratosSaldo, useDeleteContrato, type Contrato } from "@/hooks/useContratos";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useRegionalFilter } from "@/hooks/useRegionalFilter";
@@ -48,6 +49,7 @@ export default function Contratos() {
   const [aditivosContrato, setAditivosContrato] = useState<{ id: string; empresa: string } | null>(null);
   const [generatingPdf, setGeneratingPdf] = useState<string | null>(null);
   const [duplicateValues, setDuplicateValues] = useState<NovoContratoInitialValues | undefined>(undefined);
+  const [statusFilter, setStatusFilter] = useState<"todos" | "vigente" | "encerrado">("todos");
 
   const handleDuplicate = (c: any) => {
     setDuplicateValues({
@@ -115,11 +117,22 @@ export default function Contratos() {
         )}
       </div>
 
-      {isNacional && (
-        <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
+        {isNacional && (
           <RegionalFilterSelect value={selectedRegionalId} onChange={setSelectedRegionalId} />
-        </div>
-      )}
+        )}
+        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
+          <SelectTrigger className="w-[160px]">
+            <Filter className="h-4 w-4 mr-2 text-muted-foreground" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todos os Status</SelectItem>
+            <SelectItem value="vigente">Vigente</SelectItem>
+            <SelectItem value="encerrado">Encerrado</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
       <Card>
         <CardHeader className="pb-3">
@@ -132,13 +145,20 @@ export default function Contratos() {
             <p className="text-muted-foreground text-sm p-4">Carregando...</p>
           ) : contratos.length === 0 ? (
             <p className="text-muted-foreground text-sm p-4">Nenhum contrato cadastrado.</p>
-          ) : isMobile ? (
+          ) : (() => {
+            const hoje = new Date();
+            const filtered = contratos.filter((c) => {
+              if (statusFilter === "todos") return true;
+              const isVigente = hoje >= new Date(c.data_inicio + "T00:00:00") && hoje <= new Date(c.data_fim + "T23:59:59");
+              return statusFilter === "vigente" ? isVigente : !isVigente;
+            });
+            if (filtered.length === 0) return <p className="text-muted-foreground text-sm p-4">Nenhum contrato encontrado para o filtro selecionado.</p>;
+            return isMobile ? (
             <div className="space-y-3 p-3">
-              {contratos.map((c) => {
+              {filtered.map((c) => {
                 const s = saldos.find((x: any) => x.id === c.id);
                 const saldo = s ? Number(s.saldo) : null;
                 const pct = s && c.valor_total > 0 ? Math.round((Number(s.total_custos) / c.valor_total) * 100) : 0;
-                const hoje = new Date();
                 const computedStatus = hoje >= new Date(c.data_inicio + "T00:00:00") && hoje <= new Date(c.data_fim + "T23:59:59") ? "vigente" : "encerrado";
                 return (
                   <Card key={c.id} className="border">
@@ -178,40 +198,23 @@ export default function Contratos() {
                         </div>
                       )}
                       <div className="flex justify-end gap-1 pt-1" onClick={(e) => e.stopPropagation()}>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-8 w-8"
-                          title="Relatório PDF"
-                          disabled={generatingPdf === c.id}
-                          onClick={() => handleGenerateReport(c)}
-                        >
+                        <Button size="icon" variant="ghost" className="h-8 w-8" title="Relatório PDF" disabled={generatingPdf === c.id} onClick={() => handleGenerateReport(c)}>
                           {generatingPdf === c.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileDown className="h-3.5 w-3.5" />}
                         </Button>
                         {c.tipo_servico === "cartao_corporativo" && canManage && (
-                          <Button size="icon" variant="ghost" className="h-8 w-8" title="Duplicar contrato" onClick={() => handleDuplicate(c)}>
-                            <Copy className="h-3.5 w-3.5" />
-                          </Button>
+                          <Button size="icon" variant="ghost" className="h-8 w-8" title="Duplicar contrato" onClick={() => handleDuplicate(c)}><Copy className="h-3.5 w-3.5" /></Button>
                         )}
                         {canManage && (
-                          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditContrato(c as Contrato)}>
-                            <Pencil className="h-3.5 w-3.5" />
-                          </Button>
+                          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditContrato(c as Contrato)}><Pencil className="h-3.5 w-3.5" /></Button>
                         )}
                         {(canManage || isPreposto) && (
-                          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setContatosContrato({ id: c.id, empresa: c.empresa })}>
-                            <Users className="h-3.5 w-3.5" />
-                          </Button>
+                          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setContatosContrato({ id: c.id, empresa: c.empresa })}><Users className="h-3.5 w-3.5" /></Button>
                         )}
                         {canManage && (
-                          <Button size="icon" variant="ghost" className="h-8 w-8" title="Aditivos" onClick={() => setAditivosContrato({ id: c.id, empresa: c.empresa })}>
-                            <FilePlus2 className="h-3.5 w-3.5" />
-                          </Button>
+                          <Button size="icon" variant="ghost" className="h-8 w-8" title="Aditivos" onClick={() => setAditivosContrato({ id: c.id, empresa: c.empresa })}><FilePlus2 className="h-3.5 w-3.5" /></Button>
                         )}
                         {canDelete && (
-                          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setDeleteId(c.id)}>
-                            <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                          </Button>
+                          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setDeleteId(c.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
                         )}
                       </div>
                     </CardContent>
@@ -219,7 +222,7 @@ export default function Contratos() {
                 );
               })}
             </div>
-          ) : (
+            ) : (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -236,7 +239,7 @@ export default function Contratos() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {contratos.map((c) => (
+                {filtered.map((c) => (
                   <TableRow key={c.id}>
                     <TableCell className="font-medium">{c.numero}</TableCell>
                     <TableCell className="text-sm">{(c as any).regionais?.sigla ?? "—"}</TableCell>
@@ -287,7 +290,6 @@ export default function Contratos() {
                     </TableCell>
                     <TableCell>
                       {(() => {
-                        const hoje = new Date();
                         const inicio = new Date(c.data_inicio + "T00:00:00");
                         const fim = new Date(c.data_fim + "T23:59:59");
                         const computedStatus = hoje >= inicio && hoje <= fim ? "vigente" : "encerrado";
@@ -298,64 +300,23 @@ export default function Contratos() {
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-1">
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          title="Relatório PDF"
-                          disabled={generatingPdf === c.id}
-                          onClick={() => handleGenerateReport(c)}
-                        >
+                        <Button size="icon" variant="ghost" title="Relatório PDF" disabled={generatingPdf === c.id} onClick={() => handleGenerateReport(c)}>
                           {generatingPdf === c.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
                         </Button>
                         {(c as any).tipo_servico === "cartao_corporativo" && canManage && (
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            title="Duplicar contrato"
-                            onClick={() => handleDuplicate(c)}
-                          >
-                            <Copy className="h-4 w-4" />
-                          </Button>
+                          <Button size="icon" variant="ghost" title="Duplicar contrato" onClick={() => handleDuplicate(c)}><Copy className="h-4 w-4" /></Button>
                         )}
                         {canManage && (
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            title="Editar contrato"
-                            onClick={() => setEditContrato(c as Contrato)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
+                          <Button size="icon" variant="ghost" title="Editar contrato" onClick={() => setEditContrato(c as Contrato)}><Pencil className="h-4 w-4" /></Button>
                         )}
                         {(canManage || isPreposto) && (
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            title="Responsáveis da empresa"
-                            onClick={() => setContatosContrato({ id: c.id, empresa: c.empresa })}
-                          >
-                            <Users className="h-4 w-4" />
-                          </Button>
+                          <Button size="icon" variant="ghost" title="Responsáveis da empresa" onClick={() => setContatosContrato({ id: c.id, empresa: c.empresa })}><Users className="h-4 w-4" /></Button>
                         )}
                         {canManage && (
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            title="Aditivos contratuais"
-                            onClick={() => setAditivosContrato({ id: c.id, empresa: c.empresa })}
-                          >
-                            <FilePlus2 className="h-4 w-4" />
-                          </Button>
+                          <Button size="icon" variant="ghost" title="Aditivos contratuais" onClick={() => setAditivosContrato({ id: c.id, empresa: c.empresa })}><FilePlus2 className="h-4 w-4" /></Button>
                         )}
                         {canDelete && (
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            title="Excluir contrato"
-                            onClick={() => setDeleteId(c.id)}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
+                          <Button size="icon" variant="ghost" title="Excluir contrato" onClick={() => setDeleteId(c.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                         )}
                       </div>
                     </TableCell>
@@ -363,7 +324,8 @@ export default function Contratos() {
                 ))}
               </TableBody>
             </Table>
-          )}
+            );
+          })()}
         </CardContent>
       </Card>
 
