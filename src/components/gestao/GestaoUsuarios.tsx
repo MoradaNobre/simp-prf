@@ -586,15 +586,30 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
 
       {/* Edit Dialog - only for gestor_nacional */}
       <Dialog open={!!editUser} onOpenChange={(o) => { if (!o) setEditUser(null); }}>
-        <DialogContent className="sm:max-w-xl max-h-[85vh] flex flex-col">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-xl max-h-[85vh] flex flex-col gap-0">
+          <DialogHeader className="pb-4 border-b">
             <DialogTitle>Editar Usuário</DialogTitle>
             <DialogDescription>{editUser?.full_name}</DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 overflow-y-auto flex-1 pr-1">
-            <div>
-              <Label>Nome</Label>
-              <Input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Nome completo" />
+          <div className="space-y-4 overflow-y-auto flex-1 py-4 px-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label>Nome</Label>
+                <Input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Nome completo" />
+              </div>
+              <div>
+                <Label>Telefone (com DDD)</Label>
+                <Input
+                  value={editPhone}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, "").slice(0, 11);
+                    if (digits.length <= 2) setEditPhone(digits);
+                    else if (digits.length <= 7) setEditPhone(`(${digits.slice(0, 2)}) ${digits.slice(2)}`);
+                    else setEditPhone(`(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`);
+                  }}
+                  placeholder="(81) 99507-3100"
+                />
+              </div>
             </div>
             <div>
               <Label>E-mail</Label>
@@ -605,45 +620,34 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
                 )}
               </p>
             </div>
-            <div>
-              <Label>Telefone (com DDD)</Label>
-              <Input
-                value={editPhone}
-                onChange={(e) => {
-                  const digits = e.target.value.replace(/\D/g, "").slice(0, 11);
-                  if (digits.length <= 2) setEditPhone(digits);
-                  else if (digits.length <= 7) setEditPhone(`(${digits.slice(0, 2)}) ${digits.slice(2)}`);
-                  else setEditPhone(`(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`);
-                }}
-                placeholder="(81) 99507-3100"
-              />
-            </div>
-            <div>
-              <Label>Papel</Label>
-              <Select value={editRole} onValueChange={setEditRole}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                {[...assignableRoles].sort((a, b) => (roleLabels[a] || a).localeCompare(roleLabels[b] || b)).map((r) => (
-                    <SelectItem key={r} value={r}>{roleLabels[r]}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            {["gestor_regional", "gestor_nacional", "gestor_master", "fiscal_contrato", "auxiliar_fiscal"].includes(editRole) && (
-              <div className="flex items-center gap-2 border rounded-md p-3">
-                <Checkbox
-                  id="suprido-check"
-                  checked={editSuprido}
-                  onCheckedChange={(checked) => setEditSuprido(!!checked)}
-                />
-                <label htmlFor="suprido-check" className="text-sm cursor-pointer leading-none">
-                  Suprido (preposto do cartão corporativo)
-                </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+              <div>
+                <Label>Papel</Label>
+                <Select value={editRole} onValueChange={setEditRole}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                  {[...assignableRoles].sort((a, b) => (roleLabels[a] || a).localeCompare(roleLabels[b] || b)).map((r) => (
+                      <SelectItem key={r} value={r}>{roleLabels[r]}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-            )}
+              {["gestor_regional", "gestor_nacional", "gestor_master", "fiscal_contrato", "auxiliar_fiscal"].includes(editRole) && (
+                <div className="flex items-center gap-2 border rounded-md p-3 sm:mt-5">
+                  <Checkbox
+                    id="suprido-check"
+                    checked={editSuprido}
+                    onCheckedChange={(checked) => setEditSuprido(!!checked)}
+                  />
+                  <label htmlFor="suprido-check" className="text-sm cursor-pointer leading-none">
+                    Suprido (cartão corporativo)
+                  </label>
+                </div>
+              )}
+            </div>
             <div>
               <Label>Regionais</Label>
-              <div className="mt-2 max-h-48 overflow-y-auto space-y-2 border rounded-md p-3">
+              <div className="mt-2 max-h-40 overflow-y-auto space-y-1.5 border rounded-md p-3">
                 {availableRegionais.map((r) => (
                   <div key={r.id} className="flex items-center gap-2">
                     <Checkbox
@@ -665,7 +669,7 @@ export default function GestaoUsuarios({ currentUserRole }: Props) {
               </div>
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="pt-4 border-t">
             <Button variant="outline" onClick={() => setEditUser(null)}>Cancelar</Button>
             <Button onClick={handleSave} disabled={updateRole.isPending || updateRegionais.isPending}>
               {(updateRole.isPending || updateRegionais.isPending) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
