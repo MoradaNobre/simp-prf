@@ -336,6 +336,7 @@ export default function OrdensServico() {
                 key={os.id}
                 os={os}
                 canManage={!!canManage}
+                canDelete={canDeleteOS}
                 onSelect={setSelectedOS}
                 onEdit={setEditOS}
                 onDelete={setDeleteId}
