@@ -155,6 +155,11 @@ export default function Contratos() {
             <SelectItem value="encerrado">Encerrado</SelectItem>
           </SelectContent>
         </Select>
+        {canDelete && selected.size > 0 && (
+          <Button variant="destructive" size="sm" onClick={() => setBulkDeleteConfirm(true)}>
+            <Trash2 className="h-4 w-4 mr-1" /> Excluir {selected.size}
+          </Button>
+        )}
       </div>
 
       <Card>
