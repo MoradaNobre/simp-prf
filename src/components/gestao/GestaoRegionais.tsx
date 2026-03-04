@@ -153,6 +153,7 @@ export default function GestaoRegionais() {
               <TableHead>Sigla</TableHead>
               <TableHead>Nome</TableHead>
               <TableHead>UF</TableHead>
+              <TableHead>UASG</TableHead>
               <TableHead className="w-24">Ações</TableHead>
             </TableRow>
           </TableHeader>
