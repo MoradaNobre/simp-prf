@@ -255,7 +255,7 @@ export function AgendamentoDialog({ open, onOpenChange, agendamento, osId, osCod
             )}
 
             {participantes.length > 0 && (
-              <div className="space-y-1.5 border rounded-md p-2 bg-muted/30">
+              <div ref={participantesListRef} className="space-y-1.5 border rounded-md p-2 bg-muted/30">
                 {participantes.map((p, i) => (
                   <div key={i} className="flex items-center gap-2 text-sm bg-background rounded-md px-3 py-1.5 border">
                     <span className="flex-1 truncate font-medium">{p.nome}</span>
