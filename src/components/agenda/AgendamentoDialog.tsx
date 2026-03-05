@@ -185,6 +185,9 @@ export function AgendamentoDialog({ open, onOpenChange, agendamento, osId, osCod
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEdit ? "Editar Agendamento" : "Novo Agendamento"}</DialogTitle>
+          <DialogDescription className="sr-only">
+            Formulário para {isEdit ? "editar" : "criar"} agendamento de visita com participantes.
+          </DialogDescription>
           {(osCodigo || agendamento?.ordens_servico?.codigo) && (
             <Badge variant="outline" className="w-fit">{osCodigo || agendamento?.ordens_servico?.codigo}</Badge>
           )}
