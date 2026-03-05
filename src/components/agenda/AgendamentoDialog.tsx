@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -58,6 +58,7 @@ export function AgendamentoDialog({ open, onOpenChange, agendamento, osId, osCod
   const [participantes, setParticipantes] = useState<{ nome: string; cpf: string }[]>([]);
   const [novoNome, setNovoNome] = useState("");
   const [novoCpf, setNovoCpf] = useState("");
+  const participantesListRef = useRef<HTMLDivElement>(null);
 
   // Load existing participantes when editing
   const { data: existingParticipantes = [] } = useAgendamentoParticipantes(agendamento?.id);
@@ -101,6 +102,7 @@ export function AgendamentoDialog({ open, onOpenChange, agendamento, osId, osCod
     setNovoNome("");
     setNovoCpf("");
     toast.success(`Participante "${nome}" adicionado.`);
+    setTimeout(() => participantesListRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 100);
   };
 
   const handleRemoveParticipante = (index: number) => {
@@ -253,7 +255,7 @@ export function AgendamentoDialog({ open, onOpenChange, agendamento, osId, osCod
             )}
 
             {participantes.length > 0 && (
-              <div className="space-y-1.5 border rounded-md p-2 bg-muted/30">
+              <div ref={participantesListRef} className="space-y-1.5 border rounded-md p-2 bg-muted/30">
                 {participantes.map((p, i) => (
                   <div key={i} className="flex items-center gap-2 text-sm bg-background rounded-md px-3 py-1.5 border">
                     <span className="flex-1 truncate font-medium">{p.nome}</span>
