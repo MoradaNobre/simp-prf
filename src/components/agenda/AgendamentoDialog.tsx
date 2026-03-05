@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -61,7 +61,7 @@ export function AgendamentoDialog({ open, onOpenChange, agendamento, osId, osCod
   const participantesListRef = useRef<HTMLDivElement>(null);
 
   // Load existing participantes when editing
-  const { data: existingParticipantes = [] } = useAgendamentoParticipantes(agendamento?.id);
+  const { data: existingParticipantes } = useAgendamentoParticipantes(agendamento?.id);
 
   useEffect(() => {
     if (agendamento) {
@@ -86,11 +86,15 @@ export function AgendamentoDialog({ open, onOpenChange, agendamento, osId, osCod
 
   // Sync existing participantes into local state when loaded
   useEffect(() => {
-    if (isEdit && existingParticipantes.length > 0) {
-      setParticipantes(existingParticipantes.map(p => ({ nome: p.nome, cpf: p.cpf })));
-    } else if (!isEdit) {
+    if (!open) return;
+
+    if (!isEdit) {
       setParticipantes([]);
+      return;
     }
+
+    const mapped = (existingParticipantes ?? []).map((p) => ({ nome: p.nome, cpf: p.cpf }));
+    setParticipantes(mapped);
   }, [existingParticipantes, isEdit, open]);
 
   const handleAddParticipante = () => {
@@ -181,6 +185,9 @@ export function AgendamentoDialog({ open, onOpenChange, agendamento, osId, osCod
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEdit ? "Editar Agendamento" : "Novo Agendamento"}</DialogTitle>
+          <DialogDescription className="sr-only">
+            Formulário para {isEdit ? "editar" : "criar"} agendamento de visita com participantes.
+          </DialogDescription>
           {(osCodigo || agendamento?.ordens_servico?.codigo) && (
             <Badge variant="outline" className="w-fit">{osCodigo || agendamento?.ordens_servico?.codigo}</Badge>
           )}
