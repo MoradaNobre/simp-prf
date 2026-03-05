@@ -102,6 +102,7 @@ export function AgendamentoDialog({ open, onOpenChange, agendamento, osId, osCod
     setNovoNome("");
     setNovoCpf("");
     toast.success(`Participante "${nome}" adicionado.`);
+    setTimeout(() => participantesListRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 100);
   };
 
   const handleRemoveParticipante = (index: number) => {
