@@ -61,7 +61,7 @@ export function AgendamentoDialog({ open, onOpenChange, agendamento, osId, osCod
   const participantesListRef = useRef<HTMLDivElement>(null);
 
   // Load existing participantes when editing
-  const { data: existingParticipantes = [] } = useAgendamentoParticipantes(agendamento?.id);
+  const { data: existingParticipantes } = useAgendamentoParticipantes(agendamento?.id);
 
   useEffect(() => {
     if (agendamento) {
