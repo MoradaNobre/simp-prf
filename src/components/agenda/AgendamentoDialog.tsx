@@ -223,23 +223,10 @@ export function AgendamentoDialog({ open, onOpenChange, agendamento, osId, osCod
           <div className="space-y-2">
             <Label className="flex items-center gap-1.5">
               <Users className="h-4 w-4" /> Participantes da visita
+              {participantes.length > 0 && (
+                <Badge variant="secondary" className="ml-1 text-xs">{participantes.length}</Badge>
+              )}
             </Label>
-
-            {participantes.length > 0 && (
-              <div className="space-y-1.5">
-                {participantes.map((p, i) => (
-                  <div key={i} className="flex items-center gap-2 text-sm bg-muted/50 rounded-md px-3 py-1.5">
-                    <span className="flex-1 truncate font-medium">{p.nome}</span>
-                    <span className="text-muted-foreground font-mono text-xs">{p.cpf}</span>
-                    {canEdit && (
-                      <Button type="button" variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => handleRemoveParticipante(i)}>
-                        <X className="h-3.5 w-3.5" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
 
             {canEdit && (
               <div className="flex gap-2 items-end">
@@ -262,6 +249,22 @@ export function AgendamentoDialog({ open, onOpenChange, agendamento, osId, osCod
                 <Button type="button" variant="outline" size="icon" className="shrink-0" onClick={handleAddParticipante}>
                   <Plus className="h-4 w-4" />
                 </Button>
+              </div>
+            )}
+
+            {participantes.length > 0 && (
+              <div className="space-y-1.5 border rounded-md p-2 bg-muted/30">
+                {participantes.map((p, i) => (
+                  <div key={i} className="flex items-center gap-2 text-sm bg-background rounded-md px-3 py-1.5 border">
+                    <span className="flex-1 truncate font-medium">{p.nome}</span>
+                    <span className="text-muted-foreground font-mono text-xs">{p.cpf}</span>
+                    {canEdit && (
+                      <Button type="button" variant="ghost" size="icon" className="h-6 w-6 shrink-0 text-destructive" onClick={() => handleRemoveParticipante(i)}>
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
 
