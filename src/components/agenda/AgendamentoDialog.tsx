@@ -58,6 +58,7 @@ export function AgendamentoDialog({ open, onOpenChange, agendamento, osId, osCod
   const [participantes, setParticipantes] = useState<{ nome: string; cpf: string }[]>([]);
   const [novoNome, setNovoNome] = useState("");
   const [novoCpf, setNovoCpf] = useState("");
+  const participantesListRef = useRef<HTMLDivElement>(null);
 
   // Load existing participantes when editing
   const { data: existingParticipantes = [] } = useAgendamentoParticipantes(agendamento?.id);
