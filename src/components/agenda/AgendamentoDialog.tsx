@@ -86,11 +86,15 @@ export function AgendamentoDialog({ open, onOpenChange, agendamento, osId, osCod
 
   // Sync existing participantes into local state when loaded
   useEffect(() => {
-    if (isEdit && existingParticipantes.length > 0) {
-      setParticipantes(existingParticipantes.map(p => ({ nome: p.nome, cpf: p.cpf })));
-    } else if (!isEdit) {
+    if (!open) return;
+
+    if (!isEdit) {
       setParticipantes([]);
+      return;
     }
+
+    const mapped = (existingParticipantes ?? []).map((p) => ({ nome: p.nome, cpf: p.cpf }));
+    setParticipantes(mapped);
   }, [existingParticipantes, isEdit, open]);
 
   const handleAddParticipante = () => {
