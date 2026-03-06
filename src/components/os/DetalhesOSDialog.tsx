@@ -121,12 +121,6 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
   );
     }
 
-    // Validation for ateste: must upload execution report
-    if (nextStatus === "ateste" && !relatorioExecucao && !(os as any).relatorio_execucao_preposto) {
-      toast.error("Anexe o relatório de execução do serviço antes de submeter para ateste");
-      return;
-    }
-
   // Check if this OS was created from chamados
   const { data: linkedChamados = [] } = useQuery({
     queryKey: ["os-linked-chamados-detalhes", os?.id],
