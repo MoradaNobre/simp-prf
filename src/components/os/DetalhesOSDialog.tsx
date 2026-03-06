@@ -25,7 +25,7 @@ import { useUserProfile } from "@/hooks/useUserProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { monitoredInvoke } from "@/utils/monitoredInvoke";
 import { toast } from "sonner";
-import { Loader2, Camera, DollarSign, User, FileText, Upload, CheckCircle, Download, Undo2, AlertTriangle, ShieldAlert, FilePlus2, Archive } from "lucide-react";
+import { Loader2, Camera, DollarSign, User, FileText, Upload, CheckCircle, Download, Undo2, AlertTriangle, ShieldAlert, FilePlus2, Archive, Clock } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { generateOSReport } from "@/utils/generateOSReport";
 import { generateOSExecucaoReport } from "@/utils/generateOSExecucaoReport";
@@ -90,6 +90,8 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   const [descricaoDetalhada, setDescricaoDetalhada] = useState("");
   const [motivoSolicitacao, setMotivoSolicitacao] = useState("");
   const [showSolicitacao, setShowSolicitacao] = useState(false);
+  const [prazoOrcamento, setPrazoOrcamento] = useState("");
+  const [prazoExecucao, setPrazoExecucao] = useState("");
   const [downloadingZip, setDownloadingZip] = useState(false);
 
   // Signed URLs for secure file display
@@ -204,6 +206,8 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
     setValorOrcamento("");
     setArquivoOrcamento(null);
     setDocumentosPagamento(null);
+    setPrazoOrcamento((os as any)?.prazo_orcamento ?? "");
+    setPrazoExecucao((os as any)?.prazo_execucao ?? "");
   }, [os?.id, os?.contrato_id, os?.prioridade, os?.tipo]);
 
   if (!os) return null;
@@ -294,12 +298,20 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
           const separator = existing ? "\n\n--- Descrição complementar ---\n" : "";
           updates.descricao = existing + separator + descricaoDetalhada.trim();
         }
+        if (prazoOrcamento) {
+          updates.prazo_orcamento = prazoOrcamento;
+        }
       }
 
       if (nextStatus === "autorizacao" && arquivoOrcamento) {
         const url = await uploadFile(arquivoOrcamento, "orcamentos");
         updates.arquivo_orcamento = url;
         updates.valor_orcamento = parseFloat(valorOrcamento);
+      }
+
+      // Save prazo_execucao when authorizing execution
+      if (nextStatus === "execucao" && prazoExecucao) {
+        updates.prazo_execucao = prazoExecucao;
       }
 
       await updateOS.mutateAsync(updates);
@@ -687,7 +699,43 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
             )}
           </div>
 
-          {/* Contract balance info */}
+          {/* Deadline info and overdue warnings */}
+          {(() => {
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0);
+            const prazoOrc = (os as any).prazo_orcamento ? new Date((os as any).prazo_orcamento + "T23:59:59") : null;
+            const prazoExec = (os as any).prazo_execucao ? new Date((os as any).prazo_execucao + "T23:59:59") : null;
+            const orcVencido = prazoOrc && hoje > prazoOrc && os.status === "orcamento";
+            const execVencido = prazoExec && hoje > prazoExec && os.status === "execucao";
+            const showPrazoOrc = prazoOrc && ["orcamento", "autorizacao", "execucao", "ateste", "faturamento", "pagamento", "encerrada"].includes(os.status);
+            const showPrazoExec = prazoExec && ["execucao", "ateste", "faturamento", "pagamento", "encerrada"].includes(os.status);
+            
+            if (!showPrazoOrc && !showPrazoExec) return null;
+            
+            return (
+              <div className="space-y-2">
+                {showPrazoOrc && (
+                  <div className={`flex items-center gap-2 text-sm p-2 rounded-md ${orcVencido ? "bg-destructive/10 border border-destructive/50" : "bg-muted/50"}`}>
+                    <Clock className={`h-4 w-4 ${orcVencido ? "text-destructive" : "text-muted-foreground"}`} />
+                    <span className={orcVencido ? "text-destructive font-medium" : ""}>
+                      Prazo Orçamento: {prazoOrc.toLocaleDateString("pt-BR")}
+                      {orcVencido && " — VENCIDO"}
+                    </span>
+                  </div>
+                )}
+                {showPrazoExec && (
+                  <div className={`flex items-center gap-2 text-sm p-2 rounded-md ${execVencido ? "bg-destructive/10 border border-destructive/50" : "bg-muted/50"}`}>
+                    <Clock className={`h-4 w-4 ${execVencido ? "text-destructive" : "text-muted-foreground"}`} />
+                    <span className={execVencido ? "text-destructive font-medium" : ""}>
+                      Prazo Execução: {prazoExec.toLocaleDateString("pt-BR")}
+                      {execVencido && " — VENCIDO"}
+                    </span>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
           {os.contrato_id && (() => {
             const contrato = contratosAll.find(c => c.id === os.contrato_id);
             const saldoInfo = saldos.find((s: any) => s.id === os.contrato_id);
@@ -871,6 +919,18 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
                     placeholder="Complemente a descrição inicial com mais detalhes, se necessário..."
                     rows={3}
                   />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-1">
+                    <Clock className="h-3.5 w-3.5" /> Prazo para Apresentação do Orçamento
+                  </Label>
+                  <Input
+                    type="date"
+                    value={prazoOrcamento}
+                    onChange={(e) => setPrazoOrcamento(e.target.value)}
+                    min={new Date().toISOString().split("T")[0]}
+                  />
+                  <p className="text-xs text-muted-foreground">Defina o prazo limite para que o preposto/terceirizado apresente o orçamento.</p>
                 </div>
                 <p className="text-sm text-muted-foreground">Vincule o contrato, ajuste o tipo se necessário, e encaminhe para que o preposto/terceirizado elabore o orçamento.</p>
                 <Button onClick={handleAdvanceStatus} disabled={uploading} className="w-full">
@@ -1246,10 +1306,24 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
                     </div>
                   ) : (
                     /* Sem bloqueios — pode autorizar */
-                    <Button onClick={handleAdvanceStatus} disabled={uploading} className="w-full">
-                      {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Autorizar Execução
-                    </Button>
+                    <div className="space-y-3">
+                      <div className="space-y-1.5">
+                        <Label className="flex items-center gap-1">
+                          <Clock className="h-3.5 w-3.5" /> Prazo para Conclusão da Execução
+                        </Label>
+                        <Input
+                          type="date"
+                          value={prazoExecucao}
+                          onChange={(e) => setPrazoExecucao(e.target.value)}
+                          min={new Date().toISOString().split("T")[0]}
+                        />
+                        <p className="text-xs text-muted-foreground">Defina o prazo limite para que a execução do serviço seja concluída.</p>
+                      </div>
+                      <Button onClick={handleAdvanceStatus} disabled={uploading} className="w-full">
+                        {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Autorizar Execução
+                      </Button>
+                    </div>
                   )}
                 </div>
               </>
