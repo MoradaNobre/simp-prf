@@ -279,9 +279,13 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
   const handleAdvanceStatus = async () => {
     if (!nextStatus) return;
 
-    // Validation for orcamento: must link contract
+    // Validation for orcamento: must link contract and set prazo
     if (nextStatus === "orcamento" && !selectedContratoId) {
       toast.error("Vincule um contrato antes de encaminhar para Orçamento");
+      return;
+    }
+    if (nextStatus === "orcamento" && !prazoOrcamento) {
+      toast.error("Defina o prazo para apresentação do orçamento");
       return;
     }
 
