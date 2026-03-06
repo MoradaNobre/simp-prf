@@ -1288,7 +1288,6 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
                         Autorizar Execução
                       </Button>
                     </div>
-                    </Button>
                   )}
                 </div>
               </>
