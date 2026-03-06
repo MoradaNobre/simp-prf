@@ -3,6 +3,7 @@ import {
   LayoutDashboard,
   ClipboardList,
   CalendarClock,
+  CalendarDays,
   FileText,
   LogOut,
   Shield,
