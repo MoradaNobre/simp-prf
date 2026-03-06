@@ -3,6 +3,7 @@ import {
   LayoutDashboard,
   ClipboardList,
   CalendarClock,
+  CalendarDays,
   FileText,
   LogOut,
   Shield,
@@ -67,6 +68,7 @@ const allMenuItems = [
   { title: "Chamados", url: "/app/chamados", icon: MessageSquarePlus, roles: ["gestor_master", "gestor_nacional", "gestor_regional", "fiscal_contrato", "auxiliar_fiscal", "operador"] },
   { title: "Ordens de Serviço", url: "/app/ordens", icon: ClipboardList, roles: ["gestor_master", "gestor_nacional", "gestor_regional", "fiscal_contrato", "auxiliar_fiscal", "preposto", "terceirizado"] },
   { title: "Agenda de Visitas", url: "/app/agenda", icon: CalendarClock, roles: null }, // all roles
+  { title: "Agenda de Prazos", url: "/app/prazos", icon: CalendarDays, roles: ["gestor_master", "gestor_nacional", "gestor_regional", "fiscal_contrato", "auxiliar_fiscal", "operador"] },
   { title: "Relatórios OS", url: "/app/relatorios", icon: FileBarChart, roles: ["gestor_master", "gestor_nacional", "gestor_regional", "fiscal_contrato", "auxiliar_fiscal", "preposto", "terceirizado"] },
   { title: "Contratos", url: "/app/contratos", icon: FileText, roles: ["gestor_master", "gestor_nacional", "gestor_regional", "fiscal_contrato", "auxiliar_fiscal", "preposto"] },
 ];

@@ -12,6 +12,7 @@ import OrdensServico from "@/pages/OrdensServico";
 import Chamados from "@/pages/Chamados";
 import Preventiva from "@/pages/Preventiva";
 import Agenda from "@/pages/Agenda";
+import AgendaPrazos from "@/pages/AgendaPrazos";
 import Contratos from "@/pages/Contratos";
 import Login from "@/pages/Login";
 import AlterarSenha from "@/pages/AlterarSenha";
@@ -47,6 +48,7 @@ const App = () => (
                 <Route path="ordens" element={<OrdensServico />} />
                 <Route path="preventiva" element={<Preventiva />} />
                 <Route path="agenda" element={<Agenda />} />
+                <Route path="prazos" element={<AgendaPrazos />} />
                 <Route path="contratos" element={<Contratos />} />
                 <Route path="gestao" element={<Gestao />} />
                 <Route path="orcamento" element={<GestaoOrcamento />} />

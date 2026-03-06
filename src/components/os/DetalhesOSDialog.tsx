@@ -279,9 +279,13 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
   const handleAdvanceStatus = async () => {
     if (!nextStatus) return;
 
-    // Validation for orcamento: must link contract
+    // Validation for orcamento: must link contract and set prazo
     if (nextStatus === "orcamento" && !selectedContratoId) {
       toast.error("Vincule um contrato antes de encaminhar para Orçamento");
+      return;
+    }
+    if (nextStatus === "orcamento" && !prazoOrcamento) {
+      toast.error("Defina o prazo para apresentação do orçamento");
       return;
     }
 
@@ -332,7 +336,12 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
       }
 
       // Save prazo_execucao when authorizing execution
-      if (nextStatus === "execucao" && prazoExecucao) {
+      if (nextStatus === "execucao") {
+        if (!prazoExecucao) {
+          toast.error("Defina o prazo para conclusão da execução");
+          setUploading(false);
+          return;
+        }
         updates.prazo_execucao = prazoExecucao;
       }
 
@@ -970,15 +979,16 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
                 </div>
                 <div className="space-y-1.5">
                   <Label className="flex items-center gap-1">
-                    <Clock className="h-3.5 w-3.5" /> Prazo para Apresentação do Orçamento
+                    <Clock className="h-3.5 w-3.5" /> Prazo para Apresentação do Orçamento *
                   </Label>
                   <Input
                     type="date"
                     value={prazoOrcamento}
                     onChange={(e) => setPrazoOrcamento(e.target.value)}
                     min={new Date().toISOString().split("T")[0]}
+                    required
                   />
-                  <p className="text-xs text-muted-foreground">Defina o prazo limite para que o preposto/terceirizado apresente o orçamento.</p>
+                  <p className="text-xs text-muted-foreground">Obrigatório. Defina o prazo limite para que o preposto/terceirizado apresente o orçamento.</p>
                 </div>
                 <p className="text-sm text-muted-foreground">Vincule o contrato, ajuste o tipo se necessário, e encaminhe para que o preposto/terceirizado elabore o orçamento.</p>
                 <Button onClick={handleAdvanceStatus} disabled={uploading} className="w-full">
@@ -1357,15 +1367,16 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
                     <div className="space-y-3">
                       <div className="space-y-1.5">
                         <Label className="flex items-center gap-1">
-                          <Clock className="h-3.5 w-3.5" /> Prazo para Conclusão da Execução
+                          <Clock className="h-3.5 w-3.5" /> Prazo para Conclusão da Execução *
                         </Label>
                         <Input
                           type="date"
                           value={prazoExecucao}
                           onChange={(e) => setPrazoExecucao(e.target.value)}
                           min={new Date().toISOString().split("T")[0]}
+                          required
                         />
-                        <p className="text-xs text-muted-foreground">Defina o prazo limite para que a execução do serviço seja concluída.</p>
+                        <p className="text-xs text-muted-foreground">Obrigatório. Defina o prazo limite para que a execução do serviço seja concluída.</p>
                       </div>
                       <Button onClick={handleAdvanceStatus} disabled={uploading} className="w-full">
                         {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
