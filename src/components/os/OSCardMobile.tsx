@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2, Phone } from "lucide-react";
+import { Pencil, Trash2, Phone, Archive, Loader2 } from "lucide-react";
 
 const statusColors: Record<string, string> = {
   aberta: "bg-info text-info-foreground",
