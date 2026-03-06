@@ -470,7 +470,7 @@ O sistema aplica bloqueios **estritos e sequenciais** na transição Autorizaç�
 
 ---
 
-## 7. Agenda de Visitas
+## 7. Agenda (Visitas e Prazos)
 
 **Rota:** `/app/agenda`
 
@@ -478,18 +478,75 @@ O sistema aplica bloqueios **estritos e sequenciais** na transição Autorizaç�
 
 | Página / Ação | Perfis |
 |---|---|
-| Página "Agenda de Visitas" (menu lateral) | Master, Nacional, Regional, Fiscal, Operador, Preposto, Terceirizado |
+| Página "Agenda" (menu lateral) | Master, Nacional, Regional, Fiscal, Operador, Preposto, Terceirizado |
 | Aba "Agendamentos" (detalhes da OS) | Todos os perfis com acesso à OS |
 | Criar/Editar agendamento | Preposto, Terceirizado |
 | Gerenciar agendamentos (qualquer) | Master, Nacional, Regional, Fiscal |
 | Visualização (somente leitura) | Operador |
 
-### 7.2. Pré-requisito
+### 7.2. Visão Geral
 
-- Agendamentos de visita só podem ser criados quando a OS está no status **"Execução"**.
-- A OS deve estar vinculada a um contrato.
+A Agenda é uma página unificada que integra **visitas técnicas** e **prazos de entrega** das Ordens de Serviço em um calendário mensal interativo com cards de resumo e filtros por categoria.
 
-### 7.3. Dados do Agendamento
+### 7.3. Cards de Resumo
+
+| Card | Descrição | Cor |
+|---|---|---|
+| Prazos Vencidos | OS com prazo expirado e ainda na etapa correspondente | Vermelho |
+| Vencendo em 3 dias | Prazos próximos ao vencimento que exigem ação | Amarelo |
+| Visitas Agendadas | Total de visitas técnicas pendentes de realização | Roxo |
+
+### 7.4. Abas de Navegação
+
+| Aba | Conteúdo exibido |
+|---|---|
+| Tudo | Todos os eventos (visitas + prazos) |
+| Prazos | Apenas prazos de orçamento e execução |
+| Visitas | Apenas visitas técnicas agendadas |
+
+### 7.5. Filtro de Prazos
+
+- **Prazos Pendentes:** Exibe apenas prazos de OS que ainda estão na etapa correspondente (orçamento ou execução)
+- **Prazos Vencidos:** Exibe apenas prazos já expirados
+- **Todos os Prazos:** Exibe todos os prazos, independente do status
+
+### 7.6. Calendário Unificado
+
+- **Calendário mensal** com marcadores visuais codificados por cores
+- Navegação entre meses (anterior/próximo) e botão "Hoje"
+- Ao clicar em um dia, exibe lista dos eventos daquele dia no painel lateral
+- Cada evento mostra: código da OS, descrição, status e tipo
+
+#### Legenda de Cores
+
+| Cor | Significado |
+|---|---|
+| Roxo | Visita técnica agendada |
+| Verde | Visita realizada |
+| Vermelho (nos eventos) | Visita cancelada ou Prazo vencido |
+| Laranja | Prazo de apresentação de orçamento |
+| Azul | Prazo de conclusão de execução |
+| Amarelo | Prazo próximo ao vencimento (≤ 3 dias) |
+
+### 7.7. Prazos de OS
+
+Os prazos são derivados dos campos `prazo_orcamento` e `prazo_execucao` da tabela `ordens_servico`:
+
+| Prazo | Momento de definição | Campo | Obrigatório |
+|---|---|---|---|
+| Prazo de Orçamento | Ao encaminhar OS para etapa "Orçamento" | `prazo_orcamento` | Sim |
+| Prazo de Execução | Ao autorizar OS para etapa "Execução" | `prazo_execucao` | Sim |
+
+- Clicar no evento de prazo abre o diálogo de detalhes da OS correspondente
+
+### 7.8. Visitas Técnicas
+
+#### Pré-requisito
+
+- Agendamentos de visita só podem ser criados quando a OS está no status **"Execução"**
+- A OS deve estar vinculada a um contrato
+
+#### Dados do Agendamento
 
 | Campo | Tipo | Obrigatório |
 |---|---|---|
@@ -500,24 +557,7 @@ O sistema aplica bloqueios **estritos e sequenciais** na transição Autorizaç�
 | Status | Select (agendada / realizada / cancelada) | Sim (padrão: "agendada") |
 | Observações pós-visita | Texto | Não |
 
-### 7.4. Visualizações
-
-#### 7.4.1. Página Dedicada (Menu Lateral)
-
-- **Calendário mensal** com marcadores visuais nos dias com agendamentos
-- Navegação entre meses (anterior/próximo)
-- Ao clicar em um dia, exibe lista dos agendamentos daquele dia
-- Cada agendamento mostra: código da OS, descrição, responsável técnico, status com badge colorido
-- Botão para criar novo agendamento e editar existentes
-
-#### 7.4.2. Aba na OS (Detalhes da OS)
-
-- Listagem de todos os agendamentos vinculados àquela OS específica
-- Exibe: data, descrição, responsável, status, observações
-- Botão para criar novo agendamento (visível apenas quando OS está em "Execução")
-- Edição inline dos agendamentos existentes
-
-### 7.5. Status dos Agendamentos
+#### Status dos Agendamentos
 
 | Status | Descrição | Badge |
 |---|---|---|
@@ -525,7 +565,14 @@ O sistema aplica bloqueios **estritos e sequenciais** na transição Autorizaç�
 | Realizada | Visita concluída | Verde (success) |
 | Cancelada | Visita cancelada | Vermelho (destructive) |
 
-### 7.6. Tabela de Banco de Dados
+### 7.9. Aba na OS (Detalhes da OS)
+
+- Listagem de todos os agendamentos vinculados àquela OS específica
+- Exibe: data, descrição, responsável, status, observações
+- Botão para criar novo agendamento (visível apenas quando OS está em "Execução")
+- Edição inline dos agendamentos existentes
+
+### 7.10. Tabela de Banco de Dados
 
 - **Tabela:** `agendamentos_visita`
 - **RLS:** Políticas por perfil e regional, análogas às de `ordens_servico`
