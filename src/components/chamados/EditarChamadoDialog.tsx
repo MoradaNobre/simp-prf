@@ -30,6 +30,7 @@ const TIPOS_DEMANDA = [
   { value: "elevadores", label: "Elevadores" },
   { value: "ar_condicionado", label: "Ar Condicionado" },
   { value: "instalacoes_diversas", label: "Instalações Diversas" },
+  { value: "controle_pragas", label: "Controle de Pragas" },
 ];
 
 export function EditarChamadoDialog({ chamado, open, onOpenChange }: Props) {
