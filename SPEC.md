@@ -1,13 +1,14 @@
 # SPEC – Especificação Funcional do SIMP (Sistema de Manutenção Predial)
 
-**Versão:** 1.7  
-**Data:** 28/02/2026  
+**Versão:** 1.8  
+**Data:** 06/03/2026  
 **Responsável:** Daniel Nunes de Ávila  
 
 ---
 
 ## Histórico de Versões
 
+- v1.8 (06/03/2026): Prazos obrigatórios de orçamento e execução nas transições de OS. Agenda unificada (visitas + prazos) com calendário, cards de resumo, abas e filtros.
 - v1.7 (28/02/2026): Aceite obrigatório de Termos de Uso e Política de Privacidade (dialog modal bloqueante, `accepted_terms_at`). Novo tipo de demanda "Usina Solar" (total: 10 tipos).
 - v1.6 (26/02/2026): Inclusão do módulo de Chamados (seção 6A), reestruturação dos relatórios PDF com chamados vinculados.
 - v1.5 (24/02/2026): Fluxo abreviado do Cartão Corporativo (Ateste → Encerrada), permissões especiais do Suprido no fluxo de OS.
