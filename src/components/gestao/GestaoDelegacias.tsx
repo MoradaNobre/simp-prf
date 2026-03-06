@@ -143,7 +143,7 @@ export default function GestaoDelegacias() {
           </Button>
         )}
         <Button onClick={openNew} size="sm">
-          <Plus className="h-4 w-4 mr-1" /> Nova Delegacia
+          <Plus className="h-4 w-4 mr-1" /> Nova Delegacia / Sede
         </Button>
       </div>
 
