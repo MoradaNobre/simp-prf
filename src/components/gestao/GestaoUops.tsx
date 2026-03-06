@@ -156,9 +156,9 @@ export default function GestaoUops() {
           </SelectContent>
         </Select>
         <Select value={filterDelegacia} onValueChange={setFilterDelegacia}>
-          <SelectTrigger className="w-full sm:w-48"><SelectValue placeholder="Filtrar delegacia" /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-48"><SelectValue placeholder="Filtrar delegacia / sede" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todas as delegacias</SelectItem>
+            <SelectItem value="all">Todas as delegacias / sedes</SelectItem>
             {delegaciasList.map((d) => (
               <SelectItem key={d.id} value={d.id}>{d.nome}</SelectItem>
             ))}
