@@ -785,6 +785,16 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
             </div>
           )}
 
+          {/* Execution report link */}
+          {signedRelatorioExecucao && (
+            <div className="flex items-center gap-2 text-sm">
+              <FileText className="h-4 w-4 text-muted-foreground" />
+              <a href={signedRelatorioExecucao} target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                Ver relatório de execução do serviço
+              </a>
+            </div>
+          )}
+
           {/* Photos */}
           <div className="grid grid-cols-2 gap-3">
             {os.foto_antes && signedFotoAntes && (
