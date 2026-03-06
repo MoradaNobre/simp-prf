@@ -177,7 +177,7 @@ export default function GestaoUops() {
       {isLoading ? (
         <div className="flex items-center justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
       ) : !filtered.length ? (
-        <div className="text-center py-8 text-muted-foreground text-sm">Nenhuma UOP encontrada.</div>
+        <div className="text-center py-8 text-muted-foreground text-sm">Nenhuma UOP / Anexo encontrado.</div>
       ) : isMobile ? (
         <div className="space-y-3">
           {filtered.map((u) => (
