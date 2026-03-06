@@ -73,7 +73,7 @@ export default function GestaoDelegacias() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-delegacias"] });
       qc.invalidateQueries({ queryKey: ["delegacias"] });
-      toast.success(isNew ? "Delegacia criada!" : "Delegacia atualizada!");
+      toast.success(isNew ? "Delegacia / Sede Regional criada!" : "Delegacia / Sede Regional atualizada!");
       closeDialog();
     },
     onError: (err: any) => toast.error("Erro: " + err.message),
