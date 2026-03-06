@@ -235,7 +235,7 @@ export default function GestaoUops() {
       <Dialog open={!!editItem} onOpenChange={(o) => { if (!o) closeDialog(); }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{isNew ? "Nova UOP" : "Editar UOP"}</DialogTitle>
+            <DialogTitle>{isNew ? "Nova UOP / Anexo" : "Editar UOP / Anexo"}</DialogTitle>
             <DialogDescription>{isNew ? "Preencha os dados" : editItem?.nome}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
