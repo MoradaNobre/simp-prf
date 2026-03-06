@@ -336,7 +336,12 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
       }
 
       // Save prazo_execucao when authorizing execution
-      if (nextStatus === "execucao" && prazoExecucao) {
+      if (nextStatus === "execucao") {
+        if (!prazoExecucao) {
+          toast.error("Defina o prazo para conclusão da execução");
+          setUploading(false);
+          return;
+        }
         updates.prazo_execucao = prazoExecucao;
       }
 
