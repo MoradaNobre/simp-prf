@@ -155,7 +155,10 @@ export default function Usuarios() {
   const handleSave = async () => {
     if (!editUser) return;
     try {
-      await updateRole.mutateAsync({ userId: editUser.user_id, role: editRole });
+      // Only update role if it actually changed to avoid triggering hierarchy validation
+      if (editRole !== editUser.role) {
+        await updateRole.mutateAsync({ userId: editUser.user_id, role: editRole });
+      }
       await updateRegional.mutateAsync({
         userId: editUser.user_id,
         regionalId: editRegionalId === "none" ? null : editRegionalId,
