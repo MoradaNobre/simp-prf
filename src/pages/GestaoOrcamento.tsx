@@ -729,7 +729,7 @@ function EmpenhoDialog({ open, orcamentoId, consolidado, onClose, onSave, saving
           {excedeLimite && (
             <p className="text-sm text-destructive font-medium">⚠ O valor do empenho excede o saldo disponível para empenho ({formatCurrency(limiteDisponivel)}).</p>
           )}
-          <div className="space-y-2"><Label>Nº do Empenho (opcional)</Label><Input value={numero} onChange={(e) => setNumero(e.target.value)} /></div>
+          <div className="space-y-2"><Label>Nº do Empenho *</Label><Input value={numero} onChange={(e) => setNumero(e.target.value)} placeholder="Ex: 2026NE000123" /></div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancelar</Button>
