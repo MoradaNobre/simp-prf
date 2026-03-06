@@ -130,12 +130,15 @@ export default function Chamados() {
   const handleAnalyze = async () => {
     if (!analyzeChamado || !gutValues) return;
     try {
+      const score = gutValues.gut_gravidade * gutValues.gut_urgencia * gutValues.gut_tendencia;
+      const prioridadeFromGut = score >= 64 ? "urgente" : score >= 27 ? "alta" : score >= 8 ? "media" : "baixa";
       await updateChamado.mutateAsync({
         id: analyzeChamado.id,
         status: "analisado",
         gut_gravidade: gutValues.gut_gravidade,
         gut_urgencia: gutValues.gut_urgencia,
         gut_tendencia: gutValues.gut_tendencia,
+        prioridade: prioridadeFromGut,
       });
       toast.success("Chamado analisado com sucesso!");
       setAnalyzeChamado(null);
