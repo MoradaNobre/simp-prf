@@ -12,6 +12,7 @@ import OrdensServico from "@/pages/OrdensServico";
 import Chamados from "@/pages/Chamados";
 import Preventiva from "@/pages/Preventiva";
 import Agenda from "@/pages/Agenda";
+import AgendaPrazos from "@/pages/AgendaPrazos";
 import Contratos from "@/pages/Contratos";
 import Login from "@/pages/Login";
 import AlterarSenha from "@/pages/AlterarSenha";
