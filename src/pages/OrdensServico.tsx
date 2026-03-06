@@ -458,6 +458,16 @@ export default function OrdensServico() {
                             Aguardando Pagamento
                           </span>
                         )}
+                        {(() => {
+                          const hoje = new Date(); hoje.setHours(0,0,0,0);
+                          const prazoOrc = (os as any).prazo_orcamento ? new Date((os as any).prazo_orcamento + "T23:59:59") : null;
+                          const prazoExec = (os as any).prazo_execucao ? new Date((os as any).prazo_execucao + "T23:59:59") : null;
+                          const orcVencido = prazoOrc && hoje > prazoOrc && os.status === "orcamento";
+                          const execVencido = prazoExec && hoje > prazoExec && os.status === "execucao";
+                          if (orcVencido) return <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-destructive text-destructive-foreground" title={`Prazo orçamento vencido: ${prazoOrc.toLocaleDateString("pt-BR")}`}>Prazo Vencido</span>;
+                          if (execVencido) return <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-destructive text-destructive-foreground" title={`Prazo execução vencido: ${prazoExec.toLocaleDateString("pt-BR")}`}>Prazo Vencido</span>;
+                          return null;
+                        })()}
                       </div>
                     </TableCell>
                     <TableCell>
