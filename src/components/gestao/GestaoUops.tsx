@@ -276,7 +276,7 @@ export default function GestaoUops() {
       <Dialog open={!!deleteConfirm} onOpenChange={(o) => { if (!o) setDeleteConfirm(null); }}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle>Excluir UOP</DialogTitle>
+            <DialogTitle>Excluir UOP / Anexo</DialogTitle>
             <DialogDescription>Tem certeza que deseja excluir "{deleteConfirm?.nome}"?</DialogDescription>
           </DialogHeader>
           <DialogFooter>
