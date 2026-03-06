@@ -186,7 +186,7 @@ export default function GestaoUops() {
                 <Checkbox checked={selected.has(u.id)} onCheckedChange={() => toggleSelect(u.id)} className="mt-1" />
                 <div className="min-w-0 flex-1">
                   <p className="font-medium text-sm">{u.nome}</p>
-                  <p className="text-xs text-muted-foreground">Delegacia: {u.delegacia?.nome || "—"}</p>
+                  <p className="text-xs text-muted-foreground">Deleg./Sede: {u.delegacia?.nome || "—"}</p>
                   <p className="text-xs text-muted-foreground">Regional: {u.delegacia?.regional?.sigla || "—"}</p>
                   {u.endereco && <p className="text-xs text-muted-foreground">{u.endereco}</p>}
                 </div>
