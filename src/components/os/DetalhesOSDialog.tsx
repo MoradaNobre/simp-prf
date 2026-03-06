@@ -32,6 +32,7 @@ import { generateOSExecucaoReport } from "@/utils/generateOSExecucaoReport";
 import { useQuery } from "@tanstack/react-query";
 import JSZip from "jszip";
 import { OSAgendamentosTab } from "@/components/os/OSAgendamentosTab";
+import { useSolicitacoesPrazo, useCreateSolicitacaoPrazo, useRespondSolicitacaoPrazo } from "@/hooks/useSolicitacoesPrazo";
 
 const statusLabels: Record<string, string> = {
   aberta: "Aberta", orcamento: "Orçamento", autorizacao: "Aguardando Autorização",
