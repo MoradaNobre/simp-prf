@@ -1554,6 +1554,14 @@ export type Database = {
         Returns: string[]
       }
       get_user_regional_ids: { Args: { _user_id: string }; Returns: string[] }
+      get_users_by_role_for_map: {
+        Args: { _role: Database["public"]["Enums"]["app_role"] }
+        Returns: {
+          regional_sigla: string
+          uf: string
+          user_name: string
+        }[]
+      }
       get_users_in_same_regionals: {
         Args: { _user_id: string }
         Returns: string[]
