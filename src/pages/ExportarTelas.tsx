@@ -81,8 +81,8 @@ const SCREENS: ScreenConfig[] = [
   // ── Gestão do Sistema ──
   { name: "Gestão — Usuários", path: "/app/gestao", description: "Gestão do Sistema: usuários e perfis", actions: [{ type: "tab", selector: "usuarios" }] },
   { name: "Gestão — Regionais", path: "/app/gestao", description: "Gestão do Sistema: regionais", actions: [{ type: "tab", selector: "regionais" }] },
-  { name: "Gestão — Delegacias", path: "/app/gestao", description: "Gestão do Sistema: delegacias", actions: [{ type: "tab", selector: "delegacias" }] },
-  { name: "Gestão — UOPs", path: "/app/gestao", description: "Gestão do Sistema: unidades operacionais", actions: [{ type: "tab", selector: "uops" }] },
+  { name: "Gestão — Delegacias / Sedes Regionais", path: "/app/gestao", description: "Gestão do Sistema: delegacias e sedes regionais", actions: [{ type: "tab", selector: "delegacias" }] },
+  { name: "Gestão — UOPs / Anexos", path: "/app/gestao", description: "Gestão do Sistema: UOPs e anexos", actions: [{ type: "tab", selector: "uops" }] },
   { name: "Gestão — Limites Modalidade", path: "/app/gestao", description: "Gestão do Sistema: limites por modalidade", actions: [{ type: "tab", selector: "limites" }] },
   { name: "Gestão — Auditoria", path: "/app/gestao", description: "Gestão do Sistema: logs de auditoria", actions: [{ type: "tab", selector: "logs" }] },
 

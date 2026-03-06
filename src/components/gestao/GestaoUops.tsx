@@ -117,7 +117,7 @@ export default function GestaoUops() {
   const closeDialog = () => { setEditItem(null); setIsNew(false); };
 
   const handleSave = () => {
-    if (!form.nome || !form.delegacia_id) { toast.error("Preencha nome e delegacia."); return; }
+    if (!form.nome || !form.delegacia_id) { toast.error("Preencha nome e delegacia / sede regional."); return; }
     upsert.mutate({ id: isNew ? undefined : editItem?.id, nome: form.nome, endereco: form.endereco || null, delegacia_id: form.delegacia_id });
   };
 

@@ -235,7 +235,7 @@ export function NovoChamadoDialog({ open, onOpenChange }: Props) {
 
           {delegaciaId && (
             <div>
-              <Label>UOP</Label>
+              <Label>UOP / Anexo</Label>
               <Select value={uopId} onValueChange={setUopId}>
                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>

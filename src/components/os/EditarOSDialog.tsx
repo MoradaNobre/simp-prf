@@ -195,7 +195,7 @@ export function EditarOSDialog({ os, open, onOpenChange }: Props) {
 
           {delegaciaId && (
             <div className="space-y-1.5">
-              <Label>UOP</Label>
+              <Label>UOP / Anexo</Label>
               <Select value={uopId} onValueChange={setUopId}>
                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>

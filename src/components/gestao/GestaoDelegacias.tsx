@@ -250,7 +250,7 @@ export default function GestaoDelegacias() {
       <Dialog open={bulkDeleteConfirm} onOpenChange={setBulkDeleteConfirm}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle>Excluir {selected.size} delegacia(s)</DialogTitle>
+            <DialogTitle>Excluir {selected.size} delegacia(s) / sede(s)</DialogTitle>
             <DialogDescription>Esta ação não pode ser desfeita.</DialogDescription>
           </DialogHeader>
           <DialogFooter>

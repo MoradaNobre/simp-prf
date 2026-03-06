@@ -354,7 +354,7 @@ export default function DashboardOrcamento({ regionalId, userRole }: DashboardOr
             </div>
           )}
           {consumoPorUOP.length > 30 && (
-            <p className="text-xs text-muted-foreground text-center mt-2">Exibindo top 30 de {consumoPorUOP.length} UOPs.</p>
+            <p className="text-xs text-muted-foreground text-center mt-2">Exibindo top 30 de {consumoPorUOP.length} UOPs / Anexos.</p>
           )}
         </CardContent>
       </Card>
