@@ -1353,10 +1353,23 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
                 <h4 className="text-sm font-medium flex items-center gap-1">
                   <Camera className="h-4 w-4" /> Execução — Submeter para Ateste
                 </h4>
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-1">
+                    <FileText className="h-3.5 w-3.5" /> Relatório de Execução do Serviço *
+                  </Label>
+                  <Input
+                    type="file"
+                    accept=".pdf,.xlsx,.xls,.doc,.docx"
+                    onChange={(e) => setRelatorioExecucao(e.target.files?.[0] || null)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Anexe o relatório de execução do serviço (obrigatório para avançar).
+                  </p>
+                </div>
                 <p className="text-sm text-muted-foreground">
                   Certifique-se de que as fotos e evidências da execução foram carregadas antes de submeter.
                 </p>
-                <Button onClick={handleAdvanceStatus} disabled={uploading} className="w-full">
+                <Button onClick={handleAdvanceStatus} disabled={uploading || (!relatorioExecucao && !(os as any).relatorio_execucao_preposto)} className="w-full">
                   {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Submeter para Ateste
                 </Button>
