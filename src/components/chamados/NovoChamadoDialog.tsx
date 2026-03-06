@@ -36,6 +36,7 @@ const TIPOS_DEMANDA = [
   { value: "ar_condicionado", label: "Ar Condicionado", desc: "Não funciona, pingando, etc." },
   { value: "instalacoes_diversas", label: "Instalações Diversas", desc: "Divisórias, forro, suportes, dispensers, etc." },
   { value: "usina_solar", label: "Usina Solar", desc: "Painéis solares, inversores, cabeamento, etc." },
+  { value: "controle_pragas", label: "Controle de Pragas", desc: "Dedetização, desratização, descupinização, etc." },
 ];
 
 export function NovoChamadoDialog({ open, onOpenChange }: Props) {
