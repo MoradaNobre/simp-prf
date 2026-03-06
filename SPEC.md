@@ -29,7 +29,7 @@
 5. [Dashboard](#5-dashboard)
 6. [Chamados](#6-chamados)
 7. [Ordens de Serviço](#7-ordens-de-serviço)
-8. [Agenda de Visitas](#8-agenda-de-visitas)
+8. [Agenda (Visitas e Prazos)](#8-agenda-visitas-e-prazos)
 9. [Contratos](#9-contratos)
 10. [Relatórios OS](#10-relatórios-os)
 11. [Gestão do Orçamento](#11-gestão-do-orçamento)
