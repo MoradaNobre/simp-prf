@@ -810,6 +810,16 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
             </div>
           )}
 
+          {/* IMR link */}
+          {signedArquivoImr && (
+            <div className="flex items-center gap-2 text-sm">
+              <FileText className="h-4 w-4 text-muted-foreground" />
+              <a href={signedArquivoImr} target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                Ver IMR — Instrumento de Medição de Resultados
+              </a>
+            </div>
+          )}
+
           {/* Photos */}
           <div className="grid grid-cols-2 gap-3">
             {os.foto_antes && signedFotoAntes && (
