@@ -32,50 +32,11 @@ function useUsersByRoleAndUF(role: string) {
   return useQuery({
     queryKey: ["users-by-role-uf", role],
     queryFn: async () => {
-      const { data: roles, error: rErr } = await supabase
-        .from("user_roles")
-        .select("user_id, role")
-        .eq("role", role as any);
-      if (rErr) throw rErr;
-      if (!roles?.length) return [];
-
-      const userIds = roles.map((r) => r.user_id);
-
-      const { data: profiles, error: pErr } = await supabase
-        .from("profiles")
-        .select("user_id, full_name")
-        .in("user_id", userIds);
-      if (pErr) throw pErr;
-
-      const nameMap = new Map((profiles || []).map((p) => [p.user_id, p.full_name]));
-
-      const { data: userRegionais, error: urErr } = await supabase
-        .from("user_regionais" as any)
-        .select("user_id, regional_id")
-        .in("user_id", userIds);
-      if (urErr) throw urErr;
-
-      const { data: regionais, error: regErr } = await supabase
-        .from("regionais")
-        .select("id, sigla, uf");
-      if (regErr) throw regErr;
-
-      const regionalMap = new Map((regionais || []).map((r) => [r.id, r]));
-
-      const result: UserByUF[] = [];
-      for (const ur of (userRegionais || []) as any[]) {
-        const regional = regionalMap.get(ur.regional_id);
-        const name = nameMap.get(ur.user_id);
-        if (regional && name) {
-          result.push({
-            uf: regional.uf,
-            user_name: name.split(" ")[0],
-            regional_sigla: regional.sigla,
-          });
-        }
-      }
-
-      return result;
+      const { data, error } = await supabase.rpc("get_users_by_role_for_map", {
+        _role: role as any,
+      });
+      if (error) throw error;
+      return (data || []) as UserByUF[];
     },
   });
 }
