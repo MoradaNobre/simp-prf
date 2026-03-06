@@ -144,7 +144,7 @@ export default function GestaoUops() {
       <div className="flex items-center gap-2 flex-wrap">
         <div className="relative flex-1 min-w-0 sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar UOP..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <Input placeholder="Buscar UOP / Anexo..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <Select value={filterRegional} onValueChange={(v) => { setFilterRegional(v); setFilterDelegacia("all"); }}>
           <SelectTrigger className="w-full sm:w-48"><SelectValue placeholder="Filtrar regional" /></SelectTrigger>
