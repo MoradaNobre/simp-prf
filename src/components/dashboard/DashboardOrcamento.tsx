@@ -309,7 +309,7 @@ export default function DashboardOrcamento({ regionalId, userRole }: DashboardOr
         <CardHeader><CardTitle className="text-lg">Consumido por Delegacia / Sede Regional</CardTitle></CardHeader>
         <CardContent>
           {consumoPorDelegacia.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">Nenhum consumo registrado por delegacia em {exercicio}.</p>
+            <p className="text-center text-muted-foreground py-8">Nenhum consumo registrado por delegacia / sede regional em {exercicio}.</p>
           ) : (
             <div style={{ height: Math.max(300, consumoPorDelegacia.length * 36) }}>
               <ResponsiveContainer width="100%" height="100%">
