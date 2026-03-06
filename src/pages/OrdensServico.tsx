@@ -384,7 +384,7 @@ export default function OrdensServico() {
                       </span>
                     </TableHead>
                   ))}
-                  {canManage && <TableHead className="w-20">Ações</TableHead>}
+                  {(canManage || isGestorOrFiscal) && <TableHead className="w-24">Ações</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
