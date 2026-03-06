@@ -90,7 +90,7 @@ export default function GestaoUops() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-uops"] });
       qc.invalidateQueries({ queryKey: ["uops"] });
-      toast.success(isNew ? "UOP criada!" : "UOP atualizada!");
+      toast.success(isNew ? "UOP / Anexo criado!" : "UOP / Anexo atualizado!");
       closeDialog();
     },
     onError: (err: any) => toast.error("Erro: " + err.message),
