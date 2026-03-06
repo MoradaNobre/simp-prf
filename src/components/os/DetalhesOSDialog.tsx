@@ -206,6 +206,8 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
     setValorOrcamento("");
     setArquivoOrcamento(null);
     setDocumentosPagamento(null);
+    setPrazoOrcamento((os as any)?.prazo_orcamento ?? "");
+    setPrazoExecucao((os as any)?.prazo_execucao ?? "");
   }, [os?.id, os?.contrato_id, os?.prioridade, os?.tipo]);
 
   if (!os) return null;
