@@ -28,17 +28,17 @@ interface Props {
 }
 
 const TIPOS_DEMANDA = [
-  { value: "hidraulico", label: "Sistema Hidráulico", desc: "Falta de água, vazamentos, etc." },
-  { value: "eletrico", label: "Sistema Elétrico", desc: "Curto circuito, tomadas com defeito, etc." },
+  { value: "ar_condicionado", label: "Ar Condicionado", desc: "Não funciona, pingando, etc." },
+  { value: "controle_pragas", label: "Controle de Pragas", desc: "Dedetização, desratização, descupinização, etc." },
+  { value: "elevadores", label: "Elevadores", desc: "Elevador parado, com degrau, etc." },
+  { value: "estrutura", label: "Estrutura", desc: "Goteiras, rachaduras, concreto desplacando, etc." },
   { value: "iluminacao", label: "Iluminação", desc: "Lâmpadas queimadas, não ligam, etc." },
   { value: "incendio", label: "Incêndio", desc: "Extintores vencidos, equipamentos defeituosos, etc." },
-  { value: "estrutura", label: "Estrutura", desc: "Goteiras, rachaduras, concreto desplacando, etc." },
-  { value: "rede_logica", label: "Rede Lógica", desc: "Instalações de pontos de rede, etc." },
-  { value: "elevadores", label: "Elevadores", desc: "Elevador parado, com degrau, etc." },
-  { value: "ar_condicionado", label: "Ar Condicionado", desc: "Não funciona, pingando, etc." },
   { value: "instalacoes_diversas", label: "Instalações Diversas", desc: "Divisórias, forro, suportes, dispensers, etc." },
+  { value: "rede_logica", label: "Rede Lógica", desc: "Instalações de pontos de rede, etc." },
+  { value: "hidraulico", label: "Sistema Hidráulico", desc: "Falta de água, vazamentos, etc." },
+  { value: "eletrico", label: "Sistema Elétrico", desc: "Curto circuito, tomadas com defeito, etc." },
   { value: "usina_solar", label: "Usina Solar", desc: "Painéis solares, inversores, cabeamento, etc." },
-  { value: "controle_pragas", label: "Controle de Pragas", desc: "Dedetização, desratização, descupinização, etc." },
 ];
 
 export function NovoChamadoDialog({ open, onOpenChange }: Props) {
