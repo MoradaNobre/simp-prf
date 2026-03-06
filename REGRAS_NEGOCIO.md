@@ -1,13 +1,14 @@
 # Catálogo de Regras de Negócio – SIMP-PRF
 
-**Versão:** 1.7  
-**Data:** 28/02/2026  
+**Versão:** 1.8  
+**Data:** 06/03/2026  
 **Fonte:** SPEC.md  
 
 ---
 
 ## Histórico de Versões
 
+- v1.8 (06/03/2026): Inclusão das regras de prazos obrigatórios (RN-203 a RN-206) e agenda unificada (RN-207 a RN-210). Total: 210 regras.
 - v1.7 (28/02/2026): Inclusão das regras de aceite obrigatório de Termos de Uso (RN-198 a RN-201) e novo tipo de demanda "Usina Solar" (RN-202). Total: 202 regras.
 - v1.6 (26/02/2026): Inclusão das regras do módulo de Chamados (RN-184 a RN-197) e reestruturação de relatórios PDF. Total: 197 regras.
 - v1.5 (24/02/2026): Inclusão das regras de fluxo abreviado Cartão Corporativo (RN-180 a RN-182) e renumeração da duplicação de contratos (RN-183). Total: 183 regras.
