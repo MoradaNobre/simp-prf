@@ -335,7 +335,7 @@ export default function DashboardOrcamento({ regionalId, userRole }: DashboardOr
         <CardHeader><CardTitle className="text-lg">Consumido por UOP / Anexo</CardTitle></CardHeader>
         <CardContent>
           {consumoPorUOP.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">Nenhum consumo registrado por UOP em {exercicio}.</p>
+            <p className="text-center text-muted-foreground py-8">Nenhum consumo registrado por UOP / Anexo em {exercicio}.</p>
           ) : (
             <div style={{ height: Math.max(300, consumoPorUOP.length * 32) }}>
               <ResponsiveContainer width="100%" height="100%">
