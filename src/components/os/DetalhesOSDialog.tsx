@@ -884,6 +884,18 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
                     rows={3}
                   />
                 </div>
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-1">
+                    <Clock className="h-3.5 w-3.5" /> Prazo para Apresentação do Orçamento
+                  </Label>
+                  <Input
+                    type="date"
+                    value={prazoOrcamento}
+                    onChange={(e) => setPrazoOrcamento(e.target.value)}
+                    min={new Date().toISOString().split("T")[0]}
+                  />
+                  <p className="text-xs text-muted-foreground">Defina o prazo limite para que o preposto/terceirizado apresente o orçamento.</p>
+                </div>
                 <p className="text-sm text-muted-foreground">Vincule o contrato, ajuste o tipo se necessário, e encaminhe para que o preposto/terceirizado elabore o orçamento.</p>
                 <Button onClick={handleAdvanceStatus} disabled={uploading} className="w-full">
                   {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
