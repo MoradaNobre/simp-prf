@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { HelpCircle } from "lucide-react";
 import { isGlobalRole } from "@/utils/roles";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
