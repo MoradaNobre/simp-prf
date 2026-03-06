@@ -344,6 +344,9 @@ export default function OrdensServico() {
                 onSelect={setSelectedOS}
                 onEdit={setEditOS}
                 onDelete={setDeleteId}
+                onDownloadZip={(os) => downloadZip(os)}
+                downloadingZipId={downloadingId}
+                isGestorOrFiscal={!!isGestorOrFiscal}
               />
             ))}
           </div>
