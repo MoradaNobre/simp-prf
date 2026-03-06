@@ -979,15 +979,16 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
                 </div>
                 <div className="space-y-1.5">
                   <Label className="flex items-center gap-1">
-                    <Clock className="h-3.5 w-3.5" /> Prazo para Apresentação do Orçamento
+                    <Clock className="h-3.5 w-3.5" /> Prazo para Apresentação do Orçamento *
                   </Label>
                   <Input
                     type="date"
                     value={prazoOrcamento}
                     onChange={(e) => setPrazoOrcamento(e.target.value)}
                     min={new Date().toISOString().split("T")[0]}
+                    required
                   />
-                  <p className="text-xs text-muted-foreground">Defina o prazo limite para que o preposto/terceirizado apresente o orçamento.</p>
+                  <p className="text-xs text-muted-foreground">Obrigatório. Defina o prazo limite para que o preposto/terceirizado apresente o orçamento.</p>
                 </div>
                 <p className="text-sm text-muted-foreground">Vincule o contrato, ajuste o tipo se necessário, e encaminhe para que o preposto/terceirizado elabore o orçamento.</p>
                 <Button onClick={handleAdvanceStatus} disabled={uploading} className="w-full">
