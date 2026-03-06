@@ -64,7 +64,7 @@
 | **RN-022** | A página de Gestão do Sistema é acessível aos perfis: Master, Nacional e Regional. |
 | **RN-023** | A página Sobre é acessível a **todos** os perfis. |
 | **RN-024** | Preposto e Terceirizado **não** possuem acesso ao Dashboard. |
-| **RN-024a** | A página Agenda de Visitas é acessível a **todos** os perfis. |
+| **RN-024a** | A página Agenda (Visitas e Prazos) é acessível a **todos** os perfis. |
 
 ## 5. Autenticação
 
