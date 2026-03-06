@@ -205,11 +205,11 @@ export default function GestaoDelegacias() {
       <Dialog open={!!editItem} onOpenChange={(o) => { if (!o) closeDialog(); }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{isNew ? "Nova Delegacia" : "Editar Delegacia"}</DialogTitle>
+            <DialogTitle>{isNew ? "Nova Delegacia / Sede Regional" : "Editar Delegacia / Sede Regional"}</DialogTitle>
             <DialogDescription>{isNew ? "Preencha os dados" : editItem?.nome}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div><Label>Nome</Label><Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} placeholder="Nome da delegacia" /></div>
+            <div><Label>Nome</Label><Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} placeholder="Nome da delegacia / sede regional" /></div>
             <div><Label>Município</Label><Input value={form.municipio} onChange={(e) => setForm({ ...form, municipio: e.target.value })} placeholder="Município" /></div>
             <div>
               <Label>Regional</Label>
