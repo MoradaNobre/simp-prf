@@ -99,6 +99,8 @@ export default function OrdensServico() {
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const deleteOS = useDeleteOS();
+  const { downloadZip, downloadingId } = useDownloadOSZip();
+  const isGestorOrFiscal = role && !["operador", "preposto", "terceirizado"].includes(role);
 
   const handleDelete = async () => {
     if (!deleteId) return;
