@@ -1,5 +1,7 @@
 import { useState } from "react";
+import { HelpCircle } from "lucide-react";
 import { isGlobalRole } from "@/utils/roles";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
@@ -191,7 +193,19 @@ export function NovoChamadoDialog({ open, onOpenChange }: Props) {
 
           {prioridade === "urgente" && (
             <div>
-              <Label>Justificativa de Urgência *</Label>
+              <div className="flex items-center gap-1.5">
+                <Label>Justificativa de Urgência *</Label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs text-xs">
+                      Descreva de forma objetiva o risco ou impacto imediato que justifica a prioridade urgente. Exemplos: risco à segurança, interdição de área, equipamento crítico inoperante ou prazo legal/judicial.
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
               <Textarea value={justificativaUrgente} onChange={(e) => setJustificativaUrgente(e.target.value)} placeholder="Descreva o motivo da prioridade urgente..." rows={2} />
               {!justificativaUrgente.trim() && (
                 <p className="text-xs text-destructive mt-1">A justificativa é obrigatória para prioridade urgente.</p>
