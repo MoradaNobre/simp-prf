@@ -484,9 +484,22 @@ export default function OrdensServico() {
                     {canManage && (
                       <TableCell>
                         <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
-                          <Button size="icon" variant="ghost" title="Editar OS" onClick={() => setEditOS(os)}>
-                            <Pencil className="h-4 w-4" />
-                          </Button>
+                          {canManage && (
+                            <Button size="icon" variant="ghost" title="Editar OS" onClick={() => setEditOS(os)}>
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {os.status === "encerrada" && isGestorOrFiscal && (
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              title="Baixar documentos (.zip)"
+                              disabled={downloadingId === os.id}
+                              onClick={() => downloadZip(os as any)}
+                            >
+                              {downloadingId === os.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Archive className="h-4 w-4" />}
+                            </Button>
+                          )}
                           {canDeleteOS && (
                             <Button size="icon" variant="ghost" title="Excluir OS" onClick={() => setDeleteId(os.id)}>
                               <Trash2 className="h-4 w-4 text-destructive" />
