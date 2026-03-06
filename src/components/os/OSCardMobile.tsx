@@ -30,9 +30,12 @@ interface OSCardMobileProps {
   onSelect: (os: any) => void;
   onEdit: (os: any) => void;
   onDelete: (id: string) => void;
+  onDownloadZip?: (os: any) => void;
+  downloadingZipId?: string | null;
+  isGestorOrFiscal?: boolean;
 }
 
-export function OSCardMobile({ os, canManage, canDelete, onSelect, onEdit, onDelete }: OSCardMobileProps) {
+export function OSCardMobile({ os, canManage, canDelete, onSelect, onEdit, onDelete, onDownloadZip, downloadingZipId, isGestorOrFiscal }: OSCardMobileProps) {
   const uop = os.uops as any;
   const delegacia = uop?.delegacias;
   const regional = os.regionais || delegacia?.regionais;
