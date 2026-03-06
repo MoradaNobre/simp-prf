@@ -1110,6 +1110,32 @@ export type Database = {
         }
         Relationships: []
       }
+      regional_chamado_seq: {
+        Row: {
+          id: string
+          last_number: number
+          regional_id: string | null
+        }
+        Insert: {
+          id?: string
+          last_number?: number
+          regional_id?: string | null
+        }
+        Update: {
+          id?: string
+          last_number?: number
+          regional_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "regional_chamado_seq_regional_id_fkey"
+            columns: ["regional_id"]
+            isOneToOne: true
+            referencedRelation: "regionais"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       regional_os_seq: {
         Row: {
           id: string
