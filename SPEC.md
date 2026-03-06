@@ -385,9 +385,9 @@ Aberta → Orçamento → Autorização → Execução → Ateste → Faturament
 
 | De → Para | Quem avança | Pré-requisitos | Ações Automáticas |
 |---|---|---|---|
-| Aberta → Orçamento | Gestor, Fiscal | Vincular contrato (obrigatório). Opção de alterar prioridade. Contrato deve ser vigente e da mesma regional. | Notificação por e-mail |
+| Aberta → Orçamento | Gestor, Fiscal | Vincular contrato (obrigatório). Definir prazo para apresentação do orçamento (`prazo_orcamento`, obrigatório). Opção de alterar prioridade. Contrato deve ser vigente e da mesma regional. | Notificação por e-mail |
 | Orçamento → Autorização | Preposto, Terceirizado | Upload de arquivo de orçamento (Excel/PDF, obrigatório). Informar valor do orçamento (obrigatório, > 0). | Notificação por e-mail |
-| Autorização → Execução | Gestor, Fiscal | **Bloqueios sequenciais:** 1) Saldo do contrato ≥ valor orçamento; 2) Valor empenhado suficiente; 3) Cota regional suficiente. Se bloqueado, fica sobrestada até recomposição do saldo. | Gera Relatório de Execução (PDF). Salva em `relatorios_execucao`. Envia PDF por e-mail via edge function `send-os-execucao`. Notificação por e-mail |
+| Autorização → Execução | Gestor, Fiscal | Definir prazo para conclusão da execução (`prazo_execucao`, obrigatório). **Bloqueios sequenciais:** 1) Saldo do contrato ≥ valor orçamento; 2) Valor empenhado suficiente; 3) Cota regional suficiente. Se bloqueado, fica sobrestada até recomposição do saldo. | Gera Relatório de Execução (PDF). Salva em `relatorios_execucao`. Envia PDF por e-mail via edge function `send-os-execucao`. Notificação por e-mail |
 | Execução → Ateste | Preposto, Terceirizado | Upload de foto "depois" (evidência). Registro de custos (opcional). | Notificação por e-mail |
 | Ateste → Faturamento | Gestor, Fiscal, Operador | Ação de aprovação denominada "Aprovar e Autorizar Emissão da Nota Fiscal". | Notificação enviada **exclusivamente** ao Preposto |
 | Faturamento → Pagamento | Preposto, Terceirizado | Upload obrigatório de documentos fiscais e certidões. | Notificação por e-mail |
