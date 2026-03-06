@@ -90,6 +90,8 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   const [descricaoDetalhada, setDescricaoDetalhada] = useState("");
   const [motivoSolicitacao, setMotivoSolicitacao] = useState("");
   const [showSolicitacao, setShowSolicitacao] = useState(false);
+  const [prazoOrcamento, setPrazoOrcamento] = useState("");
+  const [prazoExecucao, setPrazoExecucao] = useState("");
   const [downloadingZip, setDownloadingZip] = useState(false);
 
   // Signed URLs for secure file display
