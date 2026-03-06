@@ -282,6 +282,12 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
       }
     }
 
+    // Validation for ateste: must upload execution report
+    if (nextStatus === "ateste" && !relatorioExecucao && !(os as any).relatorio_execucao_preposto) {
+      toast.error("Anexe o relatório de execução do serviço antes de submeter para ateste");
+      return;
+    }
+
     setUploading(true);
     try {
       const updates: any = { id: os.id, status: nextStatus, motivo_restituicao: null };
@@ -313,6 +319,12 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
       // Save prazo_execucao when authorizing execution
       if (nextStatus === "execucao" && prazoExecucao) {
         updates.prazo_execucao = prazoExecucao;
+      }
+
+      // Upload execution report when advancing to ateste
+      if (nextStatus === "ateste" && relatorioExecucao) {
+        const url = await uploadFile(relatorioExecucao, "relatorios-execucao");
+        updates.relatorio_execucao_preposto = url;
       }
 
       await updateOS.mutateAsync(updates);
