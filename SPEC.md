@@ -974,3 +974,5 @@ Saldo = Cota Total - Total Consumido
 | 1.4 | 24/02/2026 | Limites de Modalidade com 4 níveis de bloqueio na autorização, edição inline de limites, duplicação de contratos Cartão Corporativo |
 | 1.5 | 24/02/2026 | Fluxo abreviado Cartão Corporativo (Ateste → Encerrada), permissões especiais do Suprido no fluxo de OS |
 | 1.6 | 26/02/2026 | Módulo de Chamados (seção 6) com Matriz GUT, agrupamento em OS, e reestruturação de relatórios PDF com chamados vinculados |
+| 1.7 | 28/02/2026 | Aceite obrigatório de Termos de Uso e Política de Privacidade (dialog modal bloqueante), tipo de demanda "Usina Solar" |
+| 1.8 | 06/03/2026 | Prazos obrigatórios de orçamento e execução nas transições de OS. Agenda unificada (visitas + prazos) com calendário, cards de resumo, abas e filtros |
