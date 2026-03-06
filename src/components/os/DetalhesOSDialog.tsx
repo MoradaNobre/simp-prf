@@ -107,6 +107,12 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   const signedFotoDepois = useSignedUrl(os?.foto_depois);
   const signedArquivoOrcamento = useSignedUrl((os as any)?.arquivo_orcamento);
   const signedRelatorioExecucao = useSignedUrl((os as any)?.relatorio_execucao_preposto);
+
+  // Deadline extension requests
+  const solicitacoesPrazo = useSolicitacoesPrazo(os?.id);
+  const createSolicitacaoPrazo = useCreateSolicitacaoPrazo();
+  const respondSolicitacaoPrazo = useRespondSolicitacaoPrazo();
+
 /** Small component to render payment doc links with signed URLs */
 function PaymentDocLinks({ paths }: { paths: string[] }) {
   const [urls, setUrls] = useState<(string | null)[]>([]);
