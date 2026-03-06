@@ -404,12 +404,32 @@
 
 ---
 
-**Total de Regras de Negócio:** 202
+## 32. Prazos Obrigatórios de OS
+
+| # | Regra |
+|---|---|
+| **RN-203** | Na transição Aberta → Orçamento, é obrigatório definir o prazo para apresentação do orçamento (`prazo_orcamento`). A transição é bloqueada se o campo não estiver preenchido. |
+| **RN-204** | Na transição Autorização → Execução, é obrigatório definir o prazo para conclusão da execução (`prazo_execucao`). A transição é bloqueada se o campo não estiver preenchido. |
+| **RN-205** | Um prazo é considerado **vencido** quando a data do prazo já passou e a OS ainda está na etapa correspondente (Orçamento para `prazo_orcamento`, Execução para `prazo_execucao`). |
+| **RN-206** | Um prazo é considerado **próximo ao vencimento** quando faltam 3 dias ou menos para a data limite e a OS ainda está na etapa correspondente. |
+
+## 33. Agenda Unificada
+
+| # | Regra |
+|---|---|
+| **RN-207** | A agenda exibe cards de resumo com contadores em tempo real: Prazos Vencidos (vermelho), Vencendo em 3 dias (amarelo) e Visitas Agendadas (roxo). |
+| **RN-208** | O calendário unificado codifica eventos por cores: roxo (visita agendada), verde (visita realizada), vermelho (visita cancelada ou prazo vencido), laranja (prazo de orçamento), azul (prazo de execução), amarelo (prazo próximo ao vencimento). |
+| **RN-209** | Clicar em um evento de prazo abre o diálogo de detalhes da OS correspondente. Clicar em um evento de visita abre o diálogo de detalhes do agendamento. |
+| **RN-210** | O painel lateral exibe os eventos do dia selecionado ou, quando nenhum dia está selecionado, os próximos 10 eventos ordenados por data. |
+
+---
+
+**Total de Regras de Negócio:** 210
 
 ---
 
 *Catálogo de Regras de Negócio extraído do SPEC.md — SIMP-PRF.*  
-*Versão 1.7 — 28/02/2026*
+*Versão 1.8 — 06/03/2026*
 
 ## Histórico de Versões
 
@@ -423,3 +443,4 @@
 | 1.5 | 24/02/2026 | Inclusão da seção 26 – Fluxo Abreviado Cartão Corporativo (RN-180 a RN-182), renumeração (RN-183). Total: 183 regras |
 | 1.6 | 26/02/2026 | Inclusão das seções 28 e 29 – Chamados (RN-184 a RN-195) e Relatórios PDF com chamados (RN-196 a RN-197). Total: 197 regras |
 | 1.7 | 28/02/2026 | Inclusão das seções 30 e 31 – Aceite obrigatório de Termos (RN-198 a RN-201) e tipo de demanda Usina Solar (RN-202). Total: 202 regras |
+| 1.8 | 06/03/2026 | Inclusão das seções 32 e 33 – Prazos Obrigatórios de OS (RN-203 a RN-206) e Agenda Unificada (RN-207 a RN-210). Total: 210 regras |
