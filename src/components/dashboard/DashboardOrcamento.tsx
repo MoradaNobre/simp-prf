@@ -332,7 +332,7 @@ export default function DashboardOrcamento({ regionalId, userRole }: DashboardOr
 
       {/* Gráfico de consumo por UOP */}
       <Card>
-        <CardHeader><CardTitle className="text-lg">Consumido por UOP</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-lg">Consumido por UOP / Anexo</CardTitle></CardHeader>
         <CardContent>
           {consumoPorUOP.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">Nenhum consumo registrado por UOP em {exercicio}.</p>
