@@ -206,7 +206,7 @@ export default function GestaoUops() {
               <TableHead className="w-10"><Checkbox checked={filtered.length > 0 && selected.size === filtered.length} onCheckedChange={toggleAll} /></TableHead>
               <TableHead>Nome</TableHead>
               <TableHead>Endereço</TableHead>
-              <TableHead>Delegacia</TableHead>
+              <TableHead>Delegacia / Sede</TableHead>
               <TableHead>Regional</TableHead>
               <TableHead className="w-24">Ações</TableHead>
             </TableRow>
