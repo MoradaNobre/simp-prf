@@ -1,0 +1,1 @@
+ALTER TABLE public.ordens_servico ADD COLUMN relatorio_execucao_preposto text;

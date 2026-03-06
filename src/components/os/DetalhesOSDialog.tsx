@@ -92,12 +92,14 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   const [showSolicitacao, setShowSolicitacao] = useState(false);
   const [prazoOrcamento, setPrazoOrcamento] = useState("");
   const [prazoExecucao, setPrazoExecucao] = useState("");
+  const [relatorioExecucao, setRelatorioExecucao] = useState<File | null>(null);
   const [downloadingZip, setDownloadingZip] = useState(false);
 
   // Signed URLs for secure file display
   const signedFotoAntes = useSignedUrl(os?.foto_antes);
   const signedFotoDepois = useSignedUrl(os?.foto_depois);
   const signedArquivoOrcamento = useSignedUrl((os as any)?.arquivo_orcamento);
+  const signedRelatorioExecucao = useSignedUrl((os as any)?.relatorio_execucao_preposto);
 /** Small component to render payment doc links with signed URLs */
 function PaymentDocLinks({ paths }: { paths: string[] }) {
   const [urls, setUrls] = useState<(string | null)[]>([]);
@@ -117,8 +119,7 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
       ))}
     </div>
   );
-}
-
+    }
 
   // Check if this OS was created from chamados
   const { data: linkedChamados = [] } = useQuery({
@@ -281,6 +282,12 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
       }
     }
 
+    // Validation for ateste: must upload execution report
+    if (nextStatus === "ateste" && !relatorioExecucao && !(os as any).relatorio_execucao_preposto) {
+      toast.error("Anexe o relatório de execução do serviço antes de submeter para ateste");
+      return;
+    }
+
     setUploading(true);
     try {
       const updates: any = { id: os.id, status: nextStatus, motivo_restituicao: null };
@@ -312,6 +319,12 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
       // Save prazo_execucao when authorizing execution
       if (nextStatus === "execucao" && prazoExecucao) {
         updates.prazo_execucao = prazoExecucao;
+      }
+
+      // Upload execution report when advancing to ateste
+      if (nextStatus === "ateste" && relatorioExecucao) {
+        const url = await uploadFile(relatorioExecucao, "relatorios-execucao");
+        updates.relatorio_execucao_preposto = url;
       }
 
       await updateOS.mutateAsync(updates);
@@ -768,6 +781,16 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
               <FileText className="h-4 w-4 text-muted-foreground" />
               <a href={signedArquivoOrcamento} target="_blank" rel="noopener noreferrer" className="text-primary underline">
                 Ver arquivo do orçamento
+              </a>
+            </div>
+          )}
+
+          {/* Execution report link */}
+          {signedRelatorioExecucao && (
+            <div className="flex items-center gap-2 text-sm">
+              <FileText className="h-4 w-4 text-muted-foreground" />
+              <a href={signedRelatorioExecucao} target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                Ver relatório de execução do serviço
               </a>
             </div>
           )}
@@ -1340,10 +1363,23 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
                 <h4 className="text-sm font-medium flex items-center gap-1">
                   <Camera className="h-4 w-4" /> Execução — Submeter para Ateste
                 </h4>
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-1">
+                    <FileText className="h-3.5 w-3.5" /> Relatório de Execução do Serviço *
+                  </Label>
+                  <Input
+                    type="file"
+                    accept=".pdf,.xlsx,.xls,.doc,.docx"
+                    onChange={(e) => setRelatorioExecucao(e.target.files?.[0] || null)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Anexe o relatório de execução do serviço (obrigatório para avançar).
+                  </p>
+                </div>
                 <p className="text-sm text-muted-foreground">
                   Certifique-se de que as fotos e evidências da execução foram carregadas antes de submeter.
                 </p>
-                <Button onClick={handleAdvanceStatus} disabled={uploading} className="w-full">
+                <Button onClick={handleAdvanceStatus} disabled={uploading || (!relatorioExecucao && !(os as any).relatorio_execucao_preposto)} className="w-full">
                   {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Submeter para Ateste
                 </Button>

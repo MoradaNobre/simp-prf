@@ -844,6 +844,7 @@ export type Database = {
           prazo_orcamento: string | null
           prioridade: Database["public"]["Enums"]["os_prioridade"]
           regional_id: string | null
+          relatorio_execucao_preposto: string | null
           responsavel_encerramento_id: string | null
           responsavel_execucao_id: string | null
           responsavel_id: string | null
@@ -875,6 +876,7 @@ export type Database = {
           prazo_orcamento?: string | null
           prioridade?: Database["public"]["Enums"]["os_prioridade"]
           regional_id?: string | null
+          relatorio_execucao_preposto?: string | null
           responsavel_encerramento_id?: string | null
           responsavel_execucao_id?: string | null
           responsavel_id?: string | null
@@ -906,6 +908,7 @@ export type Database = {
           prazo_orcamento?: string | null
           prioridade?: Database["public"]["Enums"]["os_prioridade"]
           regional_id?: string | null
+          relatorio_execucao_preposto?: string | null
           responsavel_encerramento_id?: string | null
           responsavel_execucao_id?: string | null
           responsavel_id?: string | null
