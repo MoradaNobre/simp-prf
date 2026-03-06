@@ -235,7 +235,7 @@ export default function GestaoDelegacias() {
       <Dialog open={!!deleteConfirm} onOpenChange={(o) => { if (!o) setDeleteConfirm(null); }}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle>Excluir Delegacia</DialogTitle>
+            <DialogTitle>Excluir Delegacia / Sede Regional</DialogTitle>
             <DialogDescription>Tem certeza que deseja excluir "{deleteConfirm?.nome}"?</DialogDescription>
           </DialogHeader>
           <DialogFooter>
