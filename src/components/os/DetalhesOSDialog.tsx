@@ -32,6 +32,7 @@ import { generateOSExecucaoReport } from "@/utils/generateOSExecucaoReport";
 import { useQuery } from "@tanstack/react-query";
 import JSZip from "jszip";
 import { OSAgendamentosTab } from "@/components/os/OSAgendamentosTab";
+import { useSolicitacoesPrazo, useCreateSolicitacaoPrazo, useRespondSolicitacaoPrazo } from "@/hooks/useSolicitacoesPrazo";
 
 const statusLabels: Record<string, string> = {
   aberta: "Aberta", orcamento: "Orçamento", autorizacao: "Aguardando Autorização",
@@ -94,12 +95,24 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   const [prazoExecucao, setPrazoExecucao] = useState("");
   const [relatorioExecucao, setRelatorioExecucao] = useState<File | null>(null);
   const [downloadingZip, setDownloadingZip] = useState(false);
+  const [showSolicitarPrazo, setShowSolicitarPrazo] = useState(false);
+  const [prazoSolicitado, setPrazoSolicitado] = useState("");
+  const [justificativaPrazo, setJustificativaPrazo] = useState("");
+  const [respostaPrazo, setRespostaPrazo] = useState("");
+  const [prazoAprovado, setPrazoAprovado] = useState("");
+  const [respondingId, setRespondingId] = useState<string | null>(null);
 
   // Signed URLs for secure file display
   const signedFotoAntes = useSignedUrl(os?.foto_antes);
   const signedFotoDepois = useSignedUrl(os?.foto_depois);
   const signedArquivoOrcamento = useSignedUrl((os as any)?.arquivo_orcamento);
   const signedRelatorioExecucao = useSignedUrl((os as any)?.relatorio_execucao_preposto);
+
+  // Deadline extension requests
+  const solicitacoesPrazo = useSolicitacoesPrazo(os?.id);
+  const createSolicitacaoPrazo = useCreateSolicitacaoPrazo();
+  const respondSolicitacaoPrazo = useRespondSolicitacaoPrazo();
+
 /** Small component to render payment doc links with signed URLs */
 function PaymentDocLinks({ paths }: { paths: string[] }) {
   const [urls, setUrls] = useState<(string | null)[]>([]);
@@ -1383,6 +1396,243 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
                   {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Submeter para Ateste
                 </Button>
+              </div>
+            </>
+          )}
+
+          {/* SOLICITAÇÃO DE PRAZO ADICIONAL — preposto/terceirizado pode solicitar, gestor/fiscal aprova */}
+          {os.status === "execucao" && (
+            <>
+              <Separator />
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium flex items-center gap-1">
+                  <Clock className="h-4 w-4" /> Solicitações de Prazo Adicional
+                </h4>
+
+                {/* List existing requests */}
+                {(solicitacoesPrazo.data || []).map((sol) => (
+                  <div
+                    key={sol.id}
+                    className={`rounded-md border p-3 space-y-2 ${
+                      sol.status === "pendente"
+                        ? "border-yellow-300 bg-yellow-50 dark:bg-yellow-950/30 dark:border-yellow-800"
+                        : sol.status === "aprovada"
+                        ? "border-green-300 bg-green-50 dark:bg-green-950/30 dark:border-green-800"
+                        : "border-destructive/30 bg-destructive/5"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">
+                        {sol.solicitante_nome || "Preposto"}
+                      </span>
+                      <Badge
+                        variant={
+                          sol.status === "pendente"
+                            ? "secondary"
+                            : sol.status === "aprovada"
+                            ? "default"
+                            : "destructive"
+                        }
+                      >
+                        {sol.status === "pendente" ? "Pendente" : sol.status === "aprovada" ? "Aprovada" : "Rejeitada"}
+                      </Badge>
+                    </div>
+                    <p className="text-sm">{sol.justificativa}</p>
+                    <div className="text-xs text-muted-foreground flex gap-3">
+                      <span>Prazo solicitado: {new Date(sol.prazo_solicitado + "T00:00:00").toLocaleDateString("pt-BR")}</span>
+                      <span>Em: {new Date(sol.created_at).toLocaleDateString("pt-BR")}</span>
+                    </div>
+
+                    {/* Response */}
+                    {sol.resposta && (
+                      <div className="text-sm border-t pt-2 mt-1">
+                        <span className="text-muted-foreground">Resposta: </span>
+                        {sol.resposta}
+                        {sol.prazo_aprovado && (
+                          <span className="ml-2 font-medium">
+                            — Novo prazo: {new Date(sol.prazo_aprovado + "T00:00:00").toLocaleDateString("pt-BR")}
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Approve/Reject inline — gestor/fiscal */}
+                    {sol.status === "pendente" && isGestorOrFiscal && (
+                      <>
+                        {respondingId === sol.id ? (
+                          <div className="space-y-2 border-t pt-2">
+                            <div className="space-y-1.5">
+                              <Label className="text-xs">Novo prazo (se aprovando)</Label>
+                              <Input
+                                type="date"
+                                value={prazoAprovado}
+                                onChange={(e) => setPrazoAprovado(e.target.value)}
+                                min={new Date().toISOString().split("T")[0]}
+                              />
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label className="text-xs">Resposta *</Label>
+                              <Textarea
+                                value={respostaPrazo}
+                                onChange={(e) => setRespostaPrazo(e.target.value)}
+                                placeholder="Justifique a aprovação ou rejeição..."
+                                rows={2}
+                              />
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setRespondingId(null);
+                                  setRespostaPrazo("");
+                                  setPrazoAprovado("");
+                                }}
+                                className="flex-1"
+                              >
+                                Cancelar
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                disabled={!respostaPrazo.trim() || respondSolicitacaoPrazo.isPending}
+                                className="flex-1"
+                                onClick={async () => {
+                                  const { data: { user } } = await supabase.auth.getUser();
+                                  await respondSolicitacaoPrazo.mutateAsync({
+                                    id: sol.id,
+                                    os_id: os.id,
+                                    status: "rejeitada",
+                                    resposta: respostaPrazo.trim(),
+                                    respondido_por: user?.id || "",
+                                  });
+                                  toast.success("Solicitação de prazo rejeitada");
+                                  setRespondingId(null);
+                                  setRespostaPrazo("");
+                                }}
+                              >
+                                Rejeitar
+                              </Button>
+                              <Button
+                                size="sm"
+                                disabled={!respostaPrazo.trim() || !prazoAprovado || respondSolicitacaoPrazo.isPending}
+                                className="flex-1"
+                                onClick={async () => {
+                                  const { data: { user } } = await supabase.auth.getUser();
+                                  await respondSolicitacaoPrazo.mutateAsync({
+                                    id: sol.id,
+                                    os_id: os.id,
+                                    status: "aprovada",
+                                    resposta: respostaPrazo.trim(),
+                                    prazo_aprovado: prazoAprovado,
+                                    respondido_por: user?.id || "",
+                                  });
+                                  toast.success("Prazo adicional aprovado! Prazo de execução atualizado.");
+                                  setRespondingId(null);
+                                  setRespostaPrazo("");
+                                  setPrazoAprovado("");
+                                }}
+                              >
+                                {respondSolicitacaoPrazo.isPending && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
+                                Aprovar
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setRespondingId(sol.id);
+                              setPrazoAprovado(sol.prazo_solicitado);
+                            }}
+                            className="w-full"
+                          >
+                            Responder Solicitação
+                          </Button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                ))}
+
+                {/* Preposto/terceirizado can request deadline extension */}
+                {(isPreposto || isTerceirizado) && (
+                  <>
+                    {!showSolicitarPrazo ? (
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowSolicitarPrazo(true)}
+                        className="w-full"
+                      >
+                        <Clock className="mr-2 h-4 w-4" />
+                        Solicitar Prazo Adicional
+                      </Button>
+                    ) : (
+                      <div className="space-y-2 border rounded-md p-3">
+                        <div className="space-y-1.5">
+                          <Label>Novo prazo solicitado *</Label>
+                          <Input
+                            type="date"
+                            value={prazoSolicitado}
+                            onChange={(e) => setPrazoSolicitado(e.target.value)}
+                            min={new Date().toISOString().split("T")[0]}
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label>Justificativa *</Label>
+                          <Textarea
+                            value={justificativaPrazo}
+                            onChange={(e) => setJustificativaPrazo(e.target.value)}
+                            placeholder="Explique o motivo da necessidade de mais prazo..."
+                            rows={3}
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setShowSolicitarPrazo(false);
+                              setPrazoSolicitado("");
+                              setJustificativaPrazo("");
+                            }}
+                            className="flex-1"
+                          >
+                            Cancelar
+                          </Button>
+                          <Button
+                            disabled={!prazoSolicitado || !justificativaPrazo.trim() || createSolicitacaoPrazo.isPending}
+                            className="flex-1"
+                            onClick={async () => {
+                              try {
+                                const { data: { user } } = await supabase.auth.getUser();
+                                await createSolicitacaoPrazo.mutateAsync({
+                                  os_id: os.id,
+                                  solicitante_id: user?.id || "",
+                                  prazo_solicitado: prazoSolicitado,
+                                  justificativa: justificativaPrazo.trim(),
+                                });
+                                toast.success("Solicitação de prazo adicional enviada!");
+                                setShowSolicitarPrazo(false);
+                                setPrazoSolicitado("");
+                                setJustificativaPrazo("");
+                              } catch (err: any) {
+                                toast.error("Erro: " + err.message);
+                              }
+                            }}
+                          >
+                            {createSolicitacaoPrazo.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Enviar Solicitação
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {(solicitacoesPrazo.data || []).length === 0 && !isPreposto && !isTerceirizado && (
+                  <p className="text-sm text-muted-foreground">Nenhuma solicitação de prazo adicional registrada.</p>
+                )}
               </div>
             </>
           )}
