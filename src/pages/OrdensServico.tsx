@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Loader2, Pencil, Trash2, CalendarIcon, ArrowUp, ArrowDown, ArrowUpDown, Info, Filter, RefreshCw, Phone } from "lucide-react";
+import { Plus, Search, Loader2, Pencil, Trash2, CalendarIcon, ArrowUp, ArrowDown, ArrowUpDown, Info, Filter, RefreshCw, Phone, Archive } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
@@ -28,6 +28,7 @@ import { EditarOSDialog } from "@/components/os/EditarOSDialog";
 import { DetalhesOSDialog } from "@/components/os/DetalhesOSDialog";
 import { OSCardMobile } from "@/components/os/OSCardMobile";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useDownloadOSZip } from "@/hooks/useDownloadOSZip";
 import { Constants } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 
@@ -98,6 +99,8 @@ export default function OrdensServico() {
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const deleteOS = useDeleteOS();
+  const { downloadZip, downloadingId } = useDownloadOSZip();
+  const isGestorOrFiscal = role && !["operador", "preposto", "terceirizado"].includes(role);
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -341,6 +344,9 @@ export default function OrdensServico() {
                 onSelect={setSelectedOS}
                 onEdit={setEditOS}
                 onDelete={setDeleteId}
+                onDownloadZip={(os) => downloadZip(os)}
+                downloadingZipId={downloadingId}
+                isGestorOrFiscal={!!isGestorOrFiscal}
               />
             ))}
           </div>
@@ -381,7 +387,7 @@ export default function OrdensServico() {
                       </span>
                     </TableHead>
                   ))}
-                  {canManage && <TableHead className="w-20">Ações</TableHead>}
+                  {(canManage || isGestorOrFiscal) && <TableHead className="w-24">Ações</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -478,12 +484,25 @@ export default function OrdensServico() {
                     <TableCell className="text-muted-foreground">
                       {new Date(os.data_abertura).toLocaleDateString("pt-BR")} {new Date(os.data_abertura).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
                     </TableCell>
-                    {canManage && (
+                    {(canManage || isGestorOrFiscal) && (
                       <TableCell>
                         <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
-                          <Button size="icon" variant="ghost" title="Editar OS" onClick={() => setEditOS(os)}>
-                            <Pencil className="h-4 w-4" />
-                          </Button>
+                          {canManage && (
+                            <Button size="icon" variant="ghost" title="Editar OS" onClick={() => setEditOS(os)}>
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {os.status === "encerrada" && isGestorOrFiscal && (
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              title="Baixar documentos (.zip)"
+                              disabled={downloadingId === os.id}
+                              onClick={() => downloadZip(os as any)}
+                            >
+                              {downloadingId === os.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Archive className="h-4 w-4" />}
+                            </Button>
+                          )}
                           {canDeleteOS && (
                             <Button size="icon" variant="ghost" title="Excluir OS" onClick={() => setDeleteId(os.id)}>
                               <Trash2 className="h-4 w-4 text-destructive" />
@@ -500,7 +519,7 @@ export default function OrdensServico() {
                   <TableCell className="text-sm">
                     R$ {ordens.reduce((sum, os) => sum + (Number((os as any).valor_orcamento) || 0), 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                   </TableCell>
-                  <TableCell colSpan={canManage ? 4 : 3} />
+                  <TableCell colSpan={(canManage || isGestorOrFiscal) ? 4 : 3} />
                 </TableRow>
               </TableBody>
             </Table>
