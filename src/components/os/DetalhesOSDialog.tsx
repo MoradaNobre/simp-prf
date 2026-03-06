@@ -298,6 +298,9 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
           const separator = existing ? "\n\n--- Descrição complementar ---\n" : "";
           updates.descricao = existing + separator + descricaoDetalhada.trim();
         }
+        if (prazoOrcamento) {
+          updates.prazo_orcamento = prazoOrcamento;
+        }
       }
 
       if (nextStatus === "autorizacao" && arquivoOrcamento) {
