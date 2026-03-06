@@ -733,7 +733,7 @@ function EmpenhoDialog({ open, orcamentoId, consolidado, onClose, onSave, saving
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancelar</Button>
-          <Button disabled={saving || !descricao || !valor || excedeLimite} onClick={() => onSave({ orcamento_id: orcamentoId, descricao, valor: valorNum, data_empenho: data, numero_empenho: numero })}>
+          <Button disabled={saving || !descricao || !valor || !numero.trim() || excedeLimite} onClick={() => onSave({ orcamento_id: orcamentoId, descricao, valor: valorNum, data_empenho: data, numero_empenho: numero.trim() })}>
             {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Registrar
           </Button>
         </DialogFooter>
