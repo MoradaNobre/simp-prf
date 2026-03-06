@@ -334,9 +334,9 @@ Cada transição de status é registrada com timestamp e identificação do resp
 
 _Documento técnico elaborado conforme padrões de documentação da Polícia Rodoviária Federal._
 
-**Versão:** 1.6
+**Versão:** 1.7
 **Data:** 16/02/2026
-**Última Atualização:** 28/02/2026
+**Última Atualização:** 06/03/2026
 **Responsável:** Daniel Nunes de Ávila
 
 ## Histórico de Versões
@@ -350,3 +350,4 @@ _Documento técnico elaborado conforme padrões de documentação da Polícia Ro
 | 1.4    | 24/02/2026 | Limites de Modalidade (`limites_modalidade`), 4 níveis de bloqueio na autorização, duplicação de contratos Cartão Corporativo, edição inline de limites |
 | 1.5    | 26/02/2026 | Módulo de Chamados (`chamados`), reestruturação de relatórios PDF com seção de chamados vinculados e Matriz GUT |
 | 1.6    | 28/02/2026 | Aceite obrigatório de Termos de Uso e Política de Privacidade (`accepted_terms_at` em `profiles`), novo tipo de demanda "Usina Solar" (10 tipos) |
+| 1.7    | 06/03/2026 | Prazos obrigatórios (`prazo_orcamento`, `prazo_execucao`) nas transições de OS. Agenda unificada (visitas + prazos) com calendário, cards de resumo e filtros |

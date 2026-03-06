@@ -1,13 +1,14 @@
 # SPEC – Especificação Funcional do SIMP (Sistema de Manutenção Predial)
 
-**Versão:** 1.7  
-**Data:** 28/02/2026  
+**Versão:** 1.8  
+**Data:** 06/03/2026  
 **Responsável:** Daniel Nunes de Ávila  
 
 ---
 
 ## Histórico de Versões
 
+- v1.8 (06/03/2026): Prazos obrigatórios de orçamento e execução nas transições de OS. Agenda unificada (visitas + prazos) com calendário, cards de resumo, abas e filtros.
 - v1.7 (28/02/2026): Aceite obrigatório de Termos de Uso e Política de Privacidade (dialog modal bloqueante, `accepted_terms_at`). Novo tipo de demanda "Usina Solar" (total: 10 tipos).
 - v1.6 (26/02/2026): Inclusão do módulo de Chamados (seção 6A), reestruturação dos relatórios PDF com chamados vinculados.
 - v1.5 (24/02/2026): Fluxo abreviado do Cartão Corporativo (Ateste → Encerrada), permissões especiais do Suprido no fluxo de OS.
@@ -28,7 +29,7 @@
 5. [Dashboard](#5-dashboard)
 6. [Chamados](#6-chamados)
 7. [Ordens de Serviço](#7-ordens-de-serviço)
-8. [Agenda de Visitas](#8-agenda-de-visitas)
+8. [Agenda (Visitas e Prazos)](#8-agenda-visitas-e-prazos)
 9. [Contratos](#9-contratos)
 10. [Relatórios OS](#10-relatórios-os)
 11. [Gestão do Orçamento](#11-gestão-do-orçamento)
@@ -107,7 +108,7 @@ Regional (Superintendência) → Delegacia → UOP (Unidade Operacional)
 | Dashboard | Master, Nacional, Regional, Fiscal, Operador |
 | Chamados | Master, Nacional, Regional, Fiscal, Operador |
 | Ordens de Serviço | **Todos** os perfis |
-| Agenda de Visitas | **Todos** os perfis |
+| Agenda (Visitas e Prazos) | **Todos** os perfis |
 | Relatórios OS | Master, Nacional, Regional, Fiscal, Preposto, Terceirizado |
 | Contratos | Master, Nacional, Regional, Fiscal, Operador, Preposto |
 | Gestão do Orçamento | Master, Nacional, Regional (+ Fiscal apenas leitura) |
@@ -384,9 +385,9 @@ Aberta → Orçamento → Autorização → Execução → Ateste → Faturament
 
 | De → Para | Quem avança | Pré-requisitos | Ações Automáticas |
 |---|---|---|---|
-| Aberta → Orçamento | Gestor, Fiscal | Vincular contrato (obrigatório). Opção de alterar prioridade. Contrato deve ser vigente e da mesma regional. | Notificação por e-mail |
+| Aberta → Orçamento | Gestor, Fiscal | Vincular contrato (obrigatório). Definir prazo para apresentação do orçamento (`prazo_orcamento`, obrigatório). Opção de alterar prioridade. Contrato deve ser vigente e da mesma regional. | Notificação por e-mail |
 | Orçamento → Autorização | Preposto, Terceirizado | Upload de arquivo de orçamento (Excel/PDF, obrigatório). Informar valor do orçamento (obrigatório, > 0). | Notificação por e-mail |
-| Autorização → Execução | Gestor, Fiscal | **Bloqueios sequenciais:** 1) Saldo do contrato ≥ valor orçamento; 2) Valor empenhado suficiente; 3) Cota regional suficiente. Se bloqueado, fica sobrestada até recomposição do saldo. | Gera Relatório de Execução (PDF). Salva em `relatorios_execucao`. Envia PDF por e-mail via edge function `send-os-execucao`. Notificação por e-mail |
+| Autorização → Execução | Gestor, Fiscal | Definir prazo para conclusão da execução (`prazo_execucao`, obrigatório). **Bloqueios sequenciais:** 1) Saldo do contrato ≥ valor orçamento; 2) Valor empenhado suficiente; 3) Cota regional suficiente. Se bloqueado, fica sobrestada até recomposição do saldo. | Gera Relatório de Execução (PDF). Salva em `relatorios_execucao`. Envia PDF por e-mail via edge function `send-os-execucao`. Notificação por e-mail |
 | Execução → Ateste | Preposto, Terceirizado | Upload de foto "depois" (evidência). Registro de custos (opcional). | Notificação por e-mail |
 | Ateste → Faturamento | Gestor, Fiscal, Operador | Ação de aprovação denominada "Aprovar e Autorizar Emissão da Nota Fiscal". | Notificação enviada **exclusivamente** ao Preposto |
 | Faturamento → Pagamento | Preposto, Terceirizado | Upload obrigatório de documentos fiscais e certidões. | Notificação por e-mail |
@@ -469,7 +470,7 @@ O sistema aplica bloqueios **estritos e sequenciais** na transição Autorizaç�
 
 ---
 
-## 7. Agenda de Visitas
+## 7. Agenda (Visitas e Prazos)
 
 **Rota:** `/app/agenda`
 
@@ -477,18 +478,75 @@ O sistema aplica bloqueios **estritos e sequenciais** na transição Autorizaç�
 
 | Página / Ação | Perfis |
 |---|---|
-| Página "Agenda de Visitas" (menu lateral) | Master, Nacional, Regional, Fiscal, Operador, Preposto, Terceirizado |
+| Página "Agenda" (menu lateral) | Master, Nacional, Regional, Fiscal, Operador, Preposto, Terceirizado |
 | Aba "Agendamentos" (detalhes da OS) | Todos os perfis com acesso à OS |
 | Criar/Editar agendamento | Preposto, Terceirizado |
 | Gerenciar agendamentos (qualquer) | Master, Nacional, Regional, Fiscal |
 | Visualização (somente leitura) | Operador |
 
-### 7.2. Pré-requisito
+### 7.2. Visão Geral
 
-- Agendamentos de visita só podem ser criados quando a OS está no status **"Execução"**.
-- A OS deve estar vinculada a um contrato.
+A Agenda é uma página unificada que integra **visitas técnicas** e **prazos de entrega** das Ordens de Serviço em um calendário mensal interativo com cards de resumo e filtros por categoria.
 
-### 7.3. Dados do Agendamento
+### 7.3. Cards de Resumo
+
+| Card | Descrição | Cor |
+|---|---|---|
+| Prazos Vencidos | OS com prazo expirado e ainda na etapa correspondente | Vermelho |
+| Vencendo em 3 dias | Prazos próximos ao vencimento que exigem ação | Amarelo |
+| Visitas Agendadas | Total de visitas técnicas pendentes de realização | Roxo |
+
+### 7.4. Abas de Navegação
+
+| Aba | Conteúdo exibido |
+|---|---|
+| Tudo | Todos os eventos (visitas + prazos) |
+| Prazos | Apenas prazos de orçamento e execução |
+| Visitas | Apenas visitas técnicas agendadas |
+
+### 7.5. Filtro de Prazos
+
+- **Prazos Pendentes:** Exibe apenas prazos de OS que ainda estão na etapa correspondente (orçamento ou execução)
+- **Prazos Vencidos:** Exibe apenas prazos já expirados
+- **Todos os Prazos:** Exibe todos os prazos, independente do status
+
+### 7.6. Calendário Unificado
+
+- **Calendário mensal** com marcadores visuais codificados por cores
+- Navegação entre meses (anterior/próximo) e botão "Hoje"
+- Ao clicar em um dia, exibe lista dos eventos daquele dia no painel lateral
+- Cada evento mostra: código da OS, descrição, status e tipo
+
+#### Legenda de Cores
+
+| Cor | Significado |
+|---|---|
+| Roxo | Visita técnica agendada |
+| Verde | Visita realizada |
+| Vermelho (nos eventos) | Visita cancelada ou Prazo vencido |
+| Laranja | Prazo de apresentação de orçamento |
+| Azul | Prazo de conclusão de execução |
+| Amarelo | Prazo próximo ao vencimento (≤ 3 dias) |
+
+### 7.7. Prazos de OS
+
+Os prazos são derivados dos campos `prazo_orcamento` e `prazo_execucao` da tabela `ordens_servico`:
+
+| Prazo | Momento de definição | Campo | Obrigatório |
+|---|---|---|---|
+| Prazo de Orçamento | Ao encaminhar OS para etapa "Orçamento" | `prazo_orcamento` | Sim |
+| Prazo de Execução | Ao autorizar OS para etapa "Execução" | `prazo_execucao` | Sim |
+
+- Clicar no evento de prazo abre o diálogo de detalhes da OS correspondente
+
+### 7.8. Visitas Técnicas
+
+#### Pré-requisito
+
+- Agendamentos de visita só podem ser criados quando a OS está no status **"Execução"**
+- A OS deve estar vinculada a um contrato
+
+#### Dados do Agendamento
 
 | Campo | Tipo | Obrigatório |
 |---|---|---|
@@ -499,24 +557,7 @@ O sistema aplica bloqueios **estritos e sequenciais** na transição Autorizaç�
 | Status | Select (agendada / realizada / cancelada) | Sim (padrão: "agendada") |
 | Observações pós-visita | Texto | Não |
 
-### 7.4. Visualizações
-
-#### 7.4.1. Página Dedicada (Menu Lateral)
-
-- **Calendário mensal** com marcadores visuais nos dias com agendamentos
-- Navegação entre meses (anterior/próximo)
-- Ao clicar em um dia, exibe lista dos agendamentos daquele dia
-- Cada agendamento mostra: código da OS, descrição, responsável técnico, status com badge colorido
-- Botão para criar novo agendamento e editar existentes
-
-#### 7.4.2. Aba na OS (Detalhes da OS)
-
-- Listagem de todos os agendamentos vinculados àquela OS específica
-- Exibe: data, descrição, responsável, status, observações
-- Botão para criar novo agendamento (visível apenas quando OS está em "Execução")
-- Edição inline dos agendamentos existentes
-
-### 7.5. Status dos Agendamentos
+#### Status dos Agendamentos
 
 | Status | Descrição | Badge |
 |---|---|---|
@@ -524,7 +565,14 @@ O sistema aplica bloqueios **estritos e sequenciais** na transição Autorizaç�
 | Realizada | Visita concluída | Verde (success) |
 | Cancelada | Visita cancelada | Vermelho (destructive) |
 
-### 7.6. Tabela de Banco de Dados
+### 7.9. Aba na OS (Detalhes da OS)
+
+- Listagem de todos os agendamentos vinculados àquela OS específica
+- Exibe: data, descrição, responsável, status, observações
+- Botão para criar novo agendamento (visível apenas quando OS está em "Execução")
+- Edição inline dos agendamentos existentes
+
+### 7.10. Tabela de Banco de Dados
 
 - **Tabela:** `agendamentos_visita`
 - **RLS:** Políticas por perfil e regional, análogas às de `ordens_servico`
@@ -926,3 +974,5 @@ Saldo = Cota Total - Total Consumido
 | 1.4 | 24/02/2026 | Limites de Modalidade com 4 níveis de bloqueio na autorização, edição inline de limites, duplicação de contratos Cartão Corporativo |
 | 1.5 | 24/02/2026 | Fluxo abreviado Cartão Corporativo (Ateste → Encerrada), permissões especiais do Suprido no fluxo de OS |
 | 1.6 | 26/02/2026 | Módulo de Chamados (seção 6) com Matriz GUT, agrupamento em OS, e reestruturação de relatórios PDF com chamados vinculados |
+| 1.7 | 28/02/2026 | Aceite obrigatório de Termos de Uso e Política de Privacidade (dialog modal bloqueante), tipo de demanda "Usina Solar" |
+| 1.8 | 06/03/2026 | Prazos obrigatórios de orçamento e execução nas transições de OS. Agenda unificada (visitas + prazos) com calendário, cards de resumo, abas e filtros |

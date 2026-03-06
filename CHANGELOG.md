@@ -4,6 +4,19 @@ Registro centralizado de todas as alterações nos documentos de referência do 
 
 ---
 
+## [06/03/2026] — Prazos obrigatórios e Agenda unificada
+
+### Documento(s) Alterado(s)
+- **SPEC.md** (v1.7 → v1.8): Prazos obrigatórios (`prazo_orcamento`, `prazo_execucao`) nas transições de OS. Seção 7 reescrita como "Agenda (Visitas e Prazos)" com calendário unificado, cards de resumo, abas e filtros
+- **REGRAS_NEGOCIO.md** (v1.7 → v1.8): Novas regras RN-203 a RN-210 (prazos obrigatórios e agenda unificada). Total: 210 regras
+- **TECHNICAL_DOCS.md** (v1.6 → v1.7): Registro dos campos de prazo e agenda unificada
+- **PRD.md** (v1.5 → v1.6): Registro dos prazos obrigatórios e agenda unificada, 210 regras de negócio
+
+### Motivação
+Implementação de prazos obrigatórios para orçamento e execução de OS, com agenda unificada integrando visitas técnicas e prazos em um calendário mensal com indicadores de vencimento.
+
+---
+
 ## [28/02/2026] — Aceite obrigatório de Termos e tipo de demanda Usina Solar
 
 ### Documento(s) Alterado(s)
