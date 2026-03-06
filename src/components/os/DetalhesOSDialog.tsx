@@ -101,12 +101,14 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   const [respostaPrazo, setRespostaPrazo] = useState("");
   const [prazoAprovado, setPrazoAprovado] = useState("");
   const [respondingId, setRespondingId] = useState<string | null>(null);
+  const [arquivoImr, setArquivoImr] = useState<File | null>(null);
 
   // Signed URLs for secure file display
   const signedFotoAntes = useSignedUrl(os?.foto_antes);
   const signedFotoDepois = useSignedUrl(os?.foto_depois);
   const signedArquivoOrcamento = useSignedUrl((os as any)?.arquivo_orcamento);
   const signedRelatorioExecucao = useSignedUrl((os as any)?.relatorio_execucao_preposto);
+  const signedArquivoImr = useSignedUrl((os as any)?.arquivo_imr);
 
   // Deadline extension requests
   const solicitacoesPrazo = useSolicitacoesPrazo(os?.id);
@@ -804,6 +806,16 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
               <FileText className="h-4 w-4 text-muted-foreground" />
               <a href={signedRelatorioExecucao} target="_blank" rel="noopener noreferrer" className="text-primary underline">
                 Ver relatório de execução do serviço
+              </a>
+            </div>
+          )}
+
+          {/* IMR link */}
+          {signedArquivoImr && (
+            <div className="flex items-center gap-2 text-sm">
+              <FileText className="h-4 w-4 text-muted-foreground" />
+              <a href={signedArquivoImr} target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                Ver IMR — Instrumento de Medição de Resultados
               </a>
             </div>
           )}

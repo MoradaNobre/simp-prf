@@ -825,6 +825,7 @@ export type Database = {
       }
       ordens_servico: {
         Row: {
+          arquivo_imr: string | null
           arquivo_orcamento: string | null
           assinatura_digital: string | null
           codigo: string
@@ -857,6 +858,7 @@ export type Database = {
           valor_orcamento: number | null
         }
         Insert: {
+          arquivo_imr?: string | null
           arquivo_orcamento?: string | null
           assinatura_digital?: string | null
           codigo: string
@@ -889,6 +891,7 @@ export type Database = {
           valor_orcamento?: number | null
         }
         Update: {
+          arquivo_imr?: string | null
           arquivo_orcamento?: string | null
           assinatura_digital?: string | null
           codigo?: string
