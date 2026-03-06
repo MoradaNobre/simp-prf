@@ -245,7 +245,7 @@ export function NovaOSDialog({ open, onOpenChange }: Props) {
 
           {regionalId && (
             <div>
-              <Label>Delegacia</Label>
+              <Label>Delegacia / Sede Regional</Label>
               <Select value={delegaciaId} onValueChange={(v) => { setDelegaciaId(v); setUopId(""); }}>
                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>
