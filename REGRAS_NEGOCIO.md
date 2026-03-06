@@ -309,7 +309,7 @@
 | **RN-154** | A rota `/alterar-senha` é utilizada para alteração obrigatória de senha de terceirizados no primeiro acesso. |
 | **RN-155** | Qualquer rota não mapeada exibe a página 404 (NotFound). |
 
-## 23. Agenda de Visitas
+## 23. Agenda (Visitas e Prazos)
 
 | # | Regra |
 |---|---|
@@ -320,7 +320,7 @@
 | **RN-160** | Cada agendamento contém obrigatoriamente: data do agendamento, descrição da atividade e responsável técnico. |
 | **RN-161** | O status do agendamento pode ser: agendada (padrão), realizada ou cancelada. |
 | **RN-162** | O campo "observações pós-visita" é opcional e pode ser preenchido após a realização da visita. |
-| **RN-163** | Os agendamentos são exibidos tanto na página dedicada de Agenda (visão mensal com calendário) quanto na aba de Agendamentos dentro dos detalhes da OS. |
+| **RN-163** | A agenda unificada exibe visitas técnicas e prazos de OS em um calendário mensal com abas (Tudo, Prazos, Visitas) e filtros de status de prazo (Pendentes, Vencidos, Todos). |
 | **RN-164** | As políticas de RLS da tabela `agendamentos_visita` implementam isolamento por regional e contrato, análogo às demais tabelas operacionais. |
 
 ## 24. Perfil Suprido (Cartão Corporativo)
