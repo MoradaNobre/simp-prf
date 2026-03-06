@@ -481,7 +481,7 @@ export default function OrdensServico() {
                     <TableCell className="text-muted-foreground">
                       {new Date(os.data_abertura).toLocaleDateString("pt-BR")} {new Date(os.data_abertura).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
                     </TableCell>
-                    {canManage && (
+                    {(canManage || isGestorOrFiscal) && (
                       <TableCell>
                         <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                           {canManage && (
