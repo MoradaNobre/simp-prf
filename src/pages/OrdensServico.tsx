@@ -516,7 +516,7 @@ export default function OrdensServico() {
                   <TableCell className="text-sm">
                     R$ {ordens.reduce((sum, os) => sum + (Number((os as any).valor_orcamento) || 0), 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                   </TableCell>
-                  <TableCell colSpan={canManage ? 4 : 3} />
+                  <TableCell colSpan={(canManage || isGestorOrFiscal) ? 4 : 3} />
                 </TableRow>
               </TableBody>
             </Table>
