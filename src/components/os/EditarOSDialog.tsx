@@ -181,7 +181,7 @@ export function EditarOSDialog({ os, open, onOpenChange }: Props) {
 
           {selectedRegionalId && (
             <div className="space-y-1.5">
-              <Label>Delegacia</Label>
+              <Label>Delegacia / Sede Regional</Label>
               <Select value={delegaciaId} onValueChange={(v) => { setDelegaciaId(v); setUopId(""); }}>
                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>
@@ -195,7 +195,7 @@ export function EditarOSDialog({ os, open, onOpenChange }: Props) {
 
           {delegaciaId && (
             <div className="space-y-1.5">
-              <Label>UOP</Label>
+              <Label>UOP / Anexo</Label>
               <Select value={uopId} onValueChange={setUopId}>
                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>

@@ -73,7 +73,7 @@ export default function GestaoDelegacias() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-delegacias"] });
       qc.invalidateQueries({ queryKey: ["delegacias"] });
-      toast.success(isNew ? "Delegacia criada!" : "Delegacia atualizada!");
+      toast.success(isNew ? "Delegacia / Sede Regional criada!" : "Delegacia / Sede Regional atualizada!");
       closeDialog();
     },
     onError: (err: any) => toast.error("Erro: " + err.message),
@@ -126,7 +126,7 @@ export default function GestaoDelegacias() {
       <div className="flex items-center gap-2 flex-wrap">
         <div className="relative flex-1 min-w-0 sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar delegacia..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <Input placeholder="Buscar delegacia / sede regional..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <Select value={filterRegional} onValueChange={setFilterRegional}>
           <SelectTrigger className="w-full sm:w-48"><SelectValue placeholder="Filtrar regional" /></SelectTrigger>
@@ -143,14 +143,14 @@ export default function GestaoDelegacias() {
           </Button>
         )}
         <Button onClick={openNew} size="sm">
-          <Plus className="h-4 w-4 mr-1" /> Nova Delegacia
+          <Plus className="h-4 w-4 mr-1" /> Nova Delegacia / Sede
         </Button>
       </div>
 
       {isLoading ? (
         <div className="flex items-center justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
       ) : !filtered.length ? (
-        <div className="text-center py-8 text-muted-foreground text-sm">Nenhuma delegacia encontrada.</div>
+        <div className="text-center py-8 text-muted-foreground text-sm">Nenhuma delegacia / sede regional encontrada.</div>
       ) : isMobile ? (
         <div className="space-y-3">
           {filtered.map((d) => (
@@ -205,11 +205,11 @@ export default function GestaoDelegacias() {
       <Dialog open={!!editItem} onOpenChange={(o) => { if (!o) closeDialog(); }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{isNew ? "Nova Delegacia" : "Editar Delegacia"}</DialogTitle>
+            <DialogTitle>{isNew ? "Nova Delegacia / Sede Regional" : "Editar Delegacia / Sede Regional"}</DialogTitle>
             <DialogDescription>{isNew ? "Preencha os dados" : editItem?.nome}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div><Label>Nome</Label><Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} placeholder="Nome da delegacia" /></div>
+            <div><Label>Nome</Label><Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} placeholder="Nome da delegacia / sede regional" /></div>
             <div><Label>Município</Label><Input value={form.municipio} onChange={(e) => setForm({ ...form, municipio: e.target.value })} placeholder="Município" /></div>
             <div>
               <Label>Regional</Label>
@@ -235,7 +235,7 @@ export default function GestaoDelegacias() {
       <Dialog open={!!deleteConfirm} onOpenChange={(o) => { if (!o) setDeleteConfirm(null); }}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle>Excluir Delegacia</DialogTitle>
+            <DialogTitle>Excluir Delegacia / Sede Regional</DialogTitle>
             <DialogDescription>Tem certeza que deseja excluir "{deleteConfirm?.nome}"?</DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -250,7 +250,7 @@ export default function GestaoDelegacias() {
       <Dialog open={bulkDeleteConfirm} onOpenChange={setBulkDeleteConfirm}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle>Excluir {selected.size} delegacia(s)</DialogTitle>
+            <DialogTitle>Excluir {selected.size} delegacia(s) / sede(s)</DialogTitle>
             <DialogDescription>Esta ação não pode ser desfeita.</DialogDescription>
           </DialogHeader>
           <DialogFooter>

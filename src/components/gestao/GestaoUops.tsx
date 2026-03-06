@@ -90,7 +90,7 @@ export default function GestaoUops() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-uops"] });
       qc.invalidateQueries({ queryKey: ["uops"] });
-      toast.success(isNew ? "UOP criada!" : "UOP atualizada!");
+      toast.success(isNew ? "UOP / Anexo criado!" : "UOP / Anexo atualizado!");
       closeDialog();
     },
     onError: (err: any) => toast.error("Erro: " + err.message),
@@ -117,7 +117,7 @@ export default function GestaoUops() {
   const closeDialog = () => { setEditItem(null); setIsNew(false); };
 
   const handleSave = () => {
-    if (!form.nome || !form.delegacia_id) { toast.error("Preencha nome e delegacia."); return; }
+    if (!form.nome || !form.delegacia_id) { toast.error("Preencha nome e delegacia / sede regional."); return; }
     upsert.mutate({ id: isNew ? undefined : editItem?.id, nome: form.nome, endereco: form.endereco || null, delegacia_id: form.delegacia_id });
   };
 
@@ -144,7 +144,7 @@ export default function GestaoUops() {
       <div className="flex items-center gap-2 flex-wrap">
         <div className="relative flex-1 min-w-0 sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar UOP..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <Input placeholder="Buscar UOP / Anexo..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <Select value={filterRegional} onValueChange={(v) => { setFilterRegional(v); setFilterDelegacia("all"); }}>
           <SelectTrigger className="w-full sm:w-48"><SelectValue placeholder="Filtrar regional" /></SelectTrigger>
@@ -156,9 +156,9 @@ export default function GestaoUops() {
           </SelectContent>
         </Select>
         <Select value={filterDelegacia} onValueChange={setFilterDelegacia}>
-          <SelectTrigger className="w-full sm:w-48"><SelectValue placeholder="Filtrar delegacia" /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-48"><SelectValue placeholder="Filtrar delegacia / sede" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todas as delegacias</SelectItem>
+            <SelectItem value="all">Todas as delegacias / sedes</SelectItem>
             {delegaciasList.map((d) => (
               <SelectItem key={d.id} value={d.id}>{d.nome}</SelectItem>
             ))}
@@ -170,14 +170,14 @@ export default function GestaoUops() {
           </Button>
         )}
         <Button onClick={openNew} size="sm">
-          <Plus className="h-4 w-4 mr-1" /> Nova UOP
+          <Plus className="h-4 w-4 mr-1" /> Nova UOP / Anexo
         </Button>
       </div>
 
       {isLoading ? (
         <div className="flex items-center justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
       ) : !filtered.length ? (
-        <div className="text-center py-8 text-muted-foreground text-sm">Nenhuma UOP encontrada.</div>
+        <div className="text-center py-8 text-muted-foreground text-sm">Nenhuma UOP / Anexo encontrado.</div>
       ) : isMobile ? (
         <div className="space-y-3">
           {filtered.map((u) => (
@@ -186,7 +186,7 @@ export default function GestaoUops() {
                 <Checkbox checked={selected.has(u.id)} onCheckedChange={() => toggleSelect(u.id)} className="mt-1" />
                 <div className="min-w-0 flex-1">
                   <p className="font-medium text-sm">{u.nome}</p>
-                  <p className="text-xs text-muted-foreground">Delegacia: {u.delegacia?.nome || "—"}</p>
+                  <p className="text-xs text-muted-foreground">Deleg./Sede: {u.delegacia?.nome || "—"}</p>
                   <p className="text-xs text-muted-foreground">Regional: {u.delegacia?.regional?.sigla || "—"}</p>
                   {u.endereco && <p className="text-xs text-muted-foreground">{u.endereco}</p>}
                 </div>
@@ -206,7 +206,7 @@ export default function GestaoUops() {
               <TableHead className="w-10"><Checkbox checked={filtered.length > 0 && selected.size === filtered.length} onCheckedChange={toggleAll} /></TableHead>
               <TableHead>Nome</TableHead>
               <TableHead>Endereço</TableHead>
-              <TableHead>Delegacia</TableHead>
+              <TableHead>Delegacia / Sede</TableHead>
               <TableHead>Regional</TableHead>
               <TableHead className="w-24">Ações</TableHead>
             </TableRow>
@@ -235,11 +235,11 @@ export default function GestaoUops() {
       <Dialog open={!!editItem} onOpenChange={(o) => { if (!o) closeDialog(); }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{isNew ? "Nova UOP" : "Editar UOP"}</DialogTitle>
+            <DialogTitle>{isNew ? "Nova UOP / Anexo" : "Editar UOP / Anexo"}</DialogTitle>
             <DialogDescription>{isNew ? "Preencha os dados" : editItem?.nome}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div><Label>Nome</Label><Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} placeholder="Nome da UOP" /></div>
+            <div><Label>Nome</Label><Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} placeholder="Nome da UOP / Anexo" /></div>
             <div><Label>Endereço</Label><Input value={form.endereco} onChange={(e) => setForm({ ...form, endereco: e.target.value })} placeholder="Endereço" /></div>
             <div>
               <Label>Regional (filtro)</Label>
@@ -253,7 +253,7 @@ export default function GestaoUops() {
               </Select>
             </div>
             <div>
-              <Label>Delegacia</Label>
+              <Label>Delegacia / Sede Regional</Label>
               <Select value={form.delegacia_id} onValueChange={(v) => setForm({ ...form, delegacia_id: v })}>
                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>
@@ -276,7 +276,7 @@ export default function GestaoUops() {
       <Dialog open={!!deleteConfirm} onOpenChange={(o) => { if (!o) setDeleteConfirm(null); }}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle>Excluir UOP</DialogTitle>
+            <DialogTitle>Excluir UOP / Anexo</DialogTitle>
             <DialogDescription>Tem certeza que deseja excluir "{deleteConfirm?.nome}"?</DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -291,7 +291,7 @@ export default function GestaoUops() {
       <Dialog open={bulkDeleteConfirm} onOpenChange={setBulkDeleteConfirm}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle>Excluir {selected.size} UOP(s)</DialogTitle>
+            <DialogTitle>Excluir {selected.size} UOP(s) / Anexo(s)</DialogTitle>
             <DialogDescription>Esta ação não pode ser desfeita.</DialogDescription>
           </DialogHeader>
           <DialogFooter>

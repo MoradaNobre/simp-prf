@@ -63,11 +63,11 @@ export default function Gestao() {
           )}
           <TabsTrigger value="delegacias" className="flex items-center gap-1.5 text-xs sm:text-sm">
             <Building2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            Delegacias
+            {isMobile ? "Deleg./Sede" : "Delegacias / Sedes Regionais"}
           </TabsTrigger>
           <TabsTrigger value="uops" className="flex items-center gap-1.5 text-xs sm:text-sm">
             <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            UOPs
+            {isMobile ? "UOP/Anexo" : "UOPs / Anexos"}
           </TabsTrigger>
           <TabsTrigger value="limites" className="flex items-center gap-1.5 text-xs sm:text-sm">
             <CreditCard className="h-3.5 w-3.5 sm:h-4 sm:w-4" />

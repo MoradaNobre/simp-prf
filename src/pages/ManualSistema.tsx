@@ -526,21 +526,21 @@ const SECTIONS: ManualSection[] = [
         roles: ["Gestor Master"],
       },
       {
-        title: "Gestão de Delegacias",
-        description: "Cadastro de delegacias vinculadas a regionais.",
+        title: "Gestão de Delegacias / Sedes Regionais",
+        description: "Cadastro de delegacias e sedes regionais vinculadas a regionais.",
         details: [
-          "Nome e município da delegacia",
+          "Nome e município da delegacia / sede regional",
           "Vínculo obrigatório com uma regional",
         ],
         roles: ["Gestor Master", "Gestor Nacional"],
       },
       {
-        title: "Gestão de UOPs",
-        description: "Cadastro de Unidades Operacionais com dados de localização.",
+        title: "Gestão de UOPs / Anexos",
+        description: "Cadastro de Unidades Operacionais e Anexos com dados de localização.",
         details: [
           "Nome, endereço, área (m²)",
           "Coordenadas GPS (latitude/longitude)",
-          "Vínculo com delegacia (e por herança, com regional)",
+          "Vínculo com delegacia / sede regional (e por herança, com regional)",
         ],
         roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional"],
       },

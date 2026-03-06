@@ -306,10 +306,10 @@ export default function DashboardOrcamento({ regionalId, userRole }: DashboardOr
 
       {/* Gráfico de consumo por delegacia */}
       <Card>
-        <CardHeader><CardTitle className="text-lg">Consumido por Delegacia</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-lg">Consumido por Delegacia / Sede Regional</CardTitle></CardHeader>
         <CardContent>
           {consumoPorDelegacia.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">Nenhum consumo registrado por delegacia em {exercicio}.</p>
+            <p className="text-center text-muted-foreground py-8">Nenhum consumo registrado por delegacia / sede regional em {exercicio}.</p>
           ) : (
             <div style={{ height: Math.max(300, consumoPorDelegacia.length * 36) }}>
               <ResponsiveContainer width="100%" height="100%">
@@ -332,10 +332,10 @@ export default function DashboardOrcamento({ regionalId, userRole }: DashboardOr
 
       {/* Gráfico de consumo por UOP */}
       <Card>
-        <CardHeader><CardTitle className="text-lg">Consumido por UOP</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-lg">Consumido por UOP / Anexo</CardTitle></CardHeader>
         <CardContent>
           {consumoPorUOP.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">Nenhum consumo registrado por UOP em {exercicio}.</p>
+            <p className="text-center text-muted-foreground py-8">Nenhum consumo registrado por UOP / Anexo em {exercicio}.</p>
           ) : (
             <div style={{ height: Math.max(300, consumoPorUOP.length * 32) }}>
               <ResponsiveContainer width="100%" height="100%">
@@ -354,7 +354,7 @@ export default function DashboardOrcamento({ regionalId, userRole }: DashboardOr
             </div>
           )}
           {consumoPorUOP.length > 30 && (
-            <p className="text-xs text-muted-foreground text-center mt-2">Exibindo top 30 de {consumoPorUOP.length} UOPs.</p>
+            <p className="text-xs text-muted-foreground text-center mt-2">Exibindo top 30 de {consumoPorUOP.length} UOPs / Anexos.</p>
           )}
         </CardContent>
       </Card>
