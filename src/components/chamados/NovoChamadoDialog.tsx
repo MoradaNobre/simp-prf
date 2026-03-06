@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { HelpCircle } from "lucide-react";
 import { isGlobalRole } from "@/utils/roles";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
