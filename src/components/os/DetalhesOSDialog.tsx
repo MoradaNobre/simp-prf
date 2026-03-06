@@ -95,6 +95,12 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   const [prazoExecucao, setPrazoExecucao] = useState("");
   const [relatorioExecucao, setRelatorioExecucao] = useState<File | null>(null);
   const [downloadingZip, setDownloadingZip] = useState(false);
+  const [showSolicitarPrazo, setShowSolicitarPrazo] = useState(false);
+  const [prazoSolicitado, setPrazoSolicitado] = useState("");
+  const [justificativaPrazo, setJustificativaPrazo] = useState("");
+  const [respostaPrazo, setRespostaPrazo] = useState("");
+  const [prazoAprovado, setPrazoAprovado] = useState("");
+  const [respondingId, setRespondingId] = useState<string | null>(null);
 
   // Signed URLs for secure file display
   const signedFotoAntes = useSignedUrl(os?.foto_antes);
