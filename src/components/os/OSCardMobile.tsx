@@ -129,11 +129,25 @@ export function OSCardMobile({ os, canManage, canDelete, onSelect, onEdit, onDel
           )}
         </div>
 
-        {canManage && (
+        {(canManage || (os.status === "encerrada" && isGestorOrFiscal)) && (
           <div className="flex justify-end gap-1 pt-1" onClick={(e) => e.stopPropagation()}>
-            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => onEdit(os)}>
-              <Pencil className="h-3.5 w-3.5" />
-            </Button>
+            {canManage && (
+              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => onEdit(os)}>
+                <Pencil className="h-3.5 w-3.5" />
+              </Button>
+            )}
+            {os.status === "encerrada" && isGestorOrFiscal && onDownloadZip && (
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8"
+                title="Baixar documentos (.zip)"
+                disabled={downloadingZipId === os.id}
+                onClick={() => onDownloadZip(os)}
+              >
+                {downloadingZipId === os.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Archive className="h-3.5 w-3.5" />}
+              </Button>
+            )}
             {canDelete && (
               <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => onDelete(os.id)}>
                 <Trash2 className="h-3.5 w-3.5 text-destructive" />
