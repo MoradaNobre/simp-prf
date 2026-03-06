@@ -239,7 +239,7 @@ export default function GestaoUops() {
             <DialogDescription>{isNew ? "Preencha os dados" : editItem?.nome}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div><Label>Nome</Label><Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} placeholder="Nome da UOP" /></div>
+            <div><Label>Nome</Label><Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} placeholder="Nome da UOP / Anexo" /></div>
             <div><Label>Endereço</Label><Input value={form.endereco} onChange={(e) => setForm({ ...form, endereco: e.target.value })} placeholder="Endereço" /></div>
             <div>
               <Label>Regional (filtro)</Label>
