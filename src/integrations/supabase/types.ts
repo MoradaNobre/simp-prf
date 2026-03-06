@@ -1339,6 +1339,56 @@ export type Database = {
           },
         ]
       }
+      solicitacoes_prazo: {
+        Row: {
+          created_at: string
+          id: string
+          justificativa: string
+          os_id: string
+          prazo_aprovado: string | null
+          prazo_solicitado: string
+          respondido_em: string | null
+          respondido_por: string | null
+          resposta: string | null
+          solicitante_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          justificativa: string
+          os_id: string
+          prazo_aprovado?: string | null
+          prazo_solicitado: string
+          respondido_em?: string | null
+          respondido_por?: string | null
+          resposta?: string | null
+          solicitante_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          justificativa?: string
+          os_id?: string
+          prazo_aprovado?: string | null
+          prazo_solicitado?: string
+          respondido_em?: string | null
+          respondido_por?: string | null
+          resposta?: string | null
+          solicitante_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "solicitacoes_prazo_os_id_fkey"
+            columns: ["os_id"]
+            isOneToOne: false
+            referencedRelation: "ordens_servico"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       uops: {
         Row: {
           area_m2: number | null
