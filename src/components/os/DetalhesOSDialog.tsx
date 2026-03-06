@@ -99,6 +99,7 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   const signedFotoAntes = useSignedUrl(os?.foto_antes);
   const signedFotoDepois = useSignedUrl(os?.foto_depois);
   const signedArquivoOrcamento = useSignedUrl((os as any)?.arquivo_orcamento);
+  const signedRelatorioExecucao = useSignedUrl((os as any)?.relatorio_execucao_preposto);
 /** Small component to render payment doc links with signed URLs */
 function PaymentDocLinks({ paths }: { paths: string[] }) {
   const [urls, setUrls] = useState<(string | null)[]>([]);
