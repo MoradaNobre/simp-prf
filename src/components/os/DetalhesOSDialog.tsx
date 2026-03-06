@@ -309,6 +309,11 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
         updates.valor_orcamento = parseFloat(valorOrcamento);
       }
 
+      // Save prazo_execucao when authorizing execution
+      if (nextStatus === "execucao" && prazoExecucao) {
+        updates.prazo_execucao = prazoExecucao;
+      }
+
       await updateOS.mutateAsync(updates);
       toast.success(`Status alterado para ${statusLabels[nextStatus]}`);
 
