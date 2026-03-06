@@ -170,7 +170,7 @@ export default function GestaoUops() {
           </Button>
         )}
         <Button onClick={openNew} size="sm">
-          <Plus className="h-4 w-4 mr-1" /> Nova UOP
+          <Plus className="h-4 w-4 mr-1" /> Nova UOP / Anexo
         </Button>
       </div>
 
