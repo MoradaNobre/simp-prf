@@ -253,7 +253,7 @@ export default function GestaoUops() {
               </Select>
             </div>
             <div>
-              <Label>Delegacia</Label>
+              <Label>Delegacia / Sede Regional</Label>
               <Select value={form.delegacia_id} onValueChange={(v) => setForm({ ...form, delegacia_id: v })}>
                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>
