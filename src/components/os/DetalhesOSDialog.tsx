@@ -699,7 +699,43 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
             )}
           </div>
 
-          {/* Contract balance info */}
+          {/* Deadline info and overdue warnings */}
+          {(() => {
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0);
+            const prazoOrc = (os as any).prazo_orcamento ? new Date((os as any).prazo_orcamento + "T23:59:59") : null;
+            const prazoExec = (os as any).prazo_execucao ? new Date((os as any).prazo_execucao + "T23:59:59") : null;
+            const orcVencido = prazoOrc && hoje > prazoOrc && os.status === "orcamento";
+            const execVencido = prazoExec && hoje > prazoExec && os.status === "execucao";
+            const showPrazoOrc = prazoOrc && ["orcamento", "autorizacao", "execucao", "ateste", "faturamento", "pagamento", "encerrada"].includes(os.status);
+            const showPrazoExec = prazoExec && ["execucao", "ateste", "faturamento", "pagamento", "encerrada"].includes(os.status);
+            
+            if (!showPrazoOrc && !showPrazoExec) return null;
+            
+            return (
+              <div className="space-y-2">
+                {showPrazoOrc && (
+                  <div className={`flex items-center gap-2 text-sm p-2 rounded-md ${orcVencido ? "bg-destructive/10 border border-destructive/50" : "bg-muted/50"}`}>
+                    <Clock className={`h-4 w-4 ${orcVencido ? "text-destructive" : "text-muted-foreground"}`} />
+                    <span className={orcVencido ? "text-destructive font-medium" : ""}>
+                      Prazo Orçamento: {prazoOrc.toLocaleDateString("pt-BR")}
+                      {orcVencido && " — VENCIDO"}
+                    </span>
+                  </div>
+                )}
+                {showPrazoExec && (
+                  <div className={`flex items-center gap-2 text-sm p-2 rounded-md ${execVencido ? "bg-destructive/10 border border-destructive/50" : "bg-muted/50"}`}>
+                    <Clock className={`h-4 w-4 ${execVencido ? "text-destructive" : "text-muted-foreground"}`} />
+                    <span className={execVencido ? "text-destructive font-medium" : ""}>
+                      Prazo Execução: {prazoExec.toLocaleDateString("pt-BR")}
+                      {execVencido && " — VENCIDO"}
+                    </span>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
           {os.contrato_id && (() => {
             const contrato = contratosAll.find(c => c.id === os.contrato_id);
             const saldoInfo = saldos.find((s: any) => s.id === os.contrato_id);
