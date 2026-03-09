@@ -2,6 +2,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUserRole } from "@/hooks/useUserRole";
 import { RelatoriosExecucao } from "@/components/relatorios/RelatoriosExecucao";
 import { RelatoriosPagamento } from "@/components/relatorios/RelatoriosPagamento";
+import { RelatoriosFaturamento } from "@/components/relatorios/RelatoriosFaturamento";
 
 export default function Relatorios() {
   const { data: role } = useUserRole();
@@ -22,6 +23,9 @@ export default function Relatorios() {
           {!isExternalOnly && (
             <TabsTrigger value="pagamento" className="flex-1 sm:flex-initial">OS - Pagamento</TabsTrigger>
           )}
+          {!isExternalOnly && (
+            <TabsTrigger value="faturamento" className="flex-1 sm:flex-initial">Faturamento</TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="execucao">
@@ -31,6 +35,12 @@ export default function Relatorios() {
         {!isExternalOnly && (
           <TabsContent value="pagamento">
             <RelatoriosPagamento />
+          </TabsContent>
+        )}
+
+        {!isExternalOnly && (
+          <TabsContent value="faturamento">
+            <RelatoriosFaturamento />
           </TabsContent>
         )}
       </Tabs>
