@@ -164,7 +164,7 @@ export default function OrdensServico() {
     }
 
     return filtered;
-  }, [ordensRaw, dataInicio, dataFim, sortKey, sortDir]);
+  }, [ordensRaw, dataInicio, dataFim, sortKey, sortDir, isBloqueadaCotaFilter]);
 
   return (
     <div className="space-y-6">
