@@ -100,8 +100,8 @@ export default function Chamados() {
 
   // Sort by GUT score descending if enabled
   const sortedChamados = sortByScore
-    ? [...filteredByTipo].sort((a, b) => (b.gut_score ?? 0) - (a.gut_score ?? 0))
-    : filteredByTipo;
+    ? [...filteredByPrioridade].sort((a, b) => (b.gut_score ?? 0) - (a.gut_score ?? 0))
+    : filteredByPrioridade;
 
   // Fetch OS data for viewed chamado
   const viewOsId = viewChamado?.os_id;
