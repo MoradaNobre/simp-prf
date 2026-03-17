@@ -1,140 +1,37 @@
 
 
-# Plano de Desenvolvimento Completo — SIMP-PRF
+## Implementação da Opção B: Coluna `motivo_bloqueio` na tabela `ordens_servico`
 
-## Estado Atual
-- Autenticacao (login/signup) funcionando com 4 niveis de acesso no banco
-- Hierarquia de ativos importada (46 regionais com delegacias e UOPs)
-- Paginas placeholder para OS, Preventiva, Contratos
-- Dashboard com dados mockados (estaticos)
-- Esquema de banco completo com RLS
+### Objetivo
+Adicionar uma coluna `motivo_bloqueio` à tabela `ordens_servico` para registrar quando uma OS está bloqueada por insuficiência de cota orçamentária regional, permitindo filtragem e indicação visual na listagem.
 
-## Funcionalidades a Implementar
+### 1. Migração de banco de dados
+- Adicionar coluna `motivo_bloqueio text NULL` à tabela `ordens_servico`
+- Valores possíveis: `null` (sem bloqueio), `'cota_regional_insuficiente'`, `'sem_cota_cadastrada'`, `'empenho_insuficiente'`, `'saldo_contrato_insuficiente'`, `'limite_modalidade_excedido'`
 
----
+### 2. Atualizar `transition_os_status` (função SQL)
+- Na transição `autorizacao → execucao`, o campo `motivo_bloqueio` será limpo automaticamente (set to `null`)
+- Permitir que `_updates` inclua `motivo_bloqueio` para ser gravado via `COALESCE`
 
-### Fase 1: Infraestrutura de Storage e Hooks Compartilhados
+### 3. Lógica no `DetalhesOSDialog.tsx`
+- Quando o bloqueio é detectado na etapa de autorização, gravar o `motivo_bloqueio` na OS via `updateOS`
+- Quando o bloqueio é resolvido (transição bem-sucedida para execução), limpar o campo
 
-**Banco de dados:**
-- Criar bucket `os-fotos` no Supabase Storage para fotos de antes/depois
-- Politicas de acesso: usuarios autenticados podem fazer upload; leitura publica
+### 4. Indicação visual na listagem (`OrdensServico.tsx` e `OSCardMobile.tsx`)
+- Exibir um badge/ícone `⚠ Aguard. Cota` ao lado do status quando `motivo_bloqueio` não é nulo e status é `autorizacao`
+- Adicionar filtro opcional "Bloqueadas por cota" no filtro de status
 
-**Hooks compartilhados:**
-- `useUserRole` — busca o papel do usuario logado na tabela `user_roles`
-- `useRegionais`, `useDelegacias`, `useUops`, `useEquipamentos` — hooks reutilizaveis para selects
+### 5. Atualizar tipo `OrdemServico` no hook
+- O campo `motivo_bloqueio` será incluído automaticamente via `Tables<"ordens_servico">` após a migração
 
----
+### Arquivos a modificar
+- **Migração SQL**: adicionar coluna + atualizar função `transition_os_status`
+- `src/components/os/DetalhesOSDialog.tsx`: gravar motivo_bloqueio quando bloqueio detectado
+- `src/pages/OrdensServico.tsx`: badge visual + filtro
+- `src/components/os/OSCardMobile.tsx`: badge visual no card mobile
 
-### Fase 2: Modulo de Ordens de Servico (Completo)
-
-**Pagina `OrdensServico.tsx` — listagem real:**
-- Substituir dados mock por query ao banco (`ordens_servico` com joins em `uops`)
-- Filtros por status, prioridade, unidade e periodo (date range)
-- Paginacao
-- Badge de status e prioridade com cores
-
-**Dialog `NovaOSDialog` — formulario de criacao:**
-- Campos: titulo, descricao, tipo (corretiva/preventiva), prioridade, UOP (select hierarquico), equipamento (filtrado pela UOP)
-- Upload de foto "antes" via Storage
-- Codigo gerado automaticamente pelo trigger do banco
-
-**Dialog `DetalhesOSDialog` — visualizacao e atualizacao:**
-- Visualizar todos os dados da OS
-- Transicao de status: Aberta -> Triagem -> Em Execucao -> Encerrada
-- Upload de foto "depois" na execucao
-- Campo de assinatura digital (canvas de desenho) para encerramento
-- Registro de custos (pecas e mao de obra) vinculados a OS
-
----
-
-### Fase 3: Dashboard com Dados Reais e Graficos
-
-**KPIs calculados em tempo real:**
-- OS Abertas: count de `ordens_servico` com status != encerrada
-- Urgentes: count com prioridade = urgente
-- Concluidas no mes: count com status = encerrada e data_encerramento no mes atual
-- MTTR: media de (data_encerramento - data_abertura) das OS encerradas
-
-**Graficos com Recharts:**
-- Grafico de pizza/donut: Corretiva vs. Preventiva com meta 30/70
-- Grafico de barras: OS por regional (top 10)
-- Grafico de linha: evolucao mensal de OS abertas vs encerradas
-- Card de disponibilidade operacional
-
-**Filtros:**
-- Por regional e periodo
-
----
-
-### Fase 4: Manutencao Preventiva (PMOC)
-
-**Pagina `Preventiva.tsx` — listagem:**
-- Tabela com planos ativos: nome, categoria, frequencia, proxima execucao, UOP
-- Indicador de aderencia (OS geradas vs planejadas)
-
-**Dialog `NovoPlanoDialog`:**
-- Campos: nome, categoria (ar_condicionado, gerador, etc), frequencia, UOP, descricao de atividades, data da proxima execucao
-
-**Geracao automatica de OS:**
-- Edge function `generate-preventive-os` que roda sob demanda (botao "Gerar OS do periodo")
-- Verifica planos com `proxima_execucao <= hoje`, cria OS preventiva e atualiza proxima data
-
----
-
-### Fase 5: Gestao de Contratos e Custos
-
-**Pagina `Contratos.tsx` — listagem:**
-- Tabela com contratos: numero, empresa, vigencia, valor, status, saldo consumido
-- Indicador visual de vigencia (ativo/vencido/proximo do vencimento)
-
-**Dialog `NovoContratoDialog`:**
-- Campos: numero, empresa, objeto, data inicio/fim, valor total
-
-**Detalhes do contrato:**
-- Lista de OS vinculadas ao contrato
-- Soma de custos (pecas + mao de obra) vs valor total do contrato
-- Barra de progresso do saldo
-
----
-
-### Fase 6: Ativos — Equipamentos e QR Code
-
-**Cadastro de equipamentos:**
-- Dialog para adicionar equipamento vinculado a uma UOP
-- Campos: nome, categoria, marca, modelo, numero de serie, data instalacao
-
-**QR Code:**
-- Geracao automatica de QR Code (usando biblioteca JS) com link para a ficha do equipamento
-- Botao para imprimir/baixar QR Code
-
-**Ficha do ativo:**
-- Pagina de detalhes da UOP/equipamento com historico de OS vinculadas
-
----
-
-### Fase 7: Gestao de Usuarios e Perfis
-
-**Pagina `Usuarios.tsx` (visivel apenas para gestor_nacional):**
-- Lista de usuarios com nome, email, papel atual
-- Alterar papel de um usuario (select com os 4 niveis)
-- Rota `/usuarios` adicionada ao sidebar (condicional ao papel)
-
----
-
-## Resumo Tecnico
-
-| Item | Tipo | Arquivos |
-|------|------|----------|
-| Storage bucket | Migracao SQL | Nova migracao |
-| useUserRole hook | Novo arquivo | `src/hooks/useUserRole.ts` |
-| OS completo | Refatoracao + novos | `OrdensServico.tsx`, `NovaOSDialog.tsx`, `DetalhesOSDialog.tsx` |
-| Dashboard real | Refatoracao | `Dashboard.tsx` |
-| Preventiva completo | Refatoracao + novos | `Preventiva.tsx`, `NovoPlanoDialog.tsx` |
-| Edge function preventiva | Novo | `supabase/functions/generate-preventive-os/index.ts` |
-| Contratos completo | Refatoracao + novos | `Contratos.tsx`, `NovoContratoDialog.tsx` |
-| Equipamentos + QR | Novos componentes | `EquipamentoDialog.tsx`, `QRCodeView.tsx` |
-| Gestao usuarios | Nova pagina | `Usuarios.tsx` |
-| Assinatura digital | Novo componente | `SignaturePad.tsx` |
-
-A implementacao seguira a ordem das fases para garantir que dependencias sejam resolvidas primeiro (ex: storage antes de upload de fotos, hooks antes das paginas).
+### Sem impacto em
+- Fluxo de status (enum `os_status` não muda)
+- Stepper (nenhuma etapa nova)
+- Relatórios existentes
 
