@@ -139,6 +139,9 @@ export default function OrdensServico() {
   // Client-side date filter + sort
   const ordens = useMemo(() => {
     let filtered = ordensRaw?.filter((os) => {
+      // Filter by bloqueada_cota
+      if (isBloqueadaCotaFilter && !(os as any).motivo_bloqueio) return false;
+
       const osDate = new Date(os.data_abertura);
       if (dataInicio && osDate < dataInicio) return false;
       if (dataFim) {
