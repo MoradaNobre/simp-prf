@@ -206,6 +206,7 @@ export default function OrdensServico() {
               {Constants.public.Enums.os_status.map((s) => (
                 <SelectItem key={s} value={s}>{statusLabels[s]}</SelectItem>
               ))}
+              <SelectItem value="bloqueada_cota">⚠ Bloqueadas por Cota</SelectItem>
             </SelectContent>
           </Select>
           <Select value={prioridadeFilter || "all"} onValueChange={(v) => setPrioridadeFilter(v === "all" ? "" : v)}>
