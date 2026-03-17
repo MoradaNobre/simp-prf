@@ -69,6 +69,7 @@ export default function Chamados() {
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [prioridadeFilter, setPrioridadeFilter] = useState<string>("all");
   const [tipoFilter, setTipoFilter] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedChamados, setSelectedChamados] = useState<Set<string>>(new Set());
@@ -88,15 +89,19 @@ export default function Chamados() {
     search: search || undefined,
   });
 
-  // Filter by tipo_demanda client-side
+  // Filter by tipo_demanda and prioridade client-side
   const filteredByTipo = tipoFilter === "all"
     ? chamados
     : chamados.filter(c => c.tipo_demanda === tipoFilter);
 
+  const filteredByPrioridade = prioridadeFilter === "all"
+    ? filteredByTipo
+    : filteredByTipo.filter(c => c.prioridade === prioridadeFilter);
+
   // Sort by GUT score descending if enabled
   const sortedChamados = sortByScore
-    ? [...filteredByTipo].sort((a, b) => (b.gut_score ?? 0) - (a.gut_score ?? 0))
-    : filteredByTipo;
+    ? [...filteredByPrioridade].sort((a, b) => (b.gut_score ?? 0) - (a.gut_score ?? 0))
+    : filteredByPrioridade;
 
   // Fetch OS data for viewed chamado
   const viewOsId = viewChamado?.os_id;
@@ -302,6 +307,16 @@ export default function Chamados() {
             {Object.entries(TIPO_LABELS).map(([key, label]) => (
               <SelectItem key={key} value={key}>{label}</SelectItem>
             ))}
+          </SelectContent>
+        </Select>
+        <Select value={prioridadeFilter} onValueChange={setPrioridadeFilter}>
+          <SelectTrigger className="w-[180px]"><SelectValue placeholder="Prioridade" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas as Prioridades</SelectItem>
+            <SelectItem value="baixa">Baixa</SelectItem>
+            <SelectItem value="media">Média</SelectItem>
+            <SelectItem value="alta">Alta</SelectItem>
+            <SelectItem value="urgente">Urgente</SelectItem>
           </SelectContent>
         </Select>
         <RegionalFilterSelect value={regionalId} onChange={setRegionalId} />
