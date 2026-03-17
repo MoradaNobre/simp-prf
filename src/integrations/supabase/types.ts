@@ -840,6 +840,7 @@ export type Database = {
           foto_antes: string | null
           foto_depois: string | null
           id: string
+          motivo_bloqueio: string | null
           motivo_restituicao: string | null
           prazo_execucao: string | null
           prazo_orcamento: string | null
@@ -873,6 +874,7 @@ export type Database = {
           foto_antes?: string | null
           foto_depois?: string | null
           id?: string
+          motivo_bloqueio?: string | null
           motivo_restituicao?: string | null
           prazo_execucao?: string | null
           prazo_orcamento?: string | null
@@ -906,6 +908,7 @@ export type Database = {
           foto_antes?: string | null
           foto_depois?: string | null
           id?: string
+          motivo_bloqueio?: string | null
           motivo_restituicao?: string | null
           prazo_execucao?: string | null
           prazo_orcamento?: string | null

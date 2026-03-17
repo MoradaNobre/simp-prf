@@ -128,8 +128,9 @@ export default function OrdensServico() {
     return sortDir === "asc" ? <ArrowUp className="h-3 w-3 ml-1" /> : <ArrowDown className="h-3 w-3 ml-1" />;
   };
 
+  const isBloqueadaCotaFilter = statusFilter === "bloqueada_cota";
   const { data: ordensRaw, isLoading, refetch, isFetching } = useOrdensServico({
-    status: statusFilter || undefined,
+    status: isBloqueadaCotaFilter ? "autorizacao" : (statusFilter || undefined),
     prioridade: prioridadeFilter || undefined,
     search: search || undefined,
     regionalId: effectiveRegionalId,
@@ -138,6 +139,9 @@ export default function OrdensServico() {
   // Client-side date filter + sort
   const ordens = useMemo(() => {
     let filtered = ordensRaw?.filter((os) => {
+      // Filter by bloqueada_cota
+      if (isBloqueadaCotaFilter && !(os as any).motivo_bloqueio) return false;
+
       const osDate = new Date(os.data_abertura);
       if (dataInicio && osDate < dataInicio) return false;
       if (dataFim) {
@@ -160,7 +164,7 @@ export default function OrdensServico() {
     }
 
     return filtered;
-  }, [ordensRaw, dataInicio, dataFim, sortKey, sortDir]);
+  }, [ordensRaw, dataInicio, dataFim, sortKey, sortDir, isBloqueadaCotaFilter]);
 
   return (
     <div className="space-y-6">
@@ -206,6 +210,7 @@ export default function OrdensServico() {
               {Constants.public.Enums.os_status.map((s) => (
                 <SelectItem key={s} value={s}>{statusLabels[s]}</SelectItem>
               ))}
+              <SelectItem value="bloqueada_cota">⚠ Bloqueadas por Cota</SelectItem>
             </SelectContent>
           </Select>
           <Select value={prioridadeFilter || "all"} onValueChange={(v) => setPrioridadeFilter(v === "all" ? "" : v)}>
@@ -457,6 +462,11 @@ export default function OrdensServico() {
                         {os.motivo_restituicao && (
                           <span className="inline-flex items-center justify-center rounded-full h-5 w-5 text-[10px] font-bold bg-destructive text-destructive-foreground" title={`Restituída: ${os.motivo_restituicao}`}>
                             R
+                          </span>
+                        )}
+                        {(os as any).motivo_bloqueio && os.status === "autorizacao" && (
+                          <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200" title={`Bloqueio: ${(os as any).motivo_bloqueio}`}>
+                            ⚠ Aguard. Cota
                           </span>
                         )}
                         {os.status === "pagamento" && ((os as any).documentos_pagamento as any[])?.length > 0 && (

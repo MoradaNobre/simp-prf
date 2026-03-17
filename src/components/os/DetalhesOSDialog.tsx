@@ -1073,6 +1073,23 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
             const bloqueio3_empenho = !bloqueio1_cota && !bloqueio2_contrato && !bloqueio2_limite && empenhoInsuficiente;
             const bloqueado = bloqueio1_cota || bloqueio2_contrato || bloqueio2_limite || bloqueio3_empenho;
 
+            // Persist motivo_bloqueio to the OS record
+            const motivoBloqueioAtual = bloqueio1_cota
+              ? (semOrcamentoCadastrado ? "sem_cota_cadastrada" : "cota_regional_insuficiente")
+              : bloqueio2_contrato
+                ? "saldo_contrato_insuficiente"
+                : bloqueio2_limite
+                  ? "limite_modalidade_excedido"
+                  : bloqueio3_empenho
+                    ? "empenho_insuficiente"
+                    : null;
+
+            // Save motivo_bloqueio if it changed
+            const currentMotivo = (os as any).motivo_bloqueio ?? null;
+            if (motivoBloqueioAtual !== currentMotivo) {
+              updateOS.mutate({ id: os.id, motivo_bloqueio: motivoBloqueioAtual } as any);
+            }
+
             return (
               <>
                 <Separator />
