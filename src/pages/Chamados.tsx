@@ -69,6 +69,7 @@ export default function Chamados() {
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [prioridadeFilter, setPrioridadeFilter] = useState<string>("all");
   const [tipoFilter, setTipoFilter] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedChamados, setSelectedChamados] = useState<Set<string>>(new Set());
