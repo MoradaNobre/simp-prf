@@ -128,8 +128,9 @@ export default function OrdensServico() {
     return sortDir === "asc" ? <ArrowUp className="h-3 w-3 ml-1" /> : <ArrowDown className="h-3 w-3 ml-1" />;
   };
 
+  const isBloqueadaCotaFilter = statusFilter === "bloqueada_cota";
   const { data: ordensRaw, isLoading, refetch, isFetching } = useOrdensServico({
-    status: statusFilter || undefined,
+    status: isBloqueadaCotaFilter ? "autorizacao" : (statusFilter || undefined),
     prioridade: prioridadeFilter || undefined,
     search: search || undefined,
     regionalId: effectiveRegionalId,
