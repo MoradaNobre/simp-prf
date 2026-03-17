@@ -309,6 +309,16 @@ export default function Chamados() {
             ))}
           </SelectContent>
         </Select>
+        <Select value={prioridadeFilter} onValueChange={setPrioridadeFilter}>
+          <SelectTrigger className="w-[180px]"><SelectValue placeholder="Prioridade" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas as Prioridades</SelectItem>
+            <SelectItem value="baixa">Baixa</SelectItem>
+            <SelectItem value="media">Média</SelectItem>
+            <SelectItem value="alta">Alta</SelectItem>
+            <SelectItem value="urgente">Urgente</SelectItem>
+          </SelectContent>
+        </Select>
         <RegionalFilterSelect value={regionalId} onChange={setRegionalId} />
         <Button
           variant={sortByScore ? "default" : "outline"}
