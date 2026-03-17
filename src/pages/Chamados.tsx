@@ -89,10 +89,14 @@ export default function Chamados() {
     search: search || undefined,
   });
 
-  // Filter by tipo_demanda client-side
+  // Filter by tipo_demanda and prioridade client-side
   const filteredByTipo = tipoFilter === "all"
     ? chamados
     : chamados.filter(c => c.tipo_demanda === tipoFilter);
+
+  const filteredByPrioridade = prioridadeFilter === "all"
+    ? filteredByTipo
+    : filteredByTipo.filter(c => c.prioridade === prioridadeFilter);
 
   // Sort by GUT score descending if enabled
   const sortedChamados = sortByScore
