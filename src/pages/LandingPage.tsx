@@ -60,7 +60,7 @@ const features = [
   },
 ];
 
-export default function LandingPage() {
+export default function LandingPage(): JSX.Element {
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
