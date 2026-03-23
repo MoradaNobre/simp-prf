@@ -1,68 +1,59 @@
 
 
-## QR Code para Abertura de Chamados por Ambiente
+## Adaptar labels do formulário de Novo Chamado para Sede Nacional
 
-### Conceito
+### Problema
+Quando o usuário seleciona a regional "Sede Nacional" (SEDE-NAC) no formulário de abertura de chamado, os campos continuam exibindo "Delegacia / Sede Regional" e "UOP / Anexo", o que não faz sentido para a sede nacional que usa "Diretoria" e "Anexo / Edifício".
 
-Cada UOP (unidade operacional / ambiente) terá um QR Code único. Quando o usuário escaneia com a câmera do celular, é redirecionado para o SIMP com a localização pré-preenchida, abrindo diretamente o formulário de novo chamado.
+### Solução
+Detectar dinamicamente quando a regional selecionada (ou vinculada ao perfil) é a SEDE-NAC e trocar os labels dos campos hierárquicos.
 
-### Fluxo do Usuário
+### Mapeamento de labels
 
-```text
-QR Code no ambiente
-       ↓
-Scan com câmera do celular
-       ↓
-URL: simp-prf.lovable.app/chamado/novo?uop=<uop_id>
-       ↓
-Login (se não autenticado) → redireciona de volta
-       ↓
-Formulário de chamado com Regional, Delegacia e UOP pré-selecionados
-```
+| Regional selecionada | Campo 2 (delegacia) | Campo 3 (uop) |
+|---|---|---|
+| Qualquer regional | "Delegacia / Sede Regional" | "UOP / Anexo" |
+| SEDE-NAC | "Diretoria" | "Anexo / Edifício" |
 
-### Implementação
+### Arquivo a editar
+**`src/components/chamados/NovoChamadoDialog.tsx`**
 
-**1. Rota pública de redirecionamento**
-- Nova rota `/chamado/novo` em `App.tsx`
-- Página `src/pages/NovoChamadoQR.tsx` que:
-  - Lê o query param `?uop=<uuid>`
-  - Se não autenticado, redireciona para `/login?redirect=/chamado/novo?uop=<uuid>`
-  - Se autenticado, redireciona para `/app/chamados?novoUop=<uuid>` (abre o dialog de novo chamado com campos pré-preenchidos)
+1. Importar `SEDE_NACIONAL_SIGLA` de `NovoAtivoDialog`
+2. Adicionar lógica para identificar se a regional selecionada é a sede nacional (comparando a `sigla` da regional com `SEDE_NACIONAL_SIGLA`)
+3. Criar variáveis `delegaciaLabel` e `uopLabel` que mudam conforme o contexto:
+   - Se sede nacional: `"Diretoria"` e `"Anexo / Edifício"`
+   - Caso contrário: `"Delegacia / Sede Regional"` e `"UOP / Anexo"`
+4. Substituir os `<Label>` estáticos pelos labels dinâmicos
+5. Atualizar os placeholders dos `<Select>` correspondentes (`"Selecione a diretoria..."` vs `"Selecione a delegacia..."`)
 
-**2. Pré-preenchimento no formulário de chamado**
-- `src/pages/Chamados.tsx`: detectar query param `novoUop` e abrir o `NovoChamadoDialog` automaticamente com o `uopId` pré-selecionado
-- `src/components/chamados/NovoChamadoDialog.tsx`: aceitar prop opcional `prefilledUopId` que busca a UOP no banco e preenche automaticamente Regional → Delegacia → UOP
+### Sem alteração no banco de<lov-plan>
 
-**3. Geração de QR Codes na página de Ativos**
-- Adicionar botão "QR Code" em cada UOP na árvore hierárquica (`src/pages/Ativos.tsx`)
-- Dialog que exibe o QR Code gerado via biblioteca `qrcode.react` (ou similar)
-- Opções: baixar como PNG, imprimir (com nome da UOP e endereço no rodapé)
-- Botão "Gerar QR Codes em lote" por delegacia ou regional (gera PDF com todos os QR Codes para impressão)
+## Adaptar labels do formulário de Novo Chamado para Sede Nacional
 
-**4. Geração em lote (PDF)**
-- Gerar PDF com múltiplos QR Codes (um por página ou grid) usando `jsPDF` (já presente no projeto)
-- Cada QR inclui: nome da UOP, delegacia, regional, endereço
+### Problema
+Quando o usuário seleciona a regional "Sede Nacional" (SEDE-NAC) no formulário de abertura de chamado, os campos continuam exibindo "Delegacia / Sede Regional" e "UOP / Anexo", o que não faz sentido para a sede nacional que usa "Diretoria" e "Anexo / Edifício".
 
-### Arquivos a criar/editar
+### Solução
+Detectar dinamicamente quando a regional selecionada é a SEDE-NAC e trocar os labels dos campos hierárquicos.
 
-| Ação | Arquivo |
-|------|---------|
-| Criar | `src/pages/NovoChamadoQR.tsx` (página de redirecionamento) |
-| Criar | `src/components/ativos/QRCodeDialog.tsx` (exibição/download do QR) |
-| Editar | `src/App.tsx` (nova rota `/chamado/novo`) |
-| Editar | `src/pages/Ativos.tsx` (botão QR em cada UOP) |
-| Editar | `src/pages/Chamados.tsx` (detectar query param e abrir dialog) |
-| Editar | `src/components/chamados/NovoChamadoDialog.tsx` (prop `prefilledUopId`) |
-| Instalar | `qrcode.react` (biblioteca de geração de QR Code) |
+### Mapeamento de labels
 
-### URL do QR Code
+| Regional selecionada | Campo 2 | Campo 3 |
+|---|---|---|
+| Qualquer regional | Delegacia / Sede Regional | UOP / Anexo |
+| SEDE-NAC | Diretoria | Anexo / Edifício |
 
-```
-https://simp-prf.lovable.app/chamado/novo?uop=<uuid_da_uop>
-```
+### Arquivo a editar
+**`src/components/chamados/NovoChamadoDialog.tsx`**
+
+1. Importar `SEDE_NACIONAL_SIGLA` de `NovoAtivoDialog`
+2. Determinar se a regional ativa é a sede nacional (comparar `sigla` da regional selecionada com `SEDE_NACIONAL_SIGLA`)
+3. Criar variáveis dinâmicas para labels e placeholders:
+   - `delegaciaLabel`: "Diretoria" ou "Delegacia / Sede Regional"
+   - `uopLabel`: "Anexo / Edifício" ou "UOP / Anexo"
+   - Placeholders dos selects ajustados de forma correspondente
+4. Substituir os `<Label>` e placeholders estáticos pelos valores dinâmicos
 
 ### Sem alteração no banco de dados
-- O `uop_id` já existe na tabela `chamados`
-- A hierarquia Regional → Delegacia → UOP já está modelada
-- Não precisa de novas tabelas ou migrações
+A lógica é puramente de apresentação — os dados continuam sendo gravados nas mesmas tabelas (`delegacias`, `uops`).
 
