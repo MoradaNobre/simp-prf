@@ -167,21 +167,29 @@ export default function GestaoRegionais() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.map((r) => (
+            {filtered.map((r) => {
+              const isSede = r.sigla === SEDE_NACIONAL_SIGLA;
+              return (
               <TableRow key={r.id}>
-                <TableCell><Checkbox checked={selected.has(r.id)} onCheckedChange={() => toggleSelect(r.id)} /></TableCell>
+                <TableCell>{!isSede && <Checkbox checked={selected.has(r.id)} onCheckedChange={() => toggleSelect(r.id)} />}</TableCell>
                 <TableCell className="font-mono text-xs text-muted-foreground">{r.uasg_codigo || "—"}</TableCell>
-                <TableCell className="font-medium">{r.sigla}</TableCell>
+                <TableCell className="font-medium">
+                  <span className="flex items-center gap-1.5">
+                    {r.sigla}
+                    {isSede && <Badge variant="secondary" className="text-[10px] px-1.5 py-0"><ShieldCheck className="h-3 w-3 mr-0.5" />Protegida</Badge>}
+                  </span>
+                </TableCell>
                 <TableCell>{r.nome}</TableCell>
                 <TableCell>{r.uf}</TableCell>
                 <TableCell>
                   <div className="flex gap-1">
                     <Button variant="ghost" size="icon" onClick={() => openEdit(r)}><Pencil className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => setDeleteConfirm(r)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                    {!isSede && <Button variant="ghost" size="icon" onClick={() => setDeleteConfirm(r)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                   </div>
                 </TableCell>
               </TableRow>
-            ))}
+              );
+            })}
           </TableBody>
         </Table>
         </div>
