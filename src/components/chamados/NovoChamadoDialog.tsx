@@ -25,6 +25,7 @@ import { Constants } from "@/integrations/supabase/types";
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  prefilledUopId?: string;
 }
 
 const TIPOS_DEMANDA = [

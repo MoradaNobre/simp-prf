@@ -472,7 +472,7 @@ export default function Chamados() {
         </div>
       )}
 
-      <NovoChamadoDialog open={dialogOpen} onOpenChange={setDialogOpen} />
+      <NovoChamadoDialog open={dialogOpen} onOpenChange={(v) => { setDialogOpen(v); if (!v) setPrefilledUopId(undefined); }} prefilledUopId={prefilledUopId} />
       <EditarChamadoDialog chamado={editChamado} open={!!editChamado} onOpenChange={(v) => !v && setEditChamado(null)} />
 
       {/* Analyze GUT dialog */}
