@@ -123,7 +123,9 @@ export default function Login() {
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        navigate("/app");
+        const params = new URLSearchParams(window.location.search);
+        const redirect = params.get("redirect");
+        navigate(redirect || "/app");
       }
     } catch (err: any) {
       toast.error(err.message || "Erro na autenticação");

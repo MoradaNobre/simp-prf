@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -72,6 +73,18 @@ export default function Chamados() {
   const [prioridadeFilter, setPrioridadeFilter] = useState<string>("all");
   const [tipoFilter, setTipoFilter] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [prefilledUopId, setPrefilledUopId] = useState<string | undefined>();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    const novoUop = searchParams.get("novoUop");
+    if (novoUop) {
+      setPrefilledUopId(novoUop);
+      setDialogOpen(true);
+      searchParams.delete("novoUop");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
   const [selectedChamados, setSelectedChamados] = useState<Set<string>>(new Set());
   const [viewChamado, setViewChamado] = useState<Chamado | null>(null);
   const [analyzeChamado, setAnalyzeChamado] = useState<Chamado | null>(null);
@@ -459,7 +472,7 @@ export default function Chamados() {
         </div>
       )}
 
-      <NovoChamadoDialog open={dialogOpen} onOpenChange={setDialogOpen} />
+      <NovoChamadoDialog open={dialogOpen} onOpenChange={(v) => { setDialogOpen(v); if (!v) setPrefilledUopId(undefined); }} prefilledUopId={prefilledUopId} />
       <EditarChamadoDialog chamado={editChamado} open={!!editChamado} onOpenChange={(v) => !v && setEditChamado(null)} />
 
       {/* Analyze GUT dialog */}

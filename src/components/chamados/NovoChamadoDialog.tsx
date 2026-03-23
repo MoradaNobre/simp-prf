@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { HelpCircle } from "lucide-react";
 import { isGlobalRole } from "@/utils/roles";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -25,6 +25,7 @@ import { Constants } from "@/integrations/supabase/types";
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  prefilledUopId?: string;
 }
 
 const TIPOS_DEMANDA = [
@@ -41,7 +42,7 @@ const TIPOS_DEMANDA = [
   { value: "usina_solar", label: "Usina Solar", desc: "Painéis solares, inversores, cabeamento, etc." },
 ];
 
-export function NovoChamadoDialog({ open, onOpenChange }: Props) {
+export function NovoChamadoDialog({ open, onOpenChange, prefilledUopId }: Props) {
   const { user } = useAuth();
   const profile = useUserProfile();
   const { data: role } = useUserRole();
@@ -58,6 +59,25 @@ export function NovoChamadoDialog({ open, onOpenChange }: Props) {
   const [foto, setFoto] = useState<File | null>(null);
   const [patrimonio, setPatrimonio] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  // Pre-fill from QR Code: resolve UOP → Delegacia → Regional hierarchy
+  useEffect(() => {
+    if (!prefilledUopId || !open) return;
+
+    const resolveHierarchy = async () => {
+      const { data: uop } = await supabase.from("uops").select("id, delegacia_id").eq("id", prefilledUopId).single();
+      if (!uop) return;
+
+      const { data: del } = await supabase.from("delegacias").select("id, regional_id").eq("id", uop.delegacia_id).single();
+      if (!del) return;
+
+      setSelectedRegionalId(del.regional_id);
+      setDelegaciaId(del.id);
+      setUopId(uop.id);
+    };
+
+    resolveHierarchy();
+  }, [prefilledUopId, open]);
 
   const isGestorGlobal = isGlobalRole(role);
   const userRegionais: any[] = (profile.data as any)?.regionais || [];

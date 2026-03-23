@@ -22,9 +22,11 @@ import { AppRedirect } from "@/components/AppRedirect";
 import Relatorios from "@/pages/Relatorios";
 import GestaoOrcamento from "@/pages/GestaoOrcamento";
 import NotFound from "@/pages/NotFound";
+import Ativos from "@/pages/Ativos";
 import DefinirResponsavel from "@/pages/DefinirResponsavel";
 import ExportarTelas from "@/pages/ExportarTelas";
 import ManualSistema from "@/pages/ManualSistema";
+import NovoChamadoQR from "@/pages/NovoChamadoQR";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +41,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/chamado/novo" element={<NovoChamadoQR />} />
               <Route path="/alterar-senha" element={<AlterarSenha />} />
               <Route path="/app" element={<AppLayout />}>
                 <Route index element={<AppRedirect />} />
@@ -50,6 +53,7 @@ const App = () => (
                 <Route path="contratos" element={<Contratos />} />
                 <Route path="gestao" element={<Gestao />} />
                 <Route path="orcamento" element={<GestaoOrcamento />} />
+                <Route path="ativos" element={<Ativos />} />
                 
                 <Route path="relatorios" element={<Relatorios />} />
                 <Route path="sobre" element={<Sobre />} />

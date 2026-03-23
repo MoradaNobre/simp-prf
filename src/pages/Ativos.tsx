@@ -2,11 +2,12 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Building2, Plus, Search, ChevronRight, ChevronDown, MapPin, Loader2 } from "lucide-react";
+import { Building2, Plus, Search, ChevronRight, ChevronDown, MapPin, Loader2, QrCode } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { QRCodeDialog } from "@/components/ativos/QRCodeDialog";
 
 type Regional = { id: string; nome: string; sigla: string; uf: string };
 type Delegacia = { id: string; nome: string; regional_id: string; municipio: string | null };
@@ -70,6 +71,9 @@ function TreeNode({ label, icon, children, count, defaultOpen = false }: {
 export default function Ativos() {
   const { regionais, delegacias, uops } = useAtivosData();
   const [search, setSearch] = useState("");
+  const [qrUop, setQrUop] = useState<{ id: string; nome: string; endereco: string | null } | null>(null);
+  const [qrDelegacia, setQrDelegacia] = useState("");
+  const [qrRegional, setQrRegional] = useState("");
 
   const regData = regionais.data || [];
   const delData = delegacias.data || [];
@@ -134,10 +138,19 @@ export default function Ativos() {
                       return (
                         <TreeNode key={del.id} label={del.nome} icon={<Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />} count={uopsForThis.length}>
                           {uopsForThis.map((uop) => (
-                            <div key={uop.id} className="flex items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground hover:bg-accent/30 rounded-md">
+                            <div key={uop.id} className="flex items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground hover:bg-accent/30 rounded-md group">
                               <MapPin className="h-3.5 w-3.5 shrink-0" />
                               <span className="truncate">{uop.nome}</span>
                               {uop.endereco && <span className="ml-auto text-xs text-muted-foreground/60 truncate max-w-[200px]">{uop.endereco}</span>}
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                                onClick={(e) => { e.stopPropagation(); setQrUop(uop); setQrDelegacia(del.nome); setQrRegional(reg.sigla); }}
+                                title="Gerar QR Code"
+                              >
+                                <QrCode className="h-3.5 w-3.5" />
+                              </Button>
                             </div>
                           ))}
                         </TreeNode>
@@ -150,6 +163,14 @@ export default function Ativos() {
           )}
         </CardContent>
       </Card>
+
+      <QRCodeDialog
+        open={!!qrUop}
+        onOpenChange={(v) => !v && setQrUop(null)}
+        uop={qrUop}
+        delegaciaNome={qrDelegacia}
+        regionalSigla={qrRegional}
+      />
     </div>
   );
 }
