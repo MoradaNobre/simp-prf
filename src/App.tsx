@@ -22,6 +22,7 @@ import { AppRedirect } from "@/components/AppRedirect";
 import Relatorios from "@/pages/Relatorios";
 import GestaoOrcamento from "@/pages/GestaoOrcamento";
 import NotFound from "@/pages/NotFound";
+import Ativos from "@/pages/Ativos";
 import DefinirResponsavel from "@/pages/DefinirResponsavel";
 import ExportarTelas from "@/pages/ExportarTelas";
 import ManualSistema from "@/pages/ManualSistema";
