@@ -81,16 +81,10 @@ export function NovoAtivoDialog({ open, onOpenChange }: NovoAtivoDialogProps) {
     queryClient.invalidateQueries({ queryKey: ["uops"] });
   };
 
-  const ensureSedeNacional = async (): Promise<string | null> => {
+  const getSedeNacionalId = (): string | null => {
     if (sedeNacional) return sedeNacional.id;
-    // Auto-create the SEDE-NAC regional
-    const { data, error } = await supabase.from("regionais").insert({
-      nome: "Sede Nacional da PRF",
-      sigla: SEDE_NACIONAL_SIGLA,
-      uf: "DF",
-    }).select("id").single();
-    if (error) { toast.error("Erro ao criar registro da Sede Nacional: " + error.message); return null; }
-    return data.id;
+    toast.error("Registro da Sede Nacional não encontrado. Verifique na Gestão de Regionais.");
+    return null;
   };
 
   const handleSaveUop = async () => {
