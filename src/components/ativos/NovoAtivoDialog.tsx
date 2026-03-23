@@ -1,0 +1,230 @@
+import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
+
+interface NovoAtivoDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function NovoAtivoDialog({ open, onOpenChange }: NovoAtivoDialogProps) {
+  const queryClient = useQueryClient();
+  const [tab, setTab] = useState("uop");
+  const [saving, setSaving] = useState(false);
+
+  // UOP form
+  const [uopNome, setUopNome] = useState("");
+  const [uopEndereco, setUopEndereco] = useState("");
+  const [uopDelegaciaId, setUopDelegaciaId] = useState("");
+
+  // Delegacia form
+  const [delNome, setDelNome] = useState("");
+  const [delMunicipio, setDelMunicipio] = useState("");
+  const [delRegionalId, setDelRegionalId] = useState("");
+
+  // Regional form
+  const [regNome, setRegNome] = useState("");
+  const [regSigla, setRegSigla] = useState("");
+  const [regUf, setRegUf] = useState("");
+
+  const regionais = useQuery({
+    queryKey: ["regionais"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("regionais").select("id, nome, sigla").order("sigla");
+      if (error) throw error;
+      return data;
+    },
+    enabled: open,
+  });
+
+  const delegacias = useQuery({
+    queryKey: ["delegacias"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("delegacias").select("id, nome, regional_id").order("nome");
+      if (error) throw error;
+      return data;
+    },
+    enabled: open,
+  });
+
+  const filteredDelegacias = delegacias.data || [];
+
+  const resetForms = () => {
+    setUopNome(""); setUopEndereco(""); setUopDelegaciaId("");
+    setDelNome(""); setDelMunicipio(""); setDelRegionalId("");
+    setRegNome(""); setRegSigla(""); setRegUf("");
+  };
+
+  const invalidateAll = () => {
+    queryClient.invalidateQueries({ queryKey: ["regionais"] });
+    queryClient.invalidateQueries({ queryKey: ["delegacias"] });
+    queryClient.invalidateQueries({ queryKey: ["uops"] });
+  };
+
+  const handleSaveUop = async () => {
+    if (!uopNome.trim() || !uopDelegaciaId) {
+      toast.error("Preencha o nome e selecione a delegacia.");
+      return;
+    }
+    setSaving(true);
+    const { error } = await supabase.from("uops").insert({
+      nome: uopNome.trim(),
+      endereco: uopEndereco.trim() || null,
+      delegacia_id: uopDelegaciaId,
+    });
+    setSaving(false);
+    if (error) { toast.error("Erro ao cadastrar UOP: " + error.message); return; }
+    toast.success("UOP cadastrada com sucesso!");
+    invalidateAll();
+    resetForms();
+    onOpenChange(false);
+  };
+
+  const handleSaveDelegacia = async () => {
+    if (!delNome.trim() || !delRegionalId) {
+      toast.error("Preencha o nome e selecione a regional.");
+      return;
+    }
+    setSaving(true);
+    const { error } = await supabase.from("delegacias").insert({
+      nome: delNome.trim(),
+      municipio: delMunicipio.trim() || null,
+      regional_id: delRegionalId,
+    });
+    setSaving(false);
+    if (error) { toast.error("Erro ao cadastrar Delegacia: " + error.message); return; }
+    toast.success("Delegacia cadastrada com sucesso!");
+    invalidateAll();
+    resetForms();
+    onOpenChange(false);
+  };
+
+  const handleSaveRegional = async () => {
+    if (!regNome.trim() || !regSigla.trim() || !regUf.trim()) {
+      toast.error("Preencha todos os campos obrigatórios.");
+      return;
+    }
+    if (regUf.length !== 2) {
+      toast.error("UF deve ter exatamente 2 caracteres.");
+      return;
+    }
+    setSaving(true);
+    const { error } = await supabase.from("regionais").insert({
+      nome: regNome.trim(),
+      sigla: regSigla.trim().toUpperCase(),
+      uf: regUf.trim().toUpperCase(),
+    });
+    setSaving(false);
+    if (error) { toast.error("Erro ao cadastrar Regional: " + error.message); return; }
+    toast.success("Regional cadastrada com sucesso!");
+    invalidateAll();
+    resetForms();
+    onOpenChange(false);
+  };
+
+  const UF_LIST = [
+    "AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT",
+    "PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO"
+  ];
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Novo Ativo</DialogTitle>
+        </DialogHeader>
+
+        <Tabs value={tab} onValueChange={setTab}>
+          <TabsList className="w-full">
+            <TabsTrigger value="uop" className="flex-1">UOP / Anexo</TabsTrigger>
+            <TabsTrigger value="delegacia" className="flex-1">Delegacia</TabsTrigger>
+            <TabsTrigger value="regional" className="flex-1">Regional</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="uop" className="space-y-4 mt-4">
+            <div className="space-y-2">
+              <Label>Nome da UOP *</Label>
+              <Input value={uopNome} onChange={(e) => setUopNome(e.target.value)} placeholder="Ex: UOP Centro" />
+            </div>
+            <div className="space-y-2">
+              <Label>Delegacia *</Label>
+              <Select value={uopDelegaciaId} onValueChange={setUopDelegaciaId}>
+                <SelectTrigger><SelectValue placeholder="Selecione a delegacia" /></SelectTrigger>
+                <SelectContent>
+                  {filteredDelegacias.map((d) => (
+                    <SelectItem key={d.id} value={d.id}>{d.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Endereço</Label>
+              <Input value={uopEndereco} onChange={(e) => setUopEndereco(e.target.value)} placeholder="Endereço (opcional)" />
+            </div>
+            <Button className="w-full" onClick={handleSaveUop} disabled={saving}>
+              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Cadastrar UOP
+            </Button>
+          </TabsContent>
+
+          <TabsContent value="delegacia" className="space-y-4 mt-4">
+            <div className="space-y-2">
+              <Label>Nome da Delegacia *</Label>
+              <Input value={delNome} onChange={(e) => setDelNome(e.target.value)} placeholder="Ex: Delegacia de Goiânia" />
+            </div>
+            <div className="space-y-2">
+              <Label>Regional *</Label>
+              <Select value={delRegionalId} onValueChange={setDelRegionalId}>
+                <SelectTrigger><SelectValue placeholder="Selecione a regional" /></SelectTrigger>
+                <SelectContent>
+                  {(regionais.data || []).map((r) => (
+                    <SelectItem key={r.id} value={r.id}>{r.sigla} — {r.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Município</Label>
+              <Input value={delMunicipio} onChange={(e) => setDelMunicipio(e.target.value)} placeholder="Município (opcional)" />
+            </div>
+            <Button className="w-full" onClick={handleSaveDelegacia} disabled={saving}>
+              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Cadastrar Delegacia
+            </Button>
+          </TabsContent>
+
+          <TabsContent value="regional" className="space-y-4 mt-4">
+            <div className="space-y-2">
+              <Label>Nome da Regional *</Label>
+              <Input value={regNome} onChange={(e) => setRegNome(e.target.value)} placeholder="Ex: Superintendência Regional em Goiás" />
+            </div>
+            <div className="space-y-2">
+              <Label>Sigla *</Label>
+              <Input value={regSigla} onChange={(e) => setRegSigla(e.target.value)} placeholder="Ex: SRPRF-GO" maxLength={15} />
+            </div>
+            <div className="space-y-2">
+              <Label>UF *</Label>
+              <Select value={regUf} onValueChange={setRegUf}>
+                <SelectTrigger><SelectValue placeholder="Selecione a UF" /></SelectTrigger>
+                <SelectContent>
+                  {UF_LIST.map((uf) => (
+                    <SelectItem key={uf} value={uf}>{uf}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button className="w-full" onClick={handleSaveRegional} disabled={saving}>
+              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Cadastrar Regional
+            </Button>
+          </TabsContent>
+        </Tabs>
+      </DialogContent>
+    </Dialog>
+  );
+}

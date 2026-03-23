@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { QRCodeDialog } from "@/components/ativos/QRCodeDialog";
+import { NovoAtivoDialog } from "@/components/ativos/NovoAtivoDialog";
 
 type Regional = { id: string; nome: string; sigla: string; uf: string };
 type Delegacia = { id: string; nome: string; regional_id: string; municipio: string | null };
