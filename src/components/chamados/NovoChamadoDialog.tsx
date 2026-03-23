@@ -21,6 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { Constants } from "@/integrations/supabase/types";
+import { SEDE_NACIONAL_SIGLA } from "@/components/ativos/NovoAtivoDialog";
 
 interface Props {
   open: boolean;
@@ -103,6 +104,21 @@ export function NovoChamadoDialog({ open, onOpenChange, prefilledUopId }: Props)
 
   const delegacias = useDelegacias(regionalId);
   const uops = useUops(delegaciaId || undefined);
+
+  // Detect if selected regional is Sede Nacional
+  const isSede = (() => {
+    if (hasMultipleRegionais && selectedRegionalId) {
+      const r = userRegionais.find((r: any) => r.id === selectedRegionalId);
+      return r?.sigla === SEDE_NACIONAL_SIGLA;
+    }
+    if (userRegionais.length === 1) return userRegionais[0]?.sigla === SEDE_NACIONAL_SIGLA;
+    return (profile.data as any)?.regional?.sigla === SEDE_NACIONAL_SIGLA;
+  })();
+
+  const delegaciaLabel = isSede ? "Diretoria" : "Delegacia / Sede Regional";
+  const uopLabel = isSede ? "Anexo / Edifício" : "UOP / Anexo";
+  const delegaciaPlaceholder = isSede ? "Selecione a diretoria..." : "Selecione...";
+  const uopPlaceholder = isSede ? "Selecione o anexo..." : "Selecione...";
 
   const reset = () => {
     setTipoDemanda(""); setDescricao(""); setLocalServico("");
@@ -256,9 +272,9 @@ export function NovoChamadoDialog({ open, onOpenChange, prefilledUopId }: Props)
 
           {regionalId && (
             <div>
-              <Label>Delegacia / Sede Regional</Label>
+              <Label>{delegaciaLabel}</Label>
               <Select value={delegaciaId} onValueChange={(v) => { setDelegaciaId(v); setUopId(""); }}>
-                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={delegaciaPlaceholder} /></SelectTrigger>
                 <SelectContent>
                   {(delegacias.data || []).map((d) => (
                     <SelectItem key={d.id} value={d.id}>{d.nome}</SelectItem>
@@ -270,9 +286,9 @@ export function NovoChamadoDialog({ open, onOpenChange, prefilledUopId }: Props)
 
           {delegaciaId && (
             <div>
-              <Label>UOP / Anexo</Label>
+              <Label>{uopLabel}</Label>
               <Select value={uopId} onValueChange={setUopId}>
-                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={uopPlaceholder} /></SelectTrigger>
                 <SelectContent>
                   {(uops.data || []).map((u) => (
                     <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
