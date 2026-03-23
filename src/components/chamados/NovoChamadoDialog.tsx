@@ -21,6 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { Constants } from "@/integrations/supabase/types";
+import { SEDE_NACIONAL_SIGLA } from "@/components/ativos/NovoAtivoDialog";
 
 interface Props {
   open: boolean;
