@@ -75,6 +75,7 @@ export default function Ativos() {
   const [qrUop, setQrUop] = useState<{ id: string; nome: string; endereco: string | null } | null>(null);
   const [qrDelegacia, setQrDelegacia] = useState("");
   const [qrRegional, setQrRegional] = useState("");
+  const [novoAtivoOpen, setNovoAtivoOpen] = useState(false);
 
   const regData = regionais.data || [];
   const delData = delegacias.data || [];
