@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { QRCodeDialog } from "@/components/ativos/QRCodeDialog";
+import { NovoAtivoDialog } from "@/components/ativos/NovoAtivoDialog";
 
 type Regional = { id: string; nome: string; sigla: string; uf: string };
 type Delegacia = { id: string; nome: string; regional_id: string; municipio: string | null };
@@ -74,6 +75,7 @@ export default function Ativos() {
   const [qrUop, setQrUop] = useState<{ id: string; nome: string; endereco: string | null } | null>(null);
   const [qrDelegacia, setQrDelegacia] = useState("");
   const [qrRegional, setQrRegional] = useState("");
+  const [novoAtivoOpen, setNovoAtivoOpen] = useState(false);
 
   const regData = regionais.data || [];
   const delData = delegacias.data || [];
@@ -99,7 +101,7 @@ export default function Ativos() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button>
+          <Button onClick={() => setNovoAtivoOpen(true)}>
             <Plus className="mr-2 h-4 w-4" /> Novo Ativo
           </Button>
         </div>
@@ -171,6 +173,8 @@ export default function Ativos() {
         delegaciaNome={qrDelegacia}
         regionalSigla={qrRegional}
       />
+
+      <NovoAtivoDialog open={novoAtivoOpen} onOpenChange={setNovoAtivoOpen} />
     </div>
   );
 }
