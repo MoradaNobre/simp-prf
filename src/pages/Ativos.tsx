@@ -173,6 +173,8 @@ export default function Ativos() {
         delegaciaNome={qrDelegacia}
         regionalSigla={qrRegional}
       />
+
+      <NovoAtivoDialog open={novoAtivoOpen} onOpenChange={setNovoAtivoOpen} />
     </div>
   );
 }
