@@ -13,7 +13,10 @@ import {
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Search, Loader2, Plus, Pencil, Trash2 } from "lucide-react";
+import { Search, Loader2, Plus, Pencil, Trash2, ShieldCheck } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+
+const SEDE_NACIONAL_SIGLA = "SEDE NACIONAL";
 
 type Regional = {
   id: string;
@@ -125,22 +128,28 @@ export default function GestaoRegionais() {
         <div className="text-center py-8 text-muted-foreground text-sm">Nenhuma regional encontrada.</div>
       ) : isMobile ? (
         <div className="space-y-3">
-          {filtered.map((r) => (
+          {filtered.map((r) => {
+            const isSede = r.sigla === SEDE_NACIONAL_SIGLA;
+            return (
             <div key={r.id} className="border rounded-lg p-4 space-y-2">
               <div className="flex items-start gap-2">
-                <Checkbox checked={selected.has(r.id)} onCheckedChange={() => toggleSelect(r.id)} className="mt-1" />
+                {!isSede && <Checkbox checked={selected.has(r.id)} onCheckedChange={() => toggleSelect(r.id)} className="mt-1" />}
                 <div className="min-w-0 flex-1">
-                  <p className="font-medium text-sm">{r.sigla}</p>
+                  <p className="font-medium text-sm flex items-center gap-1.5">
+                    {r.sigla}
+                    {isSede && <Badge variant="secondary" className="text-[10px] px-1.5 py-0"><ShieldCheck className="h-3 w-3 mr-0.5" />Protegida</Badge>}
+                  </p>
                   <p className="text-xs text-muted-foreground">{r.nome}</p>
                   <p className="text-xs text-muted-foreground">UF: {r.uf} · UASG: {r.uasg_codigo || "—"}</p>
                 </div>
               </div>
               <div className="flex gap-2 pt-1">
                 <Button variant="outline" size="sm" className="flex-1" onClick={() => openEdit(r)}><Pencil className="h-3.5 w-3.5 mr-1" /> Editar</Button>
-                <Button variant="outline" size="sm" className="flex-1 text-destructive" onClick={() => setDeleteConfirm(r)}><Trash2 className="h-3.5 w-3.5 mr-1" /> Excluir</Button>
+                {!isSede && <Button variant="outline" size="sm" className="flex-1 text-destructive" onClick={() => setDeleteConfirm(r)}><Trash2 className="h-3.5 w-3.5 mr-1" /> Excluir</Button>}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <div className="overflow-x-auto">
@@ -158,21 +167,29 @@ export default function GestaoRegionais() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.map((r) => (
+            {filtered.map((r) => {
+              const isSede = r.sigla === SEDE_NACIONAL_SIGLA;
+              return (
               <TableRow key={r.id}>
-                <TableCell><Checkbox checked={selected.has(r.id)} onCheckedChange={() => toggleSelect(r.id)} /></TableCell>
+                <TableCell>{!isSede && <Checkbox checked={selected.has(r.id)} onCheckedChange={() => toggleSelect(r.id)} />}</TableCell>
                 <TableCell className="font-mono text-xs text-muted-foreground">{r.uasg_codigo || "—"}</TableCell>
-                <TableCell className="font-medium">{r.sigla}</TableCell>
+                <TableCell className="font-medium">
+                  <span className="flex items-center gap-1.5">
+                    {r.sigla}
+                    {isSede && <Badge variant="secondary" className="text-[10px] px-1.5 py-0"><ShieldCheck className="h-3 w-3 mr-0.5" />Protegida</Badge>}
+                  </span>
+                </TableCell>
                 <TableCell>{r.nome}</TableCell>
                 <TableCell>{r.uf}</TableCell>
                 <TableCell>
                   <div className="flex gap-1">
                     <Button variant="ghost" size="icon" onClick={() => openEdit(r)}><Pencil className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => setDeleteConfirm(r)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                    {!isSede && <Button variant="ghost" size="icon" onClick={() => setDeleteConfirm(r)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                   </div>
                 </TableCell>
               </TableRow>
-            ))}
+              );
+            })}
           </TableBody>
         </Table>
         </div>

@@ -10,7 +10,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
-export const SEDE_NACIONAL_SIGLA = "SEDE-NAC";
+export const SEDE_NACIONAL_SIGLA = "SEDE NACIONAL";
 
 interface NovoAtivoDialogProps {
   open: boolean;
@@ -81,16 +81,10 @@ export function NovoAtivoDialog({ open, onOpenChange }: NovoAtivoDialogProps) {
     queryClient.invalidateQueries({ queryKey: ["uops"] });
   };
 
-  const ensureSedeNacional = async (): Promise<string | null> => {
+  const getSedeNacionalId = (): string | null => {
     if (sedeNacional) return sedeNacional.id;
-    // Auto-create the SEDE-NAC regional
-    const { data, error } = await supabase.from("regionais").insert({
-      nome: "Sede Nacional da PRF",
-      sigla: SEDE_NACIONAL_SIGLA,
-      uf: "DF",
-    }).select("id").single();
-    if (error) { toast.error("Erro ao criar registro da Sede Nacional: " + error.message); return null; }
-    return data.id;
+    toast.error("Registro da Sede Nacional não encontrado. Verifique na Gestão de Regionais.");
+    return null;
   };
 
   const handleSaveUop = async () => {
@@ -158,7 +152,7 @@ export function NovoAtivoDialog({ open, onOpenChange }: NovoAtivoDialogProps) {
     if (nacTipo === "diretoria") {
       if (!nacNome.trim()) { toast.error("Preencha o nome da diretoria."); return; }
       setSaving(true);
-      const sedeId = await ensureSedeNacional();
+      const sedeId = getSedeNacionalId();
       if (!sedeId) { setSaving(false); return; }
       const { error } = await supabase.from("delegacias").insert({
         nome: nacNome.trim(),
