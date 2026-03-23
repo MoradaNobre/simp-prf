@@ -10,6 +10,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
+export const SEDE_NACIONAL_SIGLA = "SEDE-NAC";
+
 interface NovoAtivoDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -35,6 +37,12 @@ export function NovoAtivoDialog({ open, onOpenChange }: NovoAtivoDialogProps) {
   const [regSigla, setRegSigla] = useState("");
   const [regUf, setRegUf] = useState("");
 
+  // Nacional form
+  const [nacTipo, setNacTipo] = useState<"diretoria" | "anexo">("diretoria");
+  const [nacNome, setNacNome] = useState("");
+  const [nacEndereco, setNacEndereco] = useState("");
+  const [nacDiretoriaId, setNacDiretoriaId] = useState("");
+
   const regionais = useQuery({
     queryKey: ["regionais"],
     queryFn: async () => {
@@ -55,18 +63,34 @@ export function NovoAtivoDialog({ open, onOpenChange }: NovoAtivoDialogProps) {
     enabled: open,
   });
 
-  const filteredDelegacias = delegacias.data || [];
+  const sedeNacional = (regionais.data || []).find((r) => r.sigla === SEDE_NACIONAL_SIGLA);
+  const diretoriasNacionais = (delegacias.data || []).filter((d) => sedeNacional && d.regional_id === sedeNacional.id);
+  const regionaisSemSede = (regionais.data || []).filter((r) => r.sigla !== SEDE_NACIONAL_SIGLA);
+  const delegaciasSemSede = (delegacias.data || []).filter((d) => !sedeNacional || d.regional_id !== sedeNacional.id);
 
   const resetForms = () => {
     setUopNome(""); setUopEndereco(""); setUopDelegaciaId("");
     setDelNome(""); setDelMunicipio(""); setDelRegionalId("");
     setRegNome(""); setRegSigla(""); setRegUf("");
+    setNacNome(""); setNacEndereco(""); setNacDiretoriaId(""); setNacTipo("diretoria");
   };
 
   const invalidateAll = () => {
     queryClient.invalidateQueries({ queryKey: ["regionais"] });
     queryClient.invalidateQueries({ queryKey: ["delegacias"] });
     queryClient.invalidateQueries({ queryKey: ["uops"] });
+  };
+
+  const ensureSedeNacional = async (): Promise<string | null> => {
+    if (sedeNacional) return sedeNacional.id;
+    // Auto-create the SEDE-NAC regional
+    const { data, error } = await supabase.from("regionais").insert({
+      nome: "Sede Nacional da PRF",
+      sigla: SEDE_NACIONAL_SIGLA,
+      uf: "DF",
+    }).select("id").single();
+    if (error) { toast.error("Erro ao criar registro da Sede Nacional: " + error.message); return null; }
+    return data.id;
   };
 
   const handleSaveUop = async () => {
@@ -130,6 +154,37 @@ export function NovoAtivoDialog({ open, onOpenChange }: NovoAtivoDialogProps) {
     onOpenChange(false);
   };
 
+  const handleSaveNacional = async () => {
+    if (nacTipo === "diretoria") {
+      if (!nacNome.trim()) { toast.error("Preencha o nome da diretoria."); return; }
+      setSaving(true);
+      const sedeId = await ensureSedeNacional();
+      if (!sedeId) { setSaving(false); return; }
+      const { error } = await supabase.from("delegacias").insert({
+        nome: nacNome.trim(),
+        municipio: "Brasília",
+        regional_id: sedeId,
+      });
+      setSaving(false);
+      if (error) { toast.error("Erro ao cadastrar Diretoria: " + error.message); return; }
+      toast.success("Diretoria cadastrada com sucesso!");
+    } else {
+      if (!nacNome.trim() || !nacDiretoriaId) { toast.error("Preencha o nome e selecione a diretoria."); return; }
+      setSaving(true);
+      const { error } = await supabase.from("uops").insert({
+        nome: nacNome.trim(),
+        endereco: nacEndereco.trim() || null,
+        delegacia_id: nacDiretoriaId,
+      });
+      setSaving(false);
+      if (error) { toast.error("Erro ao cadastrar Anexo: " + error.message); return; }
+      toast.success("Anexo cadastrado com sucesso!");
+    }
+    invalidateAll();
+    resetForms();
+    onOpenChange(false);
+  };
+
   const UF_LIST = [
     "AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT",
     "PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO"
@@ -144,10 +199,51 @@ export function NovoAtivoDialog({ open, onOpenChange }: NovoAtivoDialogProps) {
 
         <Tabs value={tab} onValueChange={setTab}>
           <TabsList className="w-full">
+            <TabsTrigger value="nacional" className="flex-1">Nacional</TabsTrigger>
             <TabsTrigger value="uop" className="flex-1">UOP / Anexo</TabsTrigger>
             <TabsTrigger value="delegacia" className="flex-1">Delegacia</TabsTrigger>
             <TabsTrigger value="regional" className="flex-1">Regional</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="nacional" className="space-y-4 mt-4">
+            <div className="space-y-2">
+              <Label>Tipo de Ativo *</Label>
+              <Select value={nacTipo} onValueChange={(v) => { setNacTipo(v as "diretoria" | "anexo"); setNacNome(""); setNacEndereco(""); setNacDiretoriaId(""); }}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="diretoria">Diretoria</SelectItem>
+                  <SelectItem value="anexo">Anexo / Edifício</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>{nacTipo === "diretoria" ? "Nome da Diretoria" : "Nome do Anexo"} *</Label>
+              <Input value={nacNome} onChange={(e) => setNacNome(e.target.value)} placeholder={nacTipo === "diretoria" ? "Ex: Diretoria de Operações" : "Ex: Edifício Sede Anexo II"} />
+            </div>
+            {nacTipo === "anexo" && (
+              <>
+                <div className="space-y-2">
+                  <Label>Diretoria *</Label>
+                  <Select value={nacDiretoriaId} onValueChange={setNacDiretoriaId}>
+                    <SelectTrigger><SelectValue placeholder="Selecione a diretoria" /></SelectTrigger>
+                    <SelectContent>
+                      {diretoriasNacionais.map((d) => (
+                        <SelectItem key={d.id} value={d.id}>{d.nome}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Endereço</Label>
+                  <Input value={nacEndereco} onChange={(e) => setNacEndereco(e.target.value)} placeholder="Endereço (opcional)" />
+                </div>
+              </>
+            )}
+            <Button className="w-full" onClick={handleSaveNacional} disabled={saving}>
+              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {nacTipo === "diretoria" ? "Cadastrar Diretoria" : "Cadastrar Anexo"}
+            </Button>
+          </TabsContent>
 
           <TabsContent value="uop" className="space-y-4 mt-4">
             <div className="space-y-2">
@@ -159,7 +255,7 @@ export function NovoAtivoDialog({ open, onOpenChange }: NovoAtivoDialogProps) {
               <Select value={uopDelegaciaId} onValueChange={setUopDelegaciaId}>
                 <SelectTrigger><SelectValue placeholder="Selecione a delegacia" /></SelectTrigger>
                 <SelectContent>
-                  {filteredDelegacias.map((d) => (
+                  {delegaciasSemSede.map((d) => (
                     <SelectItem key={d.id} value={d.id}>{d.nome}</SelectItem>
                   ))}
                 </SelectContent>
@@ -184,7 +280,7 @@ export function NovoAtivoDialog({ open, onOpenChange }: NovoAtivoDialogProps) {
               <Select value={delRegionalId} onValueChange={setDelRegionalId}>
                 <SelectTrigger><SelectValue placeholder="Selecione a regional" /></SelectTrigger>
                 <SelectContent>
-                  {(regionais.data || []).map((r) => (
+                  {regionaisSemSede.map((r) => (
                     <SelectItem key={r.id} value={r.id}>{r.sigla} — {r.nome}</SelectItem>
                   ))}
                 </SelectContent>
