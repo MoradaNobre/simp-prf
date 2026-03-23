@@ -2,13 +2,13 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Building2, Plus, Search, ChevronRight, ChevronDown, MapPin, Loader2, QrCode } from "lucide-react";
+import { Building2, Plus, Search, ChevronRight, ChevronDown, MapPin, Loader2, QrCode, Landmark } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { QRCodeDialog } from "@/components/ativos/QRCodeDialog";
-import { NovoAtivoDialog } from "@/components/ativos/NovoAtivoDialog";
+import { NovoAtivoDialog, SEDE_NACIONAL_SIGLA } from "@/components/ativos/NovoAtivoDialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type Regional = { id: string; nome: string; sigla: string; uf: string };
 type Delegacia = { id: string; nome: string; regional_id: string; municipio: string | null };
@@ -76,19 +76,45 @@ export default function Ativos() {
   const [qrDelegacia, setQrDelegacia] = useState("");
   const [qrRegional, setQrRegional] = useState("");
   const [novoAtivoOpen, setNovoAtivoOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("regionais");
 
   const regData = regionais.data || [];
   const delData = delegacias.data || [];
   const uopData = uops.data || [];
 
+  const sedeNacional = regData.find((r) => r.sigla === SEDE_NACIONAL_SIGLA);
+  const regionaisSemSede = regData.filter((r) => r.sigla !== SEDE_NACIONAL_SIGLA);
+
   const filteredReg = search
-    ? regData.filter((r) => r.nome.toLowerCase().includes(search.toLowerCase()) || r.sigla.toLowerCase().includes(search.toLowerCase()))
-    : regData;
+    ? regionaisSemSede.filter((r) => r.nome.toLowerCase().includes(search.toLowerCase()) || r.sigla.toLowerCase().includes(search.toLowerCase()))
+    : regionaisSemSede;
 
   const delsForReg = (regId: string) => delData.filter((d) => d.regional_id === regId);
   const uopsForDel = (delId: string) => uopData.filter((u) => u.delegacia_id === delId);
 
+  const diretoriasNacionais = sedeNacional ? delsForReg(sedeNacional.id) : [];
+  const filteredDiretorias = search
+    ? diretoriasNacionais.filter((d) => d.nome.toLowerCase().includes(search.toLowerCase()))
+    : diretoriasNacionais;
+
   const totalUnidades = regData.length + delData.length + uopData.length;
+
+  const renderUopItem = (uop: Uop, del: Delegacia, reg: Regional, labelAnexo = false) => (
+    <div key={uop.id} className="flex items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground hover:bg-accent/30 rounded-md group">
+      <MapPin className="h-3.5 w-3.5 shrink-0" />
+      <span className="truncate">{uop.nome}</span>
+      {uop.endereco && <span className="ml-auto text-xs text-muted-foreground/60 truncate max-w-[200px]">{uop.endereco}</span>}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+        onClick={(e) => { e.stopPropagation(); setQrUop(uop); setQrDelegacia(del.nome); setQrRegional(reg.sigla); }}
+        title="Gerar QR Code"
+      >
+        <QrCode className="h-3.5 w-3.5" />
+      </Button>
+    </div>
+  );
 
   return (
     <div className="space-y-6">
@@ -110,61 +136,91 @@ export default function Ativos() {
       <div className="flex items-center gap-2">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar regional..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <Input placeholder="Buscar..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Building2 className="h-5 w-5" /> Hierarquia de Ativos
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {regionais.isLoading ? (
-            <div className="flex items-center gap-2 text-muted-foreground py-4">
-              <Loader2 className="h-4 w-4 animate-spin" /> Carregando...
-            </div>
-          ) : filteredReg.length === 0 ? (
-            <p className="text-muted-foreground text-sm">
-              Nenhum ativo cadastrado. Importe seus dados via CSV ou adicione manualmente.
-            </p>
-          ) : (
-            <div className="space-y-1">
-              {filteredReg.map((reg) => {
-                const dels = delsForReg(reg.id);
-                return (
-                  <TreeNode key={reg.id} label={`${reg.sigla} — ${reg.nome}`} icon={<Building2 className="h-4 w-4 text-primary shrink-0" />} count={dels.length}>
-                    {dels.map((del) => {
-                      const uopsForThis = uopsForDel(del.id);
-                      return (
-                        <TreeNode key={del.id} label={del.nome} icon={<Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />} count={uopsForThis.length}>
-                          {uopsForThis.map((uop) => (
-                            <div key={uop.id} className="flex items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground hover:bg-accent/30 rounded-md group">
-                              <MapPin className="h-3.5 w-3.5 shrink-0" />
-                              <span className="truncate">{uop.nome}</span>
-                              {uop.endereco && <span className="ml-auto text-xs text-muted-foreground/60 truncate max-w-[200px]">{uop.endereco}</span>}
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
-                                onClick={(e) => { e.stopPropagation(); setQrUop(uop); setQrDelegacia(del.nome); setQrRegional(reg.sigla); }}
-                                title="Gerar QR Code"
-                              >
-                                <QrCode className="h-3.5 w-3.5" />
-                              </Button>
-                            </div>
-                          ))}
-                        </TreeNode>
-                      );
-                    })}
-                  </TreeNode>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="regionais">Regionais</TabsTrigger>
+          <TabsTrigger value="nacional">Sede Nacional</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="regionais">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Building2 className="h-5 w-5" /> Hierarquia Regional
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {regionais.isLoading ? (
+                <div className="flex items-center gap-2 text-muted-foreground py-4">
+                  <Loader2 className="h-4 w-4 animate-spin" /> Carregando...
+                </div>
+              ) : filteredReg.length === 0 ? (
+                <p className="text-muted-foreground text-sm">
+                  {search ? "Nenhuma regional encontrada." : "Nenhuma regional cadastrada."}
+                </p>
+              ) : (
+                <div className="space-y-1">
+                  {filteredReg.map((reg) => {
+                    const dels = delsForReg(reg.id);
+                    return (
+                      <TreeNode key={reg.id} label={`${reg.sigla} — ${reg.nome}`} icon={<Building2 className="h-4 w-4 text-primary shrink-0" />} count={dels.length}>
+                        {dels.map((del) => {
+                          const uopsForThis = uopsForDel(del.id);
+                          return (
+                            <TreeNode key={del.id} label={del.nome} icon={<Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />} count={uopsForThis.length}>
+                              {uopsForThis.map((uop) => renderUopItem(uop, del, reg))}
+                            </TreeNode>
+                          );
+                        })}
+                      </TreeNode>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="nacional">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Landmark className="h-5 w-5" /> Sede Nacional — Diretorias e Anexos
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {regionais.isLoading ? (
+                <div className="flex items-center gap-2 text-muted-foreground py-4">
+                  <Loader2 className="h-4 w-4 animate-spin" /> Carregando...
+                </div>
+              ) : !sedeNacional ? (
+                <p className="text-muted-foreground text-sm">
+                  Sede Nacional ainda não cadastrada. Use o botão "Novo Ativo" → aba "Nacional" para criar uma diretoria.
+                </p>
+              ) : filteredDiretorias.length === 0 ? (
+                <p className="text-muted-foreground text-sm">
+                  {search ? "Nenhuma diretoria encontrada." : "Nenhuma diretoria cadastrada na Sede Nacional."}
+                </p>
+              ) : (
+                <div className="space-y-1">
+                  {filteredDiretorias.map((dir) => {
+                    const anexos = uopsForDel(dir.id);
+                    return (
+                      <TreeNode key={dir.id} label={dir.nome} icon={<Landmark className="h-4 w-4 text-primary shrink-0" />} count={anexos.length}>
+                        {anexos.map((anexo) => renderUopItem(anexo, dir, sedeNacional, true))}
+                      </TreeNode>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       <QRCodeDialog
         open={!!qrUop}
