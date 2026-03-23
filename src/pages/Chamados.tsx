@@ -73,6 +73,18 @@ export default function Chamados() {
   const [prioridadeFilter, setPrioridadeFilter] = useState<string>("all");
   const [tipoFilter, setTipoFilter] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [prefilledUopId, setPrefilledUopId] = useState<string | undefined>();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    const novoUop = searchParams.get("novoUop");
+    if (novoUop) {
+      setPrefilledUopId(novoUop);
+      setDialogOpen(true);
+      searchParams.delete("novoUop");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
   const [selectedChamados, setSelectedChamados] = useState<Set<string>>(new Set());
   const [viewChamado, setViewChamado] = useState<Chamado | null>(null);
   const [analyzeChamado, setAnalyzeChamado] = useState<Chamado | null>(null);
