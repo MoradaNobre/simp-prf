@@ -25,6 +25,7 @@ import NotFound from "@/pages/NotFound";
 import DefinirResponsavel from "@/pages/DefinirResponsavel";
 import ExportarTelas from "@/pages/ExportarTelas";
 import ManualSistema from "@/pages/ManualSistema";
+import NovoChamadoQR from "@/pages/NovoChamadoQR";
 
 const queryClient = new QueryClient();
 
