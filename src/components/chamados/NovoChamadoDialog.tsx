@@ -105,6 +105,21 @@ export function NovoChamadoDialog({ open, onOpenChange, prefilledUopId }: Props)
   const delegacias = useDelegacias(regionalId);
   const uops = useUops(delegaciaId || undefined);
 
+  // Detect if selected regional is Sede Nacional
+  const isSede = (() => {
+    if (hasMultipleRegionais && selectedRegionalId) {
+      const r = userRegionais.find((r: any) => r.id === selectedRegionalId);
+      return r?.sigla === SEDE_NACIONAL_SIGLA;
+    }
+    if (userRegionais.length === 1) return userRegionais[0]?.sigla === SEDE_NACIONAL_SIGLA;
+    return (profile.data as any)?.regional?.sigla === SEDE_NACIONAL_SIGLA;
+  })();
+
+  const delegaciaLabel = isSede ? "Diretoria" : "Delegacia / Sede Regional";
+  const uopLabel = isSede ? "Anexo / Edifício" : "UOP / Anexo";
+  const delegaciaPlaceholder = isSede ? "Selecione a diretoria..." : "Selecione...";
+  const uopPlaceholder = isSede ? "Selecione o anexo..." : "Selecione...";
+
   const reset = () => {
     setTipoDemanda(""); setDescricao(""); setLocalServico("");
     setPrioridade("media"); setJustificativaUrgente("");
