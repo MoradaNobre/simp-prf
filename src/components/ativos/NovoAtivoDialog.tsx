@@ -10,7 +10,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
-export const SEDE_NACIONAL_SIGLA = "SEDE-NAC";
+export const SEDE_NACIONAL_SIGLA = "SEDE NACIONAL";
 
 interface NovoAtivoDialogProps {
   open: boolean;
