@@ -14,6 +14,7 @@ import {
   BookOpen,
   Moon,
   Sun,
+  Building2,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useTheme } from "next-themes";
