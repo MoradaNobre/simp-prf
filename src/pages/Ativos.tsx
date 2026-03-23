@@ -71,6 +71,9 @@ function TreeNode({ label, icon, children, count, defaultOpen = false }: {
 export default function Ativos() {
   const { regionais, delegacias, uops } = useAtivosData();
   const [search, setSearch] = useState("");
+  const [qrUop, setQrUop] = useState<{ id: string; nome: string; endereco: string | null } | null>(null);
+  const [qrDelegacia, setQrDelegacia] = useState("");
+  const [qrRegional, setQrRegional] = useState("");
 
   const regData = regionais.data || [];
   const delData = delegacias.data || [];
