@@ -152,7 +152,7 @@ export function NovoAtivoDialog({ open, onOpenChange }: NovoAtivoDialogProps) {
     if (nacTipo === "diretoria") {
       if (!nacNome.trim()) { toast.error("Preencha o nome da diretoria."); return; }
       setSaving(true);
-      const sedeId = await ensureSedeNacional();
+      const sedeId = getSedeNacionalId();
       if (!sedeId) { setSaving(false); return; }
       const { error } = await supabase.from("delegacias").insert({
         nome: nacNome.trim(),
