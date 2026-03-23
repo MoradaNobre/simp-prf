@@ -138,10 +138,19 @@ export default function Ativos() {
                       return (
                         <TreeNode key={del.id} label={del.nome} icon={<Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />} count={uopsForThis.length}>
                           {uopsForThis.map((uop) => (
-                            <div key={uop.id} className="flex items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground hover:bg-accent/30 rounded-md">
+                            <div key={uop.id} className="flex items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground hover:bg-accent/30 rounded-md group">
                               <MapPin className="h-3.5 w-3.5 shrink-0" />
                               <span className="truncate">{uop.nome}</span>
                               {uop.endereco && <span className="ml-auto text-xs text-muted-foreground/60 truncate max-w-[200px]">{uop.endereco}</span>}
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                                onClick={(e) => { e.stopPropagation(); setQrUop(uop); setQrDelegacia(del.nome); setQrRegional(reg.sigla); }}
+                                title="Gerar QR Code"
+                              >
+                                <QrCode className="h-3.5 w-3.5" />
+                              </Button>
                             </div>
                           ))}
                         </TreeNode>
