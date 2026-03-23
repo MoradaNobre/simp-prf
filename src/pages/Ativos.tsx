@@ -163,6 +163,14 @@ export default function Ativos() {
           )}
         </CardContent>
       </Card>
+
+      <QRCodeDialog
+        open={!!qrUop}
+        onOpenChange={(v) => !v && setQrUop(null)}
+        uop={qrUop}
+        delegaciaNome={qrDelegacia}
+        regionalSigla={qrRegional}
+      />
     </div>
   );
 }
