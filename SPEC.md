@@ -829,7 +829,44 @@ Saldo = (Valor Total + Σ Aditivos) - Σ Orçamentos de OS em Execução+
 
 ---
 
-## 12. Sobre
+## 12. Ativos e QR Codes
+
+**Rota:** `/app/ativos`
+
+### 12.1. Visão Geral
+
+O módulo de Ativos permite a gestão completa da infraestrutura física da PRF, organizada de forma hierárquica (Regional → Delegacia/Diretoria → UOP/Anexo), com geração de QR Codes para abertura rápida de chamados.
+
+### 12.2. Cadastro Hierárquico
+
+O formulário "Novo Ativo" possui três abas:
+
+| Aba | Campos | Labels dinâmicos |
+|---|---|---|
+| **Delegacia / Sede Regional** | Nome, Município, Regional vinculada | — |
+| **UOP / Anexo** | Nome, Endereço, Área (m²), Lat/Lng, Delegacia vinculada | — |
+| **Nacional** | Diretoria (= Delegacia), Anexo / Edifício (= UOP) | Labels adaptados para contexto da Sede Nacional |
+
+- A aba **Nacional** cria delegacias e UOPs vinculadas ao registro protegido "SEDE NACIONAL" (UASG 200109)
+- Labels dinâmicos: "Diretoria" substitui "Delegacia" e "Anexo / Edifício" substitui "UOP" quando o contexto é Sede Nacional
+
+### 12.3. QR Codes
+
+- QR Code gerado automaticamente para cada UOP cadastrada
+- O código contém a URL: `/chamado-qr?uop={uop_id}`
+- Ao escanear com dispositivo móvel, o usuário é redirecionado (após autenticação) para o formulário de Novo Chamado com a hierarquia de localização pré-preenchida (Regional, Delegacia, UOP)
+- Download individual do QR Code em formato PNG
+- Visualização para impressão
+
+### 12.4. Consolidação da Sede Nacional
+
+- O registro "SEDE NACIONAL" (sigla "SEDE NACIONAL", UASG 200109) é único e protegido
+- Na Gestão de Regionais, exibe badge "Protegida" e não possui botão de exclusão
+- A constante `SEDE_NACIONAL_SIGLA` é compartilhada entre os módulos de Ativos e Chamados
+
+---
+
+## 13. Sobre
 
 **Rota:** `/app/sobre`
 
