@@ -847,15 +847,6 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
             );
           })()}
 
-          {/* Budget file link */}
-          {signedArquivoOrcamento && (
-            <div className="flex items-center gap-2 text-sm">
-              <FileText className="h-4 w-4 text-muted-foreground" />
-              <a href={signedArquivoOrcamento} target="_blank" rel="noopener noreferrer" className="text-primary underline">
-                Ver arquivo do orçamento
-              </a>
-            </div>
-          )}
 
           {/* Execution report link */}
           {signedRelatorioExecucao && (
