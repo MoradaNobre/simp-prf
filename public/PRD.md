@@ -2,7 +2,7 @@
 
 ## SIMP-PRF – Sistema Integrado de Manutenção Predial
 
-**Versão:** 1.7  
+**Versão:** 1.8  
 **Data:** 24/03/2026  
 **Classificação:** Documento Institucional
 
@@ -73,7 +73,7 @@ O sistema atende a hierarquia organizacional da PRF, desde a administração cen
 | Ordens de Serviço | Ciclo completo de 8 etapas com bloqueios, uploads e notificações |
 | Controle Orçamentário | Portaria orçamentária (LOA), cotas regionais, créditos, empenhos |
 | Solicitações de Crédito | Criação avulsa ou vinculada a OS, aprovação total ou parcial |
-| Relatórios | Relatório de Execução (automático) e de Pagamento (manual), ambos em PDF |
+| Relatórios | Relatório de Execução (automático, com prazo), Pagamento (manual) e IMR (avaliação de desempenho mensal), todos em PDF |
 | Notificações por E-mail | Envio automático por transição com destinatários contextuais |
 | Auditoria | Registro completo de ações com dados antigos/novos em `audit_logs` |
 | Dashboard Gerencial | KPIs de OS e orçamento com atualização automática |
@@ -345,6 +345,12 @@ Cada transição:
 | RF-REL-05 | Aba "Pagamento" ocultada para Preposto e Terceirizado. |
 | RF-REL-06 | Relatórios de OS (Execução e Pagamento) incluem seção "Chamados Vinculados" com código, tipo de demanda, local, solicitante e Matriz GUT. |
 | RF-REL-07 | Relatório de Contrato inclui resumo de chamados (total e OS originadas) e coluna "CH" (quantidade de chamados) na tabela de OS. |
+| RF-REL-08 | Relatório IMR (Instrumento de Medição de Resultado) com motor de regras automáticas que detecta ocorrências a partir das OS do contrato no período. |
+| RF-REL-09 | Cálculo automático do score IMR (10 − Σ pontos perdidos) com classificação em 4 faixas e impacto financeiro (retenção sobre fatura). |
+| RF-REL-10 | IMR inclui seções de análise qualitativa, contraditório (5 dias úteis) e decisão final (arquivamento, glosa ou processo sancionador). |
+| RF-REL-11 | IMR persistido na tabela `relatorios_imr` com dados completos em JSONB e PDF com 11 seções. |
+| RF-REL-12 | Aba IMR visível apenas para perfis internos (Master, Nacional, Regional, Fiscal, Auxiliar Fiscal). |
+| RF-REL-13 | Relatório de Execução (PDF e e-mail) inclui o prazo de execução da OS quando definido. |
 
 ### 7.10 Chamados (RF-CHM)
 
@@ -384,7 +390,7 @@ Cada transição:
 | Dashboard | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
 | Chamados | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
 | Ordens de Serviço | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Relatórios OS | ✅ | ✅ | ✅ | ✅ | ❌ | ✅* | ✅* |
+| Relatórios | ✅ | ✅ | ✅ | ✅ | ❌ | ✅* | ✅* |
 | Contratos | ✅ | ✅ | ✅ | ✅ | ✅ | ✅* | ❌ |
 | Gestão do Orçamento | ✅ | ✅ | ✅ | ✅** | ❌ | ❌ | ❌ |
 | Gestão do Sistema | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
@@ -456,8 +462,8 @@ Cada transição:
 | Documento | Localização | Descrição |
 |---|---|---|
 | SPEC.md | Raiz do projeto | Especificação técnica completa de funcionalidades |
-| REGRAS_NEGOCIO.md | Raiz do projeto | Catálogo formal com 220 regras numeradas (RN-001 a RN-220) |
-| TECHNICAL_DOCS.md | Raiz e `/public` | Documentação técnica do sistema (v1.8) |
+| REGRAS_NEGOCIO.md | Raiz do projeto | Catálogo formal com 233 regras numeradas (RN-001 a RN-233) |
+| TECHNICAL_DOCS.md | Raiz e `/public` | Documentação técnica do sistema (v1.9) |
 | PRIVACY_POLICY.md | Raiz e `/public` | Política de privacidade |
 | DEVELOPER.md | Raiz do projeto | Créditos e informações do desenvolvedor |
 
@@ -477,7 +483,7 @@ Não se trata apenas de ferramenta operacional, mas de **mecanismo institucional
 ---
 
 *PRD – Product Requirements Document — SIMP-PRF*  
-*Versão 1.7 — 24/03/2026*
+*Versão 1.8 — 24/03/2026*
 
 ## Histórico de Versões
 
@@ -491,3 +497,4 @@ Não se trata apenas de ferramenta operacional, mas de **mecanismo institucional
 | 1.5 | 28/02/2026 | Aceite obrigatório de Termos de Uso e Política de Privacidade (dialog modal bloqueante com `accepted_terms_at`), novo tipo de demanda "Usina Solar" (10 tipos), 202 regras de negócio |
 | 1.6 | 06/03/2026 | Prazos obrigatórios de orçamento e execução nas transições de OS. Agenda unificada (visitas + prazos). 210 regras de negócio |
 | 1.7 | 24/03/2026 | Módulo de Ativos com QR Codes, consolidação da Sede Nacional, badges dinâmicos de bloqueio. 220 regras de negócio |
+| 1.8 | 24/03/2026 | Relatório IMR (motor de regras automáticas, score, impacto financeiro, contraditório, PDF 11 seções). Prazo de execução no Relatório de Execução. 233 regras de negócio |

@@ -1,6 +1,6 @@
 # Catálogo de Regras de Negócio – SIMP-PRF
 
-**Versão:** 1.9  
+**Versão:** 2.0  
 **Data:** 24/03/2026  
 **Fonte:** SPEC.md  
 
@@ -8,6 +8,7 @@
 
 ## Histórico de Versões
 
+- v2.0 (24/03/2026): Inclusão das regras do Relatório IMR (RN-221 a RN-232) e prazo de execução no Relatório de Execução (RN-233). Total: 233 regras.
 - v1.9 (24/03/2026): Inclusão das regras do módulo de Ativos e QR Codes (RN-211 a RN-215), consolidação da Sede Nacional (RN-216 a RN-218) e badges dinâmicos de bloqueio (RN-219 a RN-220). Total: 220 regras.
 - v1.8 (06/03/2026): Inclusão das regras de prazos obrigatórios (RN-203 a RN-206) e agenda unificada (RN-207 a RN-210). Total: 210 regras.
 - v1.7 (28/02/2026): Inclusão das regras de aceite obrigatório de Termos de Uso (RN-198 a RN-201) e novo tipo de demanda "Usina Solar" (RN-202). Total: 202 regras.
@@ -452,12 +453,37 @@
 
 ---
 
-**Total de Regras de Negócio:** 220
+## 37. Relatório IMR (Instrumento de Medição de Resultado)
+
+| # | Regra |
+|---|---|
+| **RN-221** | O Relatório IMR é uma avaliação mensal de desempenho da contratada, vinculada obrigatoriamente a um contrato e a um período de avaliação (mês/ano). |
+| **RN-222** | O motor de regras automáticas detecta ocorrências a partir das OS do contrato no período: atraso no prazo de execução, valor realizado zero em OS encerrada, desvio orçamentário > 10%, GUT alto (≥ 27) com demora excessiva (> 30 dias) e prazo de orçamento excedido. |
+| **RN-223** | O fiscal pode adicionar ocorrências manuais ao IMR com tipo de falha, regra IMR, evidência, quantidade e pontos. |
+| **RN-224** | O cálculo do IMR segue a fórmula: IMR = 10 − Σ(pontos perdidos), com classificação: Conforme (≥ 9.0), Conduta Adversa (7.0–8.9), Com Penalização (5.0–6.9) e Crítico (< 5.0). |
+| **RN-225** | O impacto financeiro é calculado automaticamente com base na faixa do IMR: 0% (Conforme), 2% (Conduta Adversa), 5% (Com Penalização) e 10% (Crítico), aplicado sobre o valor total da fatura. |
+| **RN-226** | O Relatório IMR inclui seção de Análise Qualitativa (texto livre do fiscal) com avaliação da execução, pontos críticos, reincidência e riscos operacionais. |
+| **RN-227** | O contraditório registra a data de envio à contratada, prazo de 5 dias úteis para manifestação e status (sem manifestação, em análise, acatada, indeferida). |
+| **RN-228** | A decisão final do IMR permite registrar: IMR após reconsideração, penalidade aplicada e encaminhamento (arquivamento, glosa ou abertura de processo sancionador). |
+| **RN-229** | O Relatório IMR é salvo na tabela `relatorios_imr` com dados completos em JSONB (ocorrências, OS consolidadas, dados complementares). |
+| **RN-230** | O IMR pode ser atualizado após a geração inicial (análise qualitativa, contraditório e decisão final são editáveis). |
+| **RN-231** | O PDF do IMR contém 11 seções: Identificação, Resumo Executivo, Consolidação das OS, Matriz de Ocorrências, Regras de Detecção, Cálculo do IMR, Impacto Financeiro, Análise Qualitativa, Contraditório, Decisão Final e Anexos. |
+| **RN-232** | A aba IMR na página de Relatórios é visível apenas para perfis internos (Master, Nacional, Regional, Fiscal, Auxiliar Fiscal). |
+
+## 38. Prazo de Execução no Relatório de Execução
+
+| # | Regra |
+|---|---|
+| **RN-233** | O Relatório de Execução (PDF e e-mail) inclui o prazo de execução (`prazo_execucao`) da OS quando definido, exibido entre a data de autorização e a área de assinatura no PDF, e em destaque no corpo do e-mail. |
+
+---
+
+**Total de Regras de Negócio:** 233
 
 ---
 
 *Catálogo de Regras de Negócio extraído do SPEC.md — SIMP-PRF.*  
-*Versão 1.9 — 24/03/2026*
+*Versão 2.0 — 24/03/2026*
 
 ## Histórico de Versões
 
@@ -473,3 +499,4 @@
 | 1.7 | 28/02/2026 | Inclusão das seções 30 e 31 – Aceite obrigatório de Termos (RN-198 a RN-201) e tipo de demanda Usina Solar (RN-202). Total: 202 regras |
 | 1.8 | 06/03/2026 | Inclusão das seções 32 e 33 – Prazos Obrigatórios de OS (RN-203 a RN-206) e Agenda Unificada (RN-207 a RN-210). Total: 210 regras |
 | 1.9 | 24/03/2026 | Inclusão das seções 34, 35 e 36 – Ativos e QR Codes (RN-211 a RN-215), Sede Nacional (RN-216 a RN-218) e Badges Dinâmicos (RN-219 a RN-220). Total: 220 regras |
+| 2.0 | 24/03/2026 | Inclusão das seções 37 e 38 – Relatório IMR (RN-221 a RN-232) e Prazo de Execução no Relatório (RN-233). Total: 233 regras |

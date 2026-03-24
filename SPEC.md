@@ -1,6 +1,6 @@
 # SPEC – Especificação Funcional do SIMP (Sistema de Manutenção Predial)
 
-**Versão:** 1.9  
+**Versão:** 2.0  
 **Data:** 24/03/2026  
 **Responsável:** Daniel Nunes de Ávila  
 
@@ -8,6 +8,7 @@
 
 ## Histórico de Versões
 
+- v2.0 (24/03/2026): Relatório IMR (Instrumento de Medição de Resultado) com motor de regras automáticas, cálculo de score, impacto financeiro, contraditório e geração de PDF. Inclusão do prazo de execução no Relatório de Execução (PDF e e-mail). Renomeação do menu "Relatórios OS" para "Relatórios".
 - v1.9 (24/03/2026): Módulo de Ativos com cadastro hierárquico e QR Codes por UOP. Consolidação da Sede Nacional (registro protegido). Badges dinâmicos de bloqueio na Autorização de OS (Aguard. Cota, Aguard. Empenho, Saldo Contrato Insuf., Limite Excedido).
 - v1.8 (06/03/2026): Prazos obrigatórios de orçamento e execução nas transições de OS. Agenda unificada (visitas + prazos) com calendário, cards de resumo, abas e filtros.
 - v1.7 (28/02/2026): Aceite obrigatório de Termos de Uso e Política de Privacidade (dialog modal bloqueante, `accepted_terms_at`). Novo tipo de demanda "Usina Solar" (total: 10 tipos).
@@ -32,7 +33,7 @@
 7. [Ordens de Serviço](#7-ordens-de-serviço)
 8. [Agenda (Visitas e Prazos)](#8-agenda-visitas-e-prazos)
 9. [Contratos](#9-contratos)
-10. [Relatórios OS](#10-relatórios-os)
+10. [Relatórios](#10-relatórios)
 11. [Gestão do Orçamento](#11-gestão-do-orçamento)
 12. [Gestão do Sistema](#12-gestão-do-sistema)
 13. [Sobre](#13-sobre)
@@ -110,7 +111,7 @@ Regional (Superintendência) → Delegacia → UOP (Unidade Operacional)
 | Chamados | Master, Nacional, Regional, Fiscal, Operador |
 | Ordens de Serviço | **Todos** os perfis |
 | Agenda (Visitas e Prazos) | **Todos** os perfis |
-| Relatórios OS | Master, Nacional, Regional, Fiscal, Preposto, Terceirizado |
+| Relatórios | Master, Nacional, Regional, Fiscal, Preposto, Terceirizado |
 | Contratos | Master, Nacional, Regional, Fiscal, Operador, Preposto |
 | Gestão do Orçamento | Master, Nacional, Regional (+ Fiscal apenas leitura) |
 | Gestão do Sistema | Master, Nacional, Regional |
@@ -388,7 +389,7 @@ Aberta → Orçamento → Autorização → Execução → Ateste → Faturament
 |---|---|---|---|
 | Aberta → Orçamento | Gestor, Fiscal | Vincular contrato (obrigatório). Definir prazo para apresentação do orçamento (`prazo_orcamento`, obrigatório). Opção de alterar prioridade. Contrato deve ser vigente e da mesma regional. | Notificação por e-mail |
 | Orçamento → Autorização | Preposto, Terceirizado | Upload de arquivo de orçamento (Excel/PDF, obrigatório). Informar valor do orçamento (obrigatório, > 0). | Notificação por e-mail |
-| Autorização → Execução | Gestor, Fiscal | Definir prazo para conclusão da execução (`prazo_execucao`, obrigatório). **Bloqueios sequenciais:** 1) Saldo do contrato ≥ valor orçamento; 2) Valor empenhado suficiente; 3) Cota regional suficiente. Se bloqueado, fica sobrestada até recomposição do saldo. | Gera Relatório de Execução (PDF). Salva em `relatorios_execucao`. Envia PDF por e-mail via edge function `send-os-execucao`. Notificação por e-mail |
+| Autorização → Execução | Gestor, Fiscal | Definir prazo para conclusão da execução (`prazo_execucao`, obrigatório). **Bloqueios sequenciais:** 1) Saldo do contrato ≥ valor orçamento; 2) Valor empenhado suficiente; 3) Cota regional suficiente. Se bloqueado, fica sobrestada até recomposição do saldo. | Gera Relatório de Execução (PDF com prazo de execução). Salva em `relatorios_execucao`. Envia PDF por e-mail (com prazo de execução em destaque) via edge function `send-os-execucao`. Notificação por e-mail |
 | Execução → Ateste | Preposto, Terceirizado | Upload de foto "depois" (evidência). Registro de custos (opcional). | Notificação por e-mail |
 | Ateste → Faturamento | Gestor, Fiscal, Operador | Ação de aprovação denominada "Aprovar e Autorizar Emissão da Nota Fiscal". | Notificação enviada **exclusivamente** ao Preposto |
 | Faturamento → Pagamento | Preposto, Terceirizado | Upload obrigatório de documentos fiscais e certidões. | Notificação por e-mail |
@@ -1015,3 +1016,4 @@ Saldo = Cota Total - Total Consumido
 | 1.7 | 28/02/2026 | Aceite obrigatório de Termos de Uso e Política de Privacidade (dialog modal bloqueante), tipo de demanda "Usina Solar" |
 | 1.8 | 06/03/2026 | Prazos obrigatórios de orçamento e execução nas transições de OS. Agenda unificada (visitas + prazos) com calendário, cards de resumo, abas e filtros |
 | 1.9 | 24/03/2026 | Módulo de Ativos com cadastro hierárquico e QR Codes. Consolidação da Sede Nacional (registro protegido). Badges dinâmicos de bloqueio na Autorização de OS |
+| 2.0 | 24/03/2026 | Relatório IMR com motor de regras automáticas, cálculo de score, impacto financeiro, contraditório e PDF. Prazo de execução no Relatório de Execução (PDF e e-mail). Menu renomeado para "Relatórios" |

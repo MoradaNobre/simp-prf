@@ -4,6 +4,19 @@ Registro centralizado de todas as alterações nos documentos de referência do 
 
 ---
 
+## [24/03/2026] — Relatório IMR e Prazo de Execução no Relatório de OS
+
+### Documento(s) Alterado(s)
+- **SPEC.md** (v1.9 → v2.0): Nova seção 8.2.3 — Relatório IMR (motor de regras automáticas, cálculo de score, impacto financeiro, contraditório, PDF 11 seções). Prazo de execução no Relatório de Execução (PDF e e-mail). Menu renomeado para "Relatórios"
+- **REGRAS_NEGOCIO.md** (v1.9 → v2.0): Novas regras RN-221 a RN-233 (Relatório IMR e prazo no Relatório de Execução). Total: 233 regras
+- **TECHNICAL_DOCS.md** (v1.8 → v1.9): Tabela `relatorios_imr`, módulo de Relatórios atualizado com IMR e prazo de execução
+- **PRD.md** (v1.7 → v1.8): Novos requisitos RF-REL-08 a RF-REL-13 (Relatório IMR e prazo de execução). 233 regras de negócio
+
+### Motivação
+Implementação do Relatório IMR (Instrumento de Medição de Resultado) com motor de regras automáticas que detecta falhas nas OS e calcula o score de desempenho da contratada. Inclusão do prazo de execução no Relatório de Execução (PDF e corpo do e-mail) para maior transparência com a empresa contratada.
+
+---
+
 ## [24/03/2026] — Módulo de Ativos, QR Codes, Consolidação Sede Nacional e Badges Dinâmicos
 
 ### Documento(s) Alterado(s)

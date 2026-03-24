@@ -196,6 +196,7 @@ Todos os dados coletados têm como finalidade exclusiva:
 | `orcamento_creditos`  | Créditos orçamentários                                                        |
 | `relatorios_execucao` | Relatórios de execução de OS                                                  |
 | `relatorios_os`       | Relatórios de ateste/pagamento de OS                                          |
+| `relatorios_imr`      | Relatórios IMR (Instrumento de Medição de Resultado) com score, ocorrências e impacto financeiro |
 | `planos_manutencao`   | Planos de manutenção preventiva                                               |
 | `agendamentos_visita` | Agendamentos de visitas técnicas vinculadas a OS                              |
 | `limites_modalidade`  | Tetos anuais por modalidade (Cartão Corporativo, Contrata + Brasil) e regional |
@@ -297,11 +298,17 @@ Cada transição de status é registrada com timestamp e identificação do resp
 
 ### 6.6. Módulo de Relatórios
 
-- Relatórios de execução de OS (inclui chamados vinculados com Matriz GUT)
+- Relatórios de execução de OS (inclui chamados vinculados com Matriz GUT e prazo de execução)
 - Relatórios de pagamento/ateste (inclui chamados vinculados)
 - Relatório de contrato com resumo de chamados e coluna CH
+- Relatório IMR (Instrumento de Medição de Resultado):
+  - Motor de regras automáticas: detecção de atrasos, desvios orçamentários, valor zero em OS encerrada e risco estrutural (GUT alto)
+  - Cálculo automático do score IMR (10 − Σ pontos perdidos) com classificação em 4 faixas
+  - Impacto financeiro: percentual de retenção sobre fatura do período
+  - Seções de análise qualitativa, contraditório e decisão final
+  - Persistência em `relatorios_imr` com dados JSONB
 - Exportação em PDF
-- Envio por e-mail aos destinatários
+- Envio por e-mail aos destinatários (com prazo de execução no e-mail de OS)
 
 ### 6.7. Módulo de Agenda de Visitas
 
@@ -353,7 +360,7 @@ Cada transição de status é registrada com timestamp e identificação do resp
 
 _Documento técnico elaborado conforme padrões de documentação da Polícia Rodoviária Federal._
 
-**Versão:** 1.8
+**Versão:** 1.9
 **Data:** 16/02/2026
 **Última Atualização:** 24/03/2026
 **Responsável:** Daniel Nunes de Ávila
@@ -371,3 +378,4 @@ _Documento técnico elaborado conforme padrões de documentação da Polícia Ro
 | 1.6    | 28/02/2026 | Aceite obrigatório de Termos de Uso e Política de Privacidade (`accepted_terms_at` em `profiles`), novo tipo de demanda "Usina Solar" (10 tipos) |
 | 1.7    | 06/03/2026 | Prazos obrigatórios (`prazo_orcamento`, `prazo_execucao`) nas transições de OS. Agenda unificada (visitas + prazos) com calendário, cards de resumo e filtros |
 | 1.8    | 24/03/2026 | Módulo de Ativos com QR Codes, consolidação da Sede Nacional (registro protegido), badges dinâmicos de bloqueio na Autorização |
+| 1.9    | 24/03/2026 | Relatório IMR (`relatorios_imr`) com motor de regras automáticas e cálculo de score. Prazo de execução no Relatório de Execução (PDF e e-mail). 233 regras de negócio |
