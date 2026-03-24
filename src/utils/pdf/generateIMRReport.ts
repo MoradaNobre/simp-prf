@@ -577,7 +577,7 @@ export function generateIMRReport(data: IMRReportData): jsPDF {
 
   // ── 7. Impacto Financeiro ──
   drawSectionHeader(ctx, "7. Impacto Financeiro");
-  const financStyle = retencaoPercent > 0
+  const financStyle = data.percentualRetencao > 0
     ? { bg: C.redBg, border: C.redBorder }
     : { bg: C.greenBg, border: C.greenBorder };
   drawInfoPanel(ctx, [
