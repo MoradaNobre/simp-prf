@@ -16,12 +16,13 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import {
   Collapsible, CollapsibleContent, CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { useQuery } from "@tanstack/react-query";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Loader2, Download, CalendarIcon, ChevronDown, Plus, Trash2, AlertTriangle,
-  CheckCircle2, XCircle, AlertCircle, FileText, Sparkles,
+  CheckCircle2, XCircle, AlertCircle, FileText, Sparkles, Eye, History,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useRegionalFilter } from "@/hooks/useRegionalFilter";
