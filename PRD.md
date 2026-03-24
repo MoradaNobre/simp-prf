@@ -497,3 +497,4 @@ Não se trata apenas de ferramenta operacional, mas de **mecanismo institucional
 | 1.5 | 28/02/2026 | Aceite obrigatório de Termos de Uso e Política de Privacidade (dialog modal bloqueante com `accepted_terms_at`), novo tipo de demanda "Usina Solar" (10 tipos), 202 regras de negócio |
 | 1.6 | 06/03/2026 | Prazos obrigatórios de orçamento e execução nas transições de OS. Agenda unificada (visitas + prazos). 210 regras de negócio |
 | 1.7 | 24/03/2026 | Módulo de Ativos com QR Codes, consolidação da Sede Nacional, badges dinâmicos de bloqueio. 220 regras de negócio |
+| 1.8 | 24/03/2026 | Relatório IMR (motor de regras automáticas, score, impacto financeiro, contraditório, PDF 11 seções). Prazo de execução no Relatório de Execução. 233 regras de negócio |
