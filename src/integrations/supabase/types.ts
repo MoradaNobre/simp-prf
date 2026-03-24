@@ -1245,6 +1245,115 @@ export type Database = {
           },
         ]
       }
+      relatorios_imr: {
+        Row: {
+          analise_qualitativa: string | null
+          contraditorio_data_envio: string | null
+          contraditorio_status: string | null
+          contrato_id: string
+          created_at: string | null
+          dados_json: Json | null
+          decisao_final: string | null
+          encaminhamento: string | null
+          gerado_em: string | null
+          gerado_por_id: string
+          id: string
+          imr_pos_reconsideracao: number | null
+          imr_score: number
+          ocorrencias: Json | null
+          os_consolidadas: Json | null
+          penalidade_aplicada: string | null
+          percentual_retencao: number | null
+          periodo_fim: string
+          periodo_inicio: string
+          regional_id: string | null
+          situacao: string
+          total_ocorrencias: number | null
+          total_pontos_perdidos: number | null
+          updated_at: string | null
+          valor_fatura: number | null
+          valor_glosa: number | null
+        }
+        Insert: {
+          analise_qualitativa?: string | null
+          contraditorio_data_envio?: string | null
+          contraditorio_status?: string | null
+          contrato_id: string
+          created_at?: string | null
+          dados_json?: Json | null
+          decisao_final?: string | null
+          encaminhamento?: string | null
+          gerado_em?: string | null
+          gerado_por_id: string
+          id?: string
+          imr_pos_reconsideracao?: number | null
+          imr_score?: number
+          ocorrencias?: Json | null
+          os_consolidadas?: Json | null
+          penalidade_aplicada?: string | null
+          percentual_retencao?: number | null
+          periodo_fim: string
+          periodo_inicio: string
+          regional_id?: string | null
+          situacao?: string
+          total_ocorrencias?: number | null
+          total_pontos_perdidos?: number | null
+          updated_at?: string | null
+          valor_fatura?: number | null
+          valor_glosa?: number | null
+        }
+        Update: {
+          analise_qualitativa?: string | null
+          contraditorio_data_envio?: string | null
+          contraditorio_status?: string | null
+          contrato_id?: string
+          created_at?: string | null
+          dados_json?: Json | null
+          decisao_final?: string | null
+          encaminhamento?: string | null
+          gerado_em?: string | null
+          gerado_por_id?: string
+          id?: string
+          imr_pos_reconsideracao?: number | null
+          imr_score?: number
+          ocorrencias?: Json | null
+          os_consolidadas?: Json | null
+          penalidade_aplicada?: string | null
+          percentual_retencao?: number | null
+          periodo_fim?: string
+          periodo_inicio?: string
+          regional_id?: string | null
+          situacao?: string
+          total_ocorrencias?: number | null
+          total_pontos_perdidos?: number | null
+          updated_at?: string | null
+          valor_fatura?: number | null
+          valor_glosa?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relatorios_imr_contrato_id_fkey"
+            columns: ["contrato_id"]
+            isOneToOne: false
+            referencedRelation: "contratos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relatorios_imr_contrato_id_fkey"
+            columns: ["contrato_id"]
+            isOneToOne: false
+            referencedRelation: "contratos_saldo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relatorios_imr_regional_id_fkey"
+            columns: ["regional_id"]
+            isOneToOne: false
+            referencedRelation: "regionais"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       relatorios_os: {
         Row: {
           codigo_os: string
