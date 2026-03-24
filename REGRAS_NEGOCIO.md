@@ -425,12 +425,39 @@
 
 ---
 
-**Total de Regras de Negócio:** 210
+## 34. Módulo de Ativos e QR Codes
+
+| # | Regra |
+|---|---|
+| **RN-211** | O módulo de Ativos permite o cadastro hierárquico da infraestrutura predial em três níveis: Regional → Delegacia/Sede Regional → UOP/Anexo. |
+| **RN-212** | O formulário "Novo Ativo" possui três abas: Delegacia/Sede Regional, UOP/Anexo e Nacional. A aba Nacional utiliza labels dinâmicos: "Diretoria" (Delegacia) e "Anexo / Edifício" (UOP). |
+| **RN-213** | QR Codes são gerados automaticamente para cada UOP cadastrada, contendo a URL de abertura rápida de chamado com a hierarquia de localização pré-preenchida. |
+| **RN-214** | O escaneamento do QR Code redireciona o usuário para o formulário de Novo Chamado após autenticação, com Regional, Delegacia e UOP automaticamente preenchidos. |
+| **RN-215** | Os QR Codes podem ser baixados individualmente em formato PNG para impressão e fixação nos ambientes físicos. |
+
+## 35. Consolidação da Sede Nacional
+
+| # | Regra |
+|---|---|
+| **RN-216** | O registro "SEDE NACIONAL" (UASG 200109) é único no sistema e compartilhado entre os módulos de Ativos, Chamados e Gestão de Regionais. |
+| **RN-217** | O registro da Sede Nacional é protegido: exibe badge "Protegida" na Gestão de Regionais e não possui botão de exclusão. |
+| **RN-218** | Para chamados e ativos vinculados à Sede Nacional, os labels "Delegacia" e "UOP" são substituídos dinamicamente por "Diretoria" e "Anexo / Edifício", respectivamente. |
+
+## 36. Badges Dinâmicos de Bloqueio
+
+| # | Regra |
+|---|---|
+| **RN-219** | Na etapa de Autorização, o sistema exibe badges dinâmicos conforme o motivo específico do bloqueio: "Aguard. Cota" (cota regional insuficiente), "Aguard. Empenho" (saldo empenhado insuficiente), "Saldo Contrato Insuf." (saldo do contrato insuficiente) ou "Limite Excedido" (limite de modalidade ultrapassado). |
+| **RN-220** | O campo `motivo_bloqueio` da OS armazena o bloqueio de maior prioridade ativo (cota > contrato > limite > empenho) sem alterar o status da OS, que permanece em "autorizacao". |
+
+---
+
+**Total de Regras de Negócio:** 220
 
 ---
 
 *Catálogo de Regras de Negócio extraído do SPEC.md — SIMP-PRF.*  
-*Versão 1.8 — 06/03/2026*
+*Versão 1.9 — 24/03/2026*
 
 ## Histórico de Versões
 
