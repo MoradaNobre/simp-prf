@@ -360,7 +360,7 @@ Cada transição de status é registrada com timestamp e identificação do resp
 
 _Documento técnico elaborado conforme padrões de documentação da Polícia Rodoviária Federal._
 
-**Versão:** 1.8
+**Versão:** 1.9
 **Data:** 16/02/2026
 **Última Atualização:** 24/03/2026
 **Responsável:** Daniel Nunes de Ávila
