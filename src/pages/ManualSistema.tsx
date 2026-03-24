@@ -286,6 +286,7 @@ const SECTIONS: ManualSection[] = [
           "3º Limite Modalidade: Valor dentro do limite da modalidade de contratação",
           "4º Saldo do Empenho: Empenho suficiente para cobrir o valor",
           "O sistema exibe apenas o bloqueio de maior prioridade ativo",
+          "Badges dinâmicos na listagem indicam o motivo específico: 'Aguard. Cota', 'Aguard. Empenho', 'Saldo Contrato Insuf.' ou 'Limite Excedido'",
         ],
         roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional"],
         tip: "Contratos 'Cartão Corporativo' abreviam o fluxo (Receb. Serviço → Encerrada). 'Contrata + Brasil' ignora bloqueios de saldo contratual.",
