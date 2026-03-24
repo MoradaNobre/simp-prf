@@ -196,6 +196,7 @@ Todos os dados coletados têm como finalidade exclusiva:
 | `orcamento_creditos`  | Créditos orçamentários                                                        |
 | `relatorios_execucao` | Relatórios de execução de OS                                                  |
 | `relatorios_os`       | Relatórios de ateste/pagamento de OS                                          |
+| `relatorios_imr`      | Relatórios IMR (Instrumento de Medição de Resultado) com score, ocorrências e impacto financeiro |
 | `planos_manutencao`   | Planos de manutenção preventiva                                               |
 | `agendamentos_visita` | Agendamentos de visitas técnicas vinculadas a OS                              |
 | `limites_modalidade`  | Tetos anuais por modalidade (Cartão Corporativo, Contrata + Brasil) e regional |
