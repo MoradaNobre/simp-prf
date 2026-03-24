@@ -462,8 +462,8 @@ Cada transição:
 | Documento | Localização | Descrição |
 |---|---|---|
 | SPEC.md | Raiz do projeto | Especificação técnica completa de funcionalidades |
-| REGRAS_NEGOCIO.md | Raiz do projeto | Catálogo formal com 220 regras numeradas (RN-001 a RN-220) |
-| TECHNICAL_DOCS.md | Raiz e `/public` | Documentação técnica do sistema (v1.8) |
+| REGRAS_NEGOCIO.md | Raiz do projeto | Catálogo formal com 233 regras numeradas (RN-001 a RN-233) |
+| TECHNICAL_DOCS.md | Raiz e `/public` | Documentação técnica do sistema (v1.9) |
 | PRIVACY_POLICY.md | Raiz e `/public` | Política de privacidade |
 | DEVELOPER.md | Raiz do projeto | Créditos e informações do desenvolvedor |
 
