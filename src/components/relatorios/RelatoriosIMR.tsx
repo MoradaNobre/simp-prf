@@ -641,7 +641,50 @@ export function RelatoriosIMR() {
 
           {/* ── 8. Análise Qualitativa ── */}
           <Card className="p-4 sm:p-6 space-y-3">
-            <h3 className="text-lg font-semibold">Análise Qualitativa do Fiscal</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Análise Qualitativa do Fiscal</h3>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  if (!selectedContrato || osList.length === 0) {
+                    toast.error("Selecione um contrato com OS no período.");
+                    return;
+                  }
+                  setGeneratingAI(true);
+                  try {
+                    const { data, error } = await supabase.functions.invoke("generate-imr-analysis", {
+                      body: {
+                        contrato: { numero: selectedContrato.numero, empresa: selectedContrato.empresa },
+                        periodo: { inicio: format(periodoInicio, "dd/MM/yyyy"), fim: format(periodoFim, "dd/MM/yyyy") },
+                        imrScore,
+                        situacao: situacao.label,
+                        totalOcorrencias: allOcorrencias.length,
+                        totalPontosPerdidos: totalPontos,
+                        ocorrencias: allOcorrencias,
+                        osConsolidadas,
+                        valorFatura: faturaVal,
+                        percentualRetencao: retencaoPercent,
+                        valorGlosa,
+                      },
+                    });
+                    if (error) throw error;
+                    if (data?.error) throw new Error(data.error);
+                    setAnaliseQualitativa(data.analise ?? "");
+                    toast.success("Análise qualitativa gerada com IA!");
+                  } catch (err: any) {
+                    console.error(err);
+                    toast.error(err.message || "Erro ao gerar análise com IA.");
+                  } finally {
+                    setGeneratingAI(false);
+                  }
+                }}
+                disabled={generatingAI || !selectedContratoId || osList.length === 0}
+              >
+                {generatingAI ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                Gerar com IA
+              </Button>
+            </div>
             <Textarea
               value={analiseQualitativa}
               onChange={e => setAnaliseQualitativa(e.target.value)}
