@@ -172,7 +172,9 @@ export function RelatoriosIMR() {
   const { data: contratos, isLoading: loadingContratos } = useContratos(effectiveRegionalId);
   const { data: profile } = useUserProfile();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
+  const [activeTab, setActiveTab] = useState("novo");
   const [selectedContratoId, setSelectedContratoId] = useState("");
   const [periodoInicio, setPeriodoInicio] = useState<Date>(startOfMonth(new Date()));
   const [periodoFim, setPeriodoFim] = useState<Date>(endOfMonth(new Date()));
@@ -193,6 +195,108 @@ export function RelatoriosIMR() {
     encaminhamento: "arquivamento",
   });
   const [valorFatura, setValorFatura] = useState("");
+
+  // ── Saved reports listing ──
+  const { data: savedReports, isLoading: loadingSaved } = useQuery({
+    queryKey: ["imr-saved", effectiveRegionalId],
+    queryFn: async () => {
+      let query = supabase
+        .from("relatorios_imr")
+        .select("id, contrato_id, regional_id, periodo_inicio, periodo_fim, imr_score, situacao, total_ocorrencias, total_pontos_perdidos, valor_fatura, valor_glosa, percentual_retencao, analise_qualitativa, contraditorio_status, contraditorio_data_envio, decisao_final, imr_pos_reconsideracao, penalidade_aplicada, encaminhamento, ocorrencias, os_consolidadas, gerado_em, gerado_por_id")
+        .order("gerado_em", { ascending: false });
+
+      if (effectiveRegionalId) {
+        query = query.eq("regional_id", effectiveRegionalId);
+      }
+
+      const { data, error } = await query.limit(50);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  // Fetch contrato details for display in saved reports
+  const contratoIds = useMemo(() => {
+    const ids = new Set<string>();
+    (savedReports ?? []).forEach(r => { if (r.contrato_id) ids.add(r.contrato_id); });
+    return Array.from(ids);
+  }, [savedReports]);
+
+  const { data: contratosMap } = useQuery({
+    queryKey: ["imr-contratos-map", contratoIds],
+    queryFn: async () => {
+      if (contratoIds.length === 0) return new Map<string, { numero: string; empresa: string }>();
+      const { data } = await supabase
+        .from("contratos")
+        .select("id, numero, empresa")
+        .in("id", contratoIds);
+      const map = new Map<string, { numero: string; empresa: string }>();
+      (data ?? []).forEach(c => map.set(c.id, { numero: c.numero, empresa: c.empresa }));
+      return map;
+    },
+    enabled: contratoIds.length > 0,
+  });
+
+  const situacaoLabels: Record<string, string> = {
+    conforme: "Conforme",
+    conduta_adversa: "Conduta Adversa",
+    com_penalizacao: "Com Penalização",
+    "com_penalização": "Com Penalização",
+    critico: "Crítico",
+    "crítico": "Crítico",
+  };
+
+  const handleExportSavedPDF = (report: any) => {
+    const contrato = contratosMap?.get(report.contrato_id);
+    if (!contrato) {
+      toast.error("Dados do contrato não encontrados.");
+      return;
+    }
+    try {
+      const ocorrencias = typeof report.ocorrencias === "string"
+        ? JSON.parse(report.ocorrencias)
+        : (report.ocorrencias ?? []);
+      const osConsolidadas = typeof report.os_consolidadas === "string"
+        ? JSON.parse(report.os_consolidadas)
+        : (report.os_consolidadas ?? []);
+
+      const reportData: IMRReportData = {
+        contrato: { numero: contrato.numero, empresa: contrato.empresa },
+        periodo: {
+          inicio: new Date(report.periodo_inicio).toLocaleDateString("pt-BR"),
+          fim: new Date(report.periodo_fim).toLocaleDateString("pt-BR"),
+          mesAno: format(new Date(report.periodo_inicio), "MM/yyyy"),
+        },
+        fiscalNome: profile?.full_name ?? "",
+        dataAvaliacao: new Date(report.gerado_em).toLocaleDateString("pt-BR"),
+        unidadeAvaliada: "",
+        imrScore: Number(report.imr_score),
+        situacao: situacaoLabels[report.situacao] ?? report.situacao,
+        totalOcorrencias: report.total_ocorrencias ?? 0,
+        totalPontosPerdidos: Number(report.total_pontos_perdidos ?? 0),
+        osConsolidadas,
+        ocorrencias,
+        valorFatura: Number(report.valor_fatura ?? 0),
+        percentualRetencao: Number(report.percentual_retencao ?? 0),
+        valorGlosa: Number(report.valor_glosa ?? 0),
+        analiseQualitativa: report.analise_qualitativa ?? "",
+        contraditorio: {
+          dataEnvio: report.contraditorio_data_envio ?? "",
+          status: report.contraditorio_status ?? "sem_manifestacao",
+        },
+        decisaoFinal: {
+          imrReconsideracao: report.imr_pos_reconsideracao ? Number(report.imr_pos_reconsideracao) : undefined,
+          penalidade: report.penalidade_aplicada ?? "",
+          encaminhamento: report.encaminhamento ?? "arquivamento",
+        },
+      };
+      downloadIMRReport(reportData);
+      toast.success("PDF do relatório IMR exportado!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao exportar PDF.");
+    }
+  };
 
   const selectedContrato = useMemo(
     () => contratos?.find(c => c.id === selectedContratoId),
