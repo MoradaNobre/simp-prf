@@ -1,7 +1,7 @@
 # Catálogo de Regras de Negócio – SIMP-PRF
 
-**Versão:** 1.8  
-**Data:** 06/03/2026  
+**Versão:** 1.9  
+**Data:** 24/03/2026  
 **Fonte:** SPEC.md  
 
 ---
