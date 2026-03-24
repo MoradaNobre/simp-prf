@@ -482,7 +482,9 @@ export function RelatoriosIMR() {
         gerado_por_id: user.id,
       } as any);
       if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["imr-saved"] });
       toast.success("Relatório IMR salvo com sucesso!");
+      setActiveTab("salvos");
     } catch (err: any) {
       console.error(err);
       toast.error("Erro ao salvar: " + err.message);
