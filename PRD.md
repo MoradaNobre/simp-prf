@@ -483,7 +483,7 @@ Não se trata apenas de ferramenta operacional, mas de **mecanismo institucional
 ---
 
 *PRD – Product Requirements Document — SIMP-PRF*  
-*Versão 1.7 — 24/03/2026*
+*Versão 1.8 — 24/03/2026*
 
 ## Histórico de Versões
 
