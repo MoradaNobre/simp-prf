@@ -441,7 +441,7 @@ const SECTIONS: ManualSection[] = [
     icon: FileBarChart,
     color: "text-cyan-600 dark:text-cyan-400",
     description:
-      "Módulo de geração e consulta de relatórios de execução e pagamento de Ordens de Serviço.",
+      "Módulo de geração, consulta e exportação de relatórios operacionais e financeiros. Inclui quatro abas: Execução, Pagamento, Faturamento e IMR.",
     features: [
       {
         title: "Relatórios de Execução",
@@ -464,6 +464,44 @@ const SECTIONS: ManualSection[] = [
           "Documentos de pagamento anexados",
           "Geração em PDF para arquivo e auditoria",
         ],
+        roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato", "Auxiliar de Fiscal"],
+      },
+      {
+        title: "Relatórios de Faturamento",
+        description: "Consolidação de OS em fase de faturamento por contrato e período.",
+        details: [
+          "Filtro por contrato e intervalo de datas",
+          "Valores consolidados de orçamento por OS",
+          "Geração em PDF com layout profissional",
+        ],
+        roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato", "Auxiliar de Fiscal"],
+      },
+      {
+        title: "Relatório IMR — Instrumento de Medição de Resultado",
+        description: "Motor de regras automatizado que avalia a qualidade da execução contratual e calcula penalidades.",
+        details: [
+          "Seleção de contrato e período de avaliação (mês/ano)",
+          "Detecção automática de falhas: Atrasos (prazo vencido), Financeiro (OS sem custo), Desvio Orçamentário (> 10%) e Risco Estrutural (GUT ≥ 27 com demora > 30 dias)",
+          "Score IMR calculado: 10 − Σ pontos perdidos",
+          "Classificação: Conforme (≥ 8), Conduta Adversa (5–7,9), Com Penalização (3–4,9), Crítico (< 3)",
+          "Retenção financeira automática: 0%, 2%, 5% ou 10% conforme a faixa",
+          "Geração de análise qualitativa via Inteligência Artificial",
+          "PDF com princípios de Visual Law: margens justificadas, tipografia hierárquica, score em destaque colorido e tabelas profissionais",
+        ],
+        roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato", "Auxiliar de Fiscal"],
+        tip: "A análise qualitativa por IA considera todas as ocorrências e OS do período para gerar recomendações técnicas ao fiscal.",
+      },
+      {
+        title: "Relatórios IMR Salvos",
+        description: "Listagem e consulta de relatórios IMR já gerados, com opção de reexportação em PDF.",
+        details: [
+          "Tabela com contrato, período, score IMR, situação, ocorrências e valor de glosa",
+          "Score IMR com indicador colorido (verde, amarelo, laranja, vermelho)",
+          "Badges de situação: Conforme, Conduta Adversa, Com Penalização, Crítico",
+          "Reexportação em PDF a partir dos dados salvos no banco de dados",
+          "Filtro automático por regional do usuário logado",
+        ],
+        roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato", "Auxiliar de Fiscal"],
       },
     ],
   },
