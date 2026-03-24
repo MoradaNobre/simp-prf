@@ -298,11 +298,17 @@ Cada transição de status é registrada com timestamp e identificação do resp
 
 ### 6.6. Módulo de Relatórios
 
-- Relatórios de execução de OS (inclui chamados vinculados com Matriz GUT)
+- Relatórios de execução de OS (inclui chamados vinculados com Matriz GUT e prazo de execução)
 - Relatórios de pagamento/ateste (inclui chamados vinculados)
 - Relatório de contrato com resumo de chamados e coluna CH
+- Relatório IMR (Instrumento de Medição de Resultado):
+  - Motor de regras automáticas: detecção de atrasos, desvios orçamentários, valor zero em OS encerrada e risco estrutural (GUT alto)
+  - Cálculo automático do score IMR (10 − Σ pontos perdidos) com classificação em 4 faixas
+  - Impacto financeiro: percentual de retenção sobre fatura do período
+  - Seções de análise qualitativa, contraditório e decisão final
+  - Persistência em `relatorios_imr` com dados JSONB
 - Exportação em PDF
-- Envio por e-mail aos destinatários
+- Envio por e-mail aos destinatários (com prazo de execução no e-mail de OS)
 
 ### 6.7. Módulo de Agenda de Visitas
 
