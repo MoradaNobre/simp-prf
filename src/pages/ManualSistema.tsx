@@ -180,6 +180,51 @@ const SECTIONS: ManualSection[] = [
     ],
   },
   {
+    id: "ativos",
+    title: "Ativos e QR Codes",
+    icon: Building2,
+    color: "text-teal-600 dark:text-teal-400",
+    description:
+      "Módulo de gestão da infraestrutura física da PRF com cadastro hierárquico e geração de QR Codes para abertura rápida de chamados.",
+    features: [
+      {
+        title: "Cadastro Hierárquico",
+        description: "Registro de unidades seguindo a hierarquia organizacional: Regional → Delegacia/Sede Regional → UOP/Anexo.",
+        details: [
+          "Formulário 'Novo Ativo' com três abas: Delegacia, UOP e Nacional",
+          "Aba Nacional: labels dinâmicos — 'Diretoria' (Delegacia) e 'Anexo / Edifício' (UOP)",
+          "Vinculação automática ao registro protegido 'SEDE NACIONAL' (UASG 200109)",
+          "Campos de UOP: nome, endereço, área (m²), coordenadas GPS",
+        ],
+        roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional"],
+      },
+      {
+        title: "QR Codes por UOP",
+        description: "QR Codes gerados automaticamente para cada UOP, facilitando a abertura de chamados via dispositivo móvel.",
+        details: [
+          "QR Code contém URL de abertura rápida de chamado",
+          "Ao escanear, o formulário de chamado é aberto com a localização pré-preenchida (Regional, Delegacia, UOP)",
+          "Autenticação obrigatória antes de acessar o formulário",
+          "Download individual do QR Code em formato PNG",
+          "Visualização para impressão e fixação nos ambientes",
+        ],
+        roles: ["Todos"],
+        tip: "Imprima os QR Codes e fixe-os nos ambientes físicos para que qualquer servidor possa abrir chamados rapidamente pelo celular.",
+      },
+      {
+        title: "Sede Nacional",
+        description: "O registro da Sede Nacional é protegido e possui tratamento especial na interface.",
+        details: [
+          "Registro único com UASG 200109, badge 'Protegida' na Gestão de Regionais",
+          "Labels adaptados: 'Diretoria' em vez de 'Delegacia', 'Anexo / Edifício' em vez de 'UOP'",
+          "Não pode ser excluído (sem botão de exclusão)",
+          "Compartilhado entre os módulos de Ativos, Chamados e Gestão",
+        ],
+        roles: ["Gestor Master"],
+      },
+    ],
+  },
+  {
     id: "chamados",
     title: "Chamados",
     icon: MessageSquarePlus,
