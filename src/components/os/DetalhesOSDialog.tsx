@@ -250,7 +250,7 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
     const limiteM = isModalidade ? limitesModalidade.find(l => l.modalidade === tipo) : null;
     const valorLim = limiteM ? Number(limiteM.valor_limite) : null;
     const consumo = consumoModalidade ?? 0;
-    const consumoSemAtual = os.status !== "aberta" && os.status !== "orcamento" ? consumo - valorOS : consumo;
+    const consumoSemAtual = consumo - valorOS; // OS is in autorizacao, so it's already counted
     const limiteExcedido = isModalidade && valorLim !== null && (consumoSemAtual + valorOS) > valorLim;
     const semLimite = isModalidade && valorLim === null;
 
