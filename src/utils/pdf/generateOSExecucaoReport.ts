@@ -168,6 +168,14 @@ export function generateOSExecucaoReport(data: ExecucaoReportData): jsPDF {
     ctx.y += 6;
   }
 
+  if (data.prazoExecucao) {
+    doc.setFont("helvetica", "bold");
+    doc.text("Prazo para Execução:", 16, ctx.y);
+    doc.setFont("helvetica", "normal");
+    doc.text(data.prazoExecucao, 60, ctx.y);
+    ctx.y += 6;
+  }
+
   // Signature area
   ctx.y += 20;
   if (ctx.y > 250) {

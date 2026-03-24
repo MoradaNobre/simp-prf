@@ -155,6 +155,7 @@ Deno.serve(async (req) => {
     const safeTipo = report_data?.tipo === "preventiva" ? "Preventiva" : "Corretiva";
     const safeEmpresa = report_data?.contratoEmpresa ? escapeHtml(report_data.contratoEmpresa) : "";
     const safeResponsavel = report_data?.responsavelExecucaoNome ? escapeHtml(report_data.responsavelExecucaoNome) : "";
+    const safePrazoExecucao = report_data?.prazoExecucao ? escapeHtml(report_data.prazoExecucao) : "";
 
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

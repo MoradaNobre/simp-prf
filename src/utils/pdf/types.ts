@@ -80,6 +80,7 @@ export interface ExecucaoReportData {
   responsavelExecucaoNome?: string;
   dataAbertura: string;
   dataAutorizacao?: string;
+  prazoExecucao?: string;
   fiscalNome?: string;
   prioridade?: string;
   chamados?: ChamadoRef[];
