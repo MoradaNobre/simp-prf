@@ -16,12 +16,13 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import {
   Collapsible, CollapsibleContent, CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { useQuery } from "@tanstack/react-query";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Loader2, Download, CalendarIcon, ChevronDown, Plus, Trash2, AlertTriangle,
-  CheckCircle2, XCircle, AlertCircle, FileText, Sparkles,
+  CheckCircle2, XCircle, AlertCircle, FileText, Sparkles, Eye, History,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useRegionalFilter } from "@/hooks/useRegionalFilter";
@@ -171,7 +172,9 @@ export function RelatoriosIMR() {
   const { data: contratos, isLoading: loadingContratos } = useContratos(effectiveRegionalId);
   const { data: profile } = useUserProfile();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
+  const [activeTab, setActiveTab] = useState("novo");
   const [selectedContratoId, setSelectedContratoId] = useState("");
   const [periodoInicio, setPeriodoInicio] = useState<Date>(startOfMonth(new Date()));
   const [periodoFim, setPeriodoFim] = useState<Date>(endOfMonth(new Date()));
@@ -192,6 +195,108 @@ export function RelatoriosIMR() {
     encaminhamento: "arquivamento",
   });
   const [valorFatura, setValorFatura] = useState("");
+
+  // ── Saved reports listing ──
+  const { data: savedReports, isLoading: loadingSaved } = useQuery({
+    queryKey: ["imr-saved", effectiveRegionalId],
+    queryFn: async () => {
+      let query = supabase
+        .from("relatorios_imr")
+        .select("id, contrato_id, regional_id, periodo_inicio, periodo_fim, imr_score, situacao, total_ocorrencias, total_pontos_perdidos, valor_fatura, valor_glosa, percentual_retencao, analise_qualitativa, contraditorio_status, contraditorio_data_envio, decisao_final, imr_pos_reconsideracao, penalidade_aplicada, encaminhamento, ocorrencias, os_consolidadas, gerado_em, gerado_por_id")
+        .order("gerado_em", { ascending: false });
+
+      if (effectiveRegionalId) {
+        query = query.eq("regional_id", effectiveRegionalId);
+      }
+
+      const { data, error } = await query.limit(50);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  // Fetch contrato details for display in saved reports
+  const contratoIds = useMemo(() => {
+    const ids = new Set<string>();
+    (savedReports ?? []).forEach(r => { if (r.contrato_id) ids.add(r.contrato_id); });
+    return Array.from(ids);
+  }, [savedReports]);
+
+  const { data: contratosMap } = useQuery({
+    queryKey: ["imr-contratos-map", contratoIds],
+    queryFn: async () => {
+      if (contratoIds.length === 0) return new Map<string, { numero: string; empresa: string }>();
+      const { data } = await supabase
+        .from("contratos")
+        .select("id, numero, empresa")
+        .in("id", contratoIds);
+      const map = new Map<string, { numero: string; empresa: string }>();
+      (data ?? []).forEach(c => map.set(c.id, { numero: c.numero, empresa: c.empresa }));
+      return map;
+    },
+    enabled: contratoIds.length > 0,
+  });
+
+  const situacaoLabels: Record<string, string> = {
+    conforme: "Conforme",
+    conduta_adversa: "Conduta Adversa",
+    com_penalizacao: "Com Penalização",
+    "com_penalização": "Com Penalização",
+    critico: "Crítico",
+    "crítico": "Crítico",
+  };
+
+  const handleExportSavedPDF = (report: any) => {
+    const contrato = contratosMap?.get(report.contrato_id);
+    if (!contrato) {
+      toast.error("Dados do contrato não encontrados.");
+      return;
+    }
+    try {
+      const ocorrencias = typeof report.ocorrencias === "string"
+        ? JSON.parse(report.ocorrencias)
+        : (report.ocorrencias ?? []);
+      const osConsolidadas = typeof report.os_consolidadas === "string"
+        ? JSON.parse(report.os_consolidadas)
+        : (report.os_consolidadas ?? []);
+
+      const reportData: IMRReportData = {
+        contrato: { numero: contrato.numero, empresa: contrato.empresa },
+        periodo: {
+          inicio: new Date(report.periodo_inicio).toLocaleDateString("pt-BR"),
+          fim: new Date(report.periodo_fim).toLocaleDateString("pt-BR"),
+          mesAno: format(new Date(report.periodo_inicio), "MM/yyyy"),
+        },
+        fiscalNome: profile?.full_name ?? "",
+        dataAvaliacao: new Date(report.gerado_em).toLocaleDateString("pt-BR"),
+        unidadeAvaliada: "",
+        imrScore: Number(report.imr_score),
+        situacao: situacaoLabels[report.situacao] ?? report.situacao,
+        totalOcorrencias: report.total_ocorrencias ?? 0,
+        totalPontosPerdidos: Number(report.total_pontos_perdidos ?? 0),
+        osConsolidadas,
+        ocorrencias,
+        valorFatura: Number(report.valor_fatura ?? 0),
+        percentualRetencao: Number(report.percentual_retencao ?? 0),
+        valorGlosa: Number(report.valor_glosa ?? 0),
+        analiseQualitativa: report.analise_qualitativa ?? "",
+        contraditorio: {
+          dataEnvio: report.contraditorio_data_envio ?? "",
+          status: report.contraditorio_status ?? "sem_manifestacao",
+        },
+        decisaoFinal: {
+          imrReconsideracao: report.imr_pos_reconsideracao ? Number(report.imr_pos_reconsideracao) : undefined,
+          penalidade: report.penalidade_aplicada ?? "",
+          encaminhamento: report.encaminhamento ?? "arquivamento",
+        },
+      };
+      downloadIMRReport(reportData);
+      toast.success("PDF do relatório IMR exportado!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao exportar PDF.");
+    }
+  };
 
   const selectedContrato = useMemo(
     () => contratos?.find(c => c.id === selectedContratoId),
@@ -377,7 +482,9 @@ export function RelatoriosIMR() {
         gerado_por_id: user.id,
       } as any);
       if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["imr-saved"] });
       toast.success("Relatório IMR salvo com sucesso!");
+      setActiveTab("salvos");
     } catch (err: any) {
       console.error(err);
       toast.error("Erro ao salvar: " + err.message);
@@ -390,7 +497,94 @@ export function RelatoriosIMR() {
 
   return (
     <div className="space-y-6">
-      {/* ── Filtros ── */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="novo" className="gap-1.5">
+            <Plus className="h-4 w-4" /> Novo IMR
+          </TabsTrigger>
+          <TabsTrigger value="salvos" className="gap-1.5">
+            <History className="h-4 w-4" /> Relatórios Salvos
+            {(savedReports?.length ?? 0) > 0 && (
+              <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px]">{savedReports?.length}</Badge>
+            )}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="salvos" className="mt-4 space-y-4">
+          {loadingSaved ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="animate-spin h-8 w-8 text-muted-foreground" />
+            </div>
+          ) : !savedReports?.length ? (
+            <Card className="p-8">
+              <p className="text-center text-muted-foreground">Nenhum relatório IMR salvo ainda.</p>
+            </Card>
+          ) : (
+            <Card className="p-2 sm:p-4">
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Contrato</TableHead>
+                      <TableHead>Período</TableHead>
+                      <TableHead className="text-center">IMR</TableHead>
+                      <TableHead>Situação</TableHead>
+                      <TableHead className="text-center">Ocorrências</TableHead>
+                      <TableHead className="text-right">Valor Glosa</TableHead>
+                      <TableHead>Gerado em</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {savedReports.map(report => {
+                      const contrato = contratosMap?.get(report.contrato_id);
+                      const sit = getSituacao(Number(report.imr_score));
+                      const SitIcon = sit.icon;
+                      return (
+                        <TableRow key={report.id}>
+                          <TableCell className="text-xs">
+                            <div className="font-medium">{contrato?.numero ?? "—"}</div>
+                            <div className="text-muted-foreground truncate max-w-[150px]">{contrato?.empresa ?? ""}</div>
+                          </TableCell>
+                          <TableCell className="text-xs whitespace-nowrap">
+                            {new Date(report.periodo_inicio).toLocaleDateString("pt-BR")} — {new Date(report.periodo_fim).toLocaleDateString("pt-BR")}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <span className={cn("text-lg font-bold", sit.color)}>{Number(report.imr_score).toFixed(1)}</span>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1.5">
+                              <SitIcon className={cn("h-4 w-4", sit.color)} />
+                              <Badge variant={sit.badge} className="text-[10px]">
+                                {situacaoLabels[report.situacao] ?? report.situacao}
+                              </Badge>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center text-xs">{report.total_ocorrencias ?? 0}</TableCell>
+                          <TableCell className="text-right text-xs font-medium">
+                            {Number(report.valor_glosa ?? 0) > 0
+                              ? fmt(Number(report.valor_glosa))
+                              : "—"}
+                          </TableCell>
+                          <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                            {new Date(report.gerado_em).toLocaleDateString("pt-BR")}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button size="sm" variant="outline" className="h-7 gap-1" onClick={() => handleExportSavedPDF(report)}>
+                              <Download className="h-3.5 w-3.5" /> PDF
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="novo" className="mt-4 space-y-6">
       <Card className="p-4 sm:p-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {canFilterRegional && (
@@ -768,6 +962,8 @@ export function RelatoriosIMR() {
           Selecione um contrato e período para gerar o IMR.
         </p>
       )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
