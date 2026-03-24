@@ -472,3 +472,4 @@
 | 1.6 | 26/02/2026 | Inclusão das seções 28 e 29 – Chamados (RN-184 a RN-195) e Relatórios PDF com chamados (RN-196 a RN-197). Total: 197 regras |
 | 1.7 | 28/02/2026 | Inclusão das seções 30 e 31 – Aceite obrigatório de Termos (RN-198 a RN-201) e tipo de demanda Usina Solar (RN-202). Total: 202 regras |
 | 1.8 | 06/03/2026 | Inclusão das seções 32 e 33 – Prazos Obrigatórios de OS (RN-203 a RN-206) e Agenda Unificada (RN-207 a RN-210). Total: 210 regras |
+| 1.9 | 24/03/2026 | Inclusão das seções 34, 35 e 36 – Ativos e QR Codes (RN-211 a RN-215), Sede Nacional (RN-216 a RN-218) e Badges Dinâmicos (RN-219 a RN-220). Total: 220 regras |
