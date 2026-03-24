@@ -8,6 +8,7 @@
 
 ## Histórico de Versões
 
+- v1.9 (24/03/2026): Módulo de Ativos com cadastro hierárquico e QR Codes por UOP. Consolidação da Sede Nacional (registro protegido). Badges dinâmicos de bloqueio na Autorização de OS (Aguard. Cota, Aguard. Empenho, Saldo Contrato Insuf., Limite Excedido).
 - v1.8 (06/03/2026): Prazos obrigatórios de orçamento e execução nas transições de OS. Agenda unificada (visitas + prazos) com calendário, cards de resumo, abas e filtros.
 - v1.7 (28/02/2026): Aceite obrigatório de Termos de Uso e Política de Privacidade (dialog modal bloqueante, `accepted_terms_at`). Novo tipo de demanda "Usina Solar" (total: 10 tipos).
 - v1.6 (26/02/2026): Inclusão do módulo de Chamados (seção 6A), reestruturação dos relatórios PDF com chamados vinculados.
