@@ -1,6 +1,6 @@
 # SPEC – Especificação Funcional do SIMP (Sistema de Manutenção Predial)
 
-**Versão:** 1.9  
+**Versão:** 2.0  
 **Data:** 24/03/2026  
 **Responsável:** Daniel Nunes de Ávila  
 
