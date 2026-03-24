@@ -285,6 +285,7 @@ Cada transição de status é registrada com timestamp e identificação do resp
 - Cadastro de regionais, delegacias e UOPs
 - Gestão de usuários (criação, perfis, ativação/desativação, flag Suprido)
 - Gestão de limites de modalidade (Cartão Corporativo, Contrata + Brasil) por regional e ano com edição inline
+- Registro protegido da Sede Nacional (badge "Protegida", sem botão de exclusão)
 - Logs de auditoria do sistema
 
 ### 6.5. Módulo Orçamentário
@@ -310,6 +311,24 @@ Cada transição de status é registrada com timestamp e identificação do resp
 - Campo de observações pós-visita
 - Visualização na página dedicada e na aba de detalhes da OS
 - Controle de permissões: Preposto/Terceirizado criam; Gestores/Fiscais gerenciam
+
+### 6.8. Módulo de Ativos e QR Codes
+
+- Cadastro hierárquico de infraestrutura predial: Regional → Delegacia/Sede Regional → UOP/Anexo
+- Formulário multi-abas: Delegacia, UOP e Nacional (com labels dinâmicos para Sede Nacional)
+- Geração automática de QR Codes por UOP para abertura rápida de chamados
+- Escaneamento do QR Code redireciona para formulário de chamado com localização pré-preenchida
+- Download individual de QR Code em PNG para impressão
+- Consolidação da Sede Nacional: registro único protegido (UASG 200109), labels dinâmicos "Diretoria" / "Anexo / Edifício"
+
+### 6.9. Badges Dinâmicos de Bloqueio
+
+- Na etapa de Autorização, badges visuais indicam o motivo específico do bloqueio:
+  - "Aguard. Cota": Cota regional insuficiente
+  - "Aguard. Empenho": Saldo empenhado insuficiente
+  - "Saldo Contrato Insuf.": Saldo do contrato insuficiente
+  - "Limite Excedido": Limite de modalidade ultrapassado
+- Campo `motivo_bloqueio` armazena o bloqueio de maior prioridade sem alterar o status da OS
 
 ### 6.8. Dashboard
 
