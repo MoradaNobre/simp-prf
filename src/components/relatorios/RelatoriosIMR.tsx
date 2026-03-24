@@ -497,7 +497,94 @@ export function RelatoriosIMR() {
 
   return (
     <div className="space-y-6">
-      {/* ── Filtros ── */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="novo" className="gap-1.5">
+            <Plus className="h-4 w-4" /> Novo IMR
+          </TabsTrigger>
+          <TabsTrigger value="salvos" className="gap-1.5">
+            <History className="h-4 w-4" /> Relatórios Salvos
+            {(savedReports?.length ?? 0) > 0 && (
+              <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px]">{savedReports?.length}</Badge>
+            )}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="salvos" className="mt-4 space-y-4">
+          {loadingSaved ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="animate-spin h-8 w-8 text-muted-foreground" />
+            </div>
+          ) : !savedReports?.length ? (
+            <Card className="p-8">
+              <p className="text-center text-muted-foreground">Nenhum relatório IMR salvo ainda.</p>
+            </Card>
+          ) : (
+            <Card className="p-2 sm:p-4">
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Contrato</TableHead>
+                      <TableHead>Período</TableHead>
+                      <TableHead className="text-center">IMR</TableHead>
+                      <TableHead>Situação</TableHead>
+                      <TableHead className="text-center">Ocorrências</TableHead>
+                      <TableHead className="text-right">Valor Glosa</TableHead>
+                      <TableHead>Gerado em</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {savedReports.map(report => {
+                      const contrato = contratosMap?.get(report.contrato_id);
+                      const sit = getSituacao(Number(report.imr_score));
+                      const SitIcon = sit.icon;
+                      return (
+                        <TableRow key={report.id}>
+                          <TableCell className="text-xs">
+                            <div className="font-medium">{contrato?.numero ?? "—"}</div>
+                            <div className="text-muted-foreground truncate max-w-[150px]">{contrato?.empresa ?? ""}</div>
+                          </TableCell>
+                          <TableCell className="text-xs whitespace-nowrap">
+                            {new Date(report.periodo_inicio).toLocaleDateString("pt-BR")} — {new Date(report.periodo_fim).toLocaleDateString("pt-BR")}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <span className={cn("text-lg font-bold", sit.color)}>{Number(report.imr_score).toFixed(1)}</span>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1.5">
+                              <SitIcon className={cn("h-4 w-4", sit.color)} />
+                              <Badge variant={sit.badge} className="text-[10px]">
+                                {situacaoLabels[report.situacao] ?? report.situacao}
+                              </Badge>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center text-xs">{report.total_ocorrencias ?? 0}</TableCell>
+                          <TableCell className="text-right text-xs font-medium">
+                            {Number(report.valor_glosa ?? 0) > 0
+                              ? fmt(Number(report.valor_glosa))
+                              : "—"}
+                          </TableCell>
+                          <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                            {new Date(report.gerado_em).toLocaleDateString("pt-BR")}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button size="sm" variant="outline" className="h-7 gap-1" onClick={() => handleExportSavedPDF(report)}>
+                              <Download className="h-3.5 w-3.5" /> PDF
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="novo" className="mt-4 space-y-6">
       <Card className="p-4 sm:p-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {canFilterRegional && (
