@@ -847,15 +847,6 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
             );
           })()}
 
-          {/* Budget file link */}
-          {signedArquivoOrcamento && (
-            <div className="flex items-center gap-2 text-sm">
-              <FileText className="h-4 w-4 text-muted-foreground" />
-              <a href={signedArquivoOrcamento} target="_blank" rel="noopener noreferrer" className="text-primary underline">
-                Ver arquivo do orçamento
-              </a>
-            </div>
-          )}
 
           {/* Execution report link */}
           {signedRelatorioExecucao && (
@@ -1144,9 +1135,12 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
                   {(os as any).arquivo_orcamento && (
                     <div className="text-sm p-3 bg-muted rounded-md space-y-1">
                       <p><span className="text-muted-foreground">Orçamento da OS:</span> R$ {valorOS.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
-                      <a href={(os as any).arquivo_orcamento} target="_blank" rel="noopener noreferrer" className="text-primary underline text-sm">
-                        Ver arquivo do orçamento
-                      </a>
+                      {signedArquivoOrcamento && (
+                        <a href={signedArquivoOrcamento} target="_blank" rel="noopener noreferrer" className="text-primary underline text-sm flex items-center gap-1">
+                          <FileText className="h-4 w-4" />
+                          Ver arquivo do orçamento
+                        </a>
+                      )}
                     </div>
                   )}
 
