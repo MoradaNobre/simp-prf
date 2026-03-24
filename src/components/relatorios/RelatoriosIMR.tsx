@@ -176,6 +176,7 @@ export function RelatoriosIMR() {
   const [periodoInicio, setPeriodoInicio] = useState<Date>(startOfMonth(new Date()));
   const [periodoFim, setPeriodoFim] = useState<Date>(endOfMonth(new Date()));
   const [generating, setGenerating] = useState(false);
+  const [generatingAI, setGeneratingAI] = useState(false);
   const [saving, setSaving] = useState(false);
 
   // Editable fields
