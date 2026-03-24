@@ -474,6 +474,7 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
             responsavelExecucaoNome: responsavelExecNome || undefined,
             dataAbertura: new Date(os.data_abertura).toLocaleDateString("pt-BR"),
             dataAutorizacao: new Date().toLocaleDateString("pt-BR"),
+            prazoExecucao: (os as any).prazo_execucao ? new Date((os as any).prazo_execucao).toLocaleDateString("pt-BR") : undefined,
             fiscalNome: fiscalProfile?.full_name || undefined,
             prioridade: os.prioridade,
             chamados: (chamadosExec || []).map((ch: any) => ({

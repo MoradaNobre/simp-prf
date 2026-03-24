@@ -155,6 +155,7 @@ Deno.serve(async (req) => {
     const safeTipo = report_data?.tipo === "preventiva" ? "Preventiva" : "Corretiva";
     const safeEmpresa = report_data?.contratoEmpresa ? escapeHtml(report_data.contratoEmpresa) : "";
     const safeResponsavel = report_data?.responsavelExecucaoNome ? escapeHtml(report_data.responsavelExecucaoNome) : "";
+    const safePrazoExecucao = report_data?.prazoExecucao ? escapeHtml(report_data.prazoExecucao) : "";
 
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -172,6 +173,7 @@ Deno.serve(async (req) => {
               <tr><td style="padding: 6px 0; color: #666;">Local:</td><td style="padding: 6px 0;">${safeLocal}</td></tr>
               <tr><td style="padding: 6px 0; color: #666;">Tipo:</td><td style="padding: 6px 0;">${safeTipo}</td></tr>
               <tr><td style="padding: 6px 0; color: #666;">Orçamento:</td><td style="padding: 6px 0; font-weight: bold;">R$ ${Number(report_data?.valorOrcamento || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</td></tr>
+              ${safePrazoExecucao ? `<tr><td style="padding: 6px 0; color: #666;">Prazo para Execução:</td><td style="padding: 6px 0; font-weight: bold; color: #dc2626;">${safePrazoExecucao}</td></tr>` : ""}
               ${safeEmpresa ? `<tr><td style="padding: 6px 0; color: #666;">Empresa:</td><td style="padding: 6px 0;">${safeEmpresa}</td></tr>` : ""}
               ${safeResponsavel ? `<tr><td style="padding: 6px 0; color: #666;">Responsável:</td><td style="padding: 6px 0;">${safeResponsavel}</td></tr>` : ""}
             </table>
