@@ -962,6 +962,8 @@ export function RelatoriosIMR() {
           Selecione um contrato e período para gerar o IMR.
         </p>
       )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
