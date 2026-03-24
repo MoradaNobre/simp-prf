@@ -1,13 +1,14 @@
 # Catálogo de Regras de Negócio – SIMP-PRF
 
-**Versão:** 1.8  
-**Data:** 06/03/2026  
+**Versão:** 1.9  
+**Data:** 24/03/2026  
 **Fonte:** SPEC.md  
 
 ---
 
 ## Histórico de Versões
 
+- v1.9 (24/03/2026): Inclusão das regras do módulo de Ativos e QR Codes (RN-211 a RN-215), consolidação da Sede Nacional (RN-216 a RN-218) e badges dinâmicos de bloqueio (RN-219 a RN-220). Total: 220 regras.
 - v1.8 (06/03/2026): Inclusão das regras de prazos obrigatórios (RN-203 a RN-206) e agenda unificada (RN-207 a RN-210). Total: 210 regras.
 - v1.7 (28/02/2026): Inclusão das regras de aceite obrigatório de Termos de Uso (RN-198 a RN-201) e novo tipo de demanda "Usina Solar" (RN-202). Total: 202 regras.
 - v1.6 (26/02/2026): Inclusão das regras do módulo de Chamados (RN-184 a RN-197) e reestruturação de relatórios PDF. Total: 197 regras.
@@ -424,12 +425,39 @@
 
 ---
 
-**Total de Regras de Negócio:** 210
+## 34. Módulo de Ativos e QR Codes
+
+| # | Regra |
+|---|---|
+| **RN-211** | O módulo de Ativos permite o cadastro hierárquico da infraestrutura predial em três níveis: Regional → Delegacia/Sede Regional → UOP/Anexo. |
+| **RN-212** | O formulário "Novo Ativo" possui três abas: Delegacia/Sede Regional, UOP/Anexo e Nacional. A aba Nacional utiliza labels dinâmicos: "Diretoria" (Delegacia) e "Anexo / Edifício" (UOP). |
+| **RN-213** | QR Codes são gerados automaticamente para cada UOP cadastrada, contendo a URL de abertura rápida de chamado com a hierarquia de localização pré-preenchida. |
+| **RN-214** | O escaneamento do QR Code redireciona o usuário para o formulário de Novo Chamado após autenticação, com Regional, Delegacia e UOP automaticamente preenchidos. |
+| **RN-215** | Os QR Codes podem ser baixados individualmente em formato PNG para impressão e fixação nos ambientes físicos. |
+
+## 35. Consolidação da Sede Nacional
+
+| # | Regra |
+|---|---|
+| **RN-216** | O registro "SEDE NACIONAL" (UASG 200109) é único no sistema e compartilhado entre os módulos de Ativos, Chamados e Gestão de Regionais. |
+| **RN-217** | O registro da Sede Nacional é protegido: exibe badge "Protegida" na Gestão de Regionais e não possui botão de exclusão. |
+| **RN-218** | Para chamados e ativos vinculados à Sede Nacional, os labels "Delegacia" e "UOP" são substituídos dinamicamente por "Diretoria" e "Anexo / Edifício", respectivamente. |
+
+## 36. Badges Dinâmicos de Bloqueio
+
+| # | Regra |
+|---|---|
+| **RN-219** | Na etapa de Autorização, o sistema exibe badges dinâmicos conforme o motivo específico do bloqueio: "Aguard. Cota" (cota regional insuficiente), "Aguard. Empenho" (saldo empenhado insuficiente), "Saldo Contrato Insuf." (saldo do contrato insuficiente) ou "Limite Excedido" (limite de modalidade ultrapassado). |
+| **RN-220** | O campo `motivo_bloqueio` da OS armazena o bloqueio de maior prioridade ativo (cota > contrato > limite > empenho) sem alterar o status da OS, que permanece em "autorizacao". |
+
+---
+
+**Total de Regras de Negócio:** 220
 
 ---
 
 *Catálogo de Regras de Negócio extraído do SPEC.md — SIMP-PRF.*  
-*Versão 1.8 — 06/03/2026*
+*Versão 1.9 — 24/03/2026*
 
 ## Histórico de Versões
 
@@ -444,3 +472,4 @@
 | 1.6 | 26/02/2026 | Inclusão das seções 28 e 29 – Chamados (RN-184 a RN-195) e Relatórios PDF com chamados (RN-196 a RN-197). Total: 197 regras |
 | 1.7 | 28/02/2026 | Inclusão das seções 30 e 31 – Aceite obrigatório de Termos (RN-198 a RN-201) e tipo de demanda Usina Solar (RN-202). Total: 202 regras |
 | 1.8 | 06/03/2026 | Inclusão das seções 32 e 33 – Prazos Obrigatórios de OS (RN-203 a RN-206) e Agenda Unificada (RN-207 a RN-210). Total: 210 regras |
+| 1.9 | 24/03/2026 | Inclusão das seções 34, 35 e 36 – Ativos e QR Codes (RN-211 a RN-215), Sede Nacional (RN-216 a RN-218) e Badges Dinâmicos (RN-219 a RN-220). Total: 220 regras |
