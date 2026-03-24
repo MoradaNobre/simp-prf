@@ -2,8 +2,8 @@
 
 ## SIMP-PRF – Sistema Integrado de Manutenção Predial
 
-**Versão:** 1.6  
-**Data:** 06/03/2026  
+**Versão:** 1.7  
+**Data:** 24/03/2026  
 **Classificação:** Documento Institucional
 
 ---
@@ -77,7 +77,7 @@ O sistema atende a hierarquia organizacional da PRF, desde a administração cen
 | Notificações por E-mail | Envio automático por transição com destinatários contextuais |
 | Auditoria | Registro completo de ações com dados antigos/novos em `audit_logs` |
 | Dashboard Gerencial | KPIs de OS e orçamento com atualização automática |
-| Gestão de Ativos | Cadastro hierárquico de unidades (Regional > Delegacia > UOP) e planos de manutenção preventiva |
+| Gestão de Ativos | Cadastro hierárquico (Regional > Delegacia > UOP) com QR Codes por UOP para abertura rápida de chamados. Sede Nacional protegida com labels dinâmicos |
 | Gestão do Sistema | Regionais, delegacias, UOPs, importação em lote (CSV/XLSX) |
 
 ### 3.2 Fora do Escopo
@@ -456,8 +456,8 @@ Cada transição:
 | Documento | Localização | Descrição |
 |---|---|---|
 | SPEC.md | Raiz do projeto | Especificação técnica completa de funcionalidades |
-| REGRAS_NEGOCIO.md | Raiz do projeto | Catálogo formal com 197 regras numeradas (RN-001 a RN-197) |
-| TECHNICAL_DOCS.md | Raiz e `/public` | Documentação técnica do sistema (v1.1) |
+| REGRAS_NEGOCIO.md | Raiz do projeto | Catálogo formal com 220 regras numeradas (RN-001 a RN-220) |
+| TECHNICAL_DOCS.md | Raiz e `/public` | Documentação técnica do sistema (v1.8) |
 | PRIVACY_POLICY.md | Raiz e `/public` | Política de privacidade |
 | DEVELOPER.md | Raiz do projeto | Créditos e informações do desenvolvedor |
 
@@ -477,7 +477,7 @@ Não se trata apenas de ferramenta operacional, mas de **mecanismo institucional
 ---
 
 *PRD – Product Requirements Document — SIMP-PRF*  
-*Versão 1.6 — 06/03/2026*
+*Versão 1.7 — 24/03/2026*
 
 ## Histórico de Versões
 
@@ -490,3 +490,4 @@ Não se trata apenas de ferramenta operacional, mas de **mecanismo institucional
 | 1.4 | 26/02/2026 | Inclusão do fluxo funcional de Chamados (seção 6.0) como etapa pré-OS, atualização do Propósito com sequência Chamado → OS |
 | 1.5 | 28/02/2026 | Aceite obrigatório de Termos de Uso e Política de Privacidade (dialog modal bloqueante com `accepted_terms_at`), novo tipo de demanda "Usina Solar" (10 tipos), 202 regras de negócio |
 | 1.6 | 06/03/2026 | Prazos obrigatórios de orçamento e execução nas transições de OS. Agenda unificada (visitas + prazos). 210 regras de negócio |
+| 1.7 | 24/03/2026 | Módulo de Ativos com QR Codes, consolidação da Sede Nacional, badges dinâmicos de bloqueio. 220 regras de negócio |

@@ -4,6 +4,20 @@ Registro centralizado de todas as alterações nos documentos de referência do 
 
 ---
 
+## [24/03/2026] — Módulo de Ativos, QR Codes, Consolidação Sede Nacional e Badges Dinâmicos
+
+### Documento(s) Alterado(s)
+- **SPEC.md** (v1.8 → v1.9): Nova seção 12 — Ativos e QR Codes (cadastro hierárquico, QR Codes por UOP, consolidação da Sede Nacional). Badges dinâmicos de bloqueio na Autorização de OS
+- **REGRAS_NEGOCIO.md** (v1.8 → v1.9): Novas regras RN-211 a RN-220 (Ativos, QR Codes, Sede Nacional, badges dinâmicos). Total: 220 regras
+- **TECHNICAL_DOCS.md** (v1.7 → v1.8): Módulo de Ativos com QR Codes (seção 6.8), badges dinâmicos de bloqueio (seção 6.9), registro protegido da Sede Nacional
+- **PRD.md** (v1.6 → v1.7): Atualização do escopo de Gestão de Ativos com QR Codes e Sede Nacional, 220 regras de negócio
+- **PRIVACY_POLICY.md** (v1.5 → v1.6): Inclusão de dados de ativos prediais (QR Codes, hierarquia de unidades) nos dados funcionais coletados
+
+### Motivação
+Implementação do módulo de Ativos com geração de QR Codes para abertura rápida de chamados, consolidação do registro da Sede Nacional (eliminação de duplicidade), proteção contra exclusão acidental e badges dinâmicos para identificar o motivo específico do bloqueio na Autorização de OS.
+
+---
+
 ## [06/03/2026] — Prazos obrigatórios e Agenda unificada
 
 ### Documento(s) Alterado(s)
