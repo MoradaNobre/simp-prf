@@ -73,7 +73,7 @@ O sistema atende a hierarquia organizacional da PRF, desde a administração cen
 | Ordens de Serviço | Ciclo completo de 8 etapas com bloqueios, uploads e notificações |
 | Controle Orçamentário | Portaria orçamentária (LOA), cotas regionais, créditos, empenhos |
 | Solicitações de Crédito | Criação avulsa ou vinculada a OS, aprovação total ou parcial |
-| Relatórios | Relatório de Execução (automático) e de Pagamento (manual), ambos em PDF |
+| Relatórios | Relatório de Execução (automático, com prazo), Pagamento (manual) e IMR (avaliação de desempenho mensal), todos em PDF |
 | Notificações por E-mail | Envio automático por transição com destinatários contextuais |
 | Auditoria | Registro completo de ações com dados antigos/novos em `audit_logs` |
 | Dashboard Gerencial | KPIs de OS e orçamento com atualização automática |
