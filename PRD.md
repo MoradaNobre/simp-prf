@@ -345,6 +345,12 @@ Cada transição:
 | RF-REL-05 | Aba "Pagamento" ocultada para Preposto e Terceirizado. |
 | RF-REL-06 | Relatórios de OS (Execução e Pagamento) incluem seção "Chamados Vinculados" com código, tipo de demanda, local, solicitante e Matriz GUT. |
 | RF-REL-07 | Relatório de Contrato inclui resumo de chamados (total e OS originadas) e coluna "CH" (quantidade de chamados) na tabela de OS. |
+| RF-REL-08 | Relatório IMR (Instrumento de Medição de Resultado) com motor de regras automáticas que detecta ocorrências a partir das OS do contrato no período. |
+| RF-REL-09 | Cálculo automático do score IMR (10 − Σ pontos perdidos) com classificação em 4 faixas e impacto financeiro (retenção sobre fatura). |
+| RF-REL-10 | IMR inclui seções de análise qualitativa, contraditório (5 dias úteis) e decisão final (arquivamento, glosa ou processo sancionador). |
+| RF-REL-11 | IMR persistido na tabela `relatorios_imr` com dados completos em JSONB e PDF com 11 seções. |
+| RF-REL-12 | Aba IMR visível apenas para perfis internos (Master, Nacional, Regional, Fiscal, Auxiliar Fiscal). |
+| RF-REL-13 | Relatório de Execução (PDF e e-mail) inclui o prazo de execução da OS quando definido. |
 
 ### 7.10 Chamados (RF-CHM)
 
