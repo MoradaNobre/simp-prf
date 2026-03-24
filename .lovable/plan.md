@@ -1,52 +1,40 @@
 
 
-## Consolidar Sede Nacional — Eliminar Duplicidade
+## Plano: Histórico de Fluxo da OS (Timeline para IMR)
 
-### Problema Identificado
-Existem **dois registros** de regional para a Sede Nacional:
-1. **"SEDE NACIONAL"** (UASG 200109) — cadastrada originalmente como regional comum na Gestão do Sistema
-2. **"SEDE-NAC"** (sem UASG) — criada automaticamente pela feature de ativos nacionais
+### Objetivo
+Adicionar uma seção visual de **timeline/histórico** dentro do diálogo de detalhes da OS, mostrando data/hora exata de cada transição de status. Esses dados já existem na tabela `audit_logs` (eventos `STATUS_CHANGE` e `restituicao`) — precisamos apenas exibi-los na UI e permitir exportação para o relatório IMR.
 
-Isso gera inconsistência: chamados, delegacias e UOPs podem estar vinculados a registros diferentes, e os labels dinâmicos no formulário de chamado dependem da sigla `SEDE-NAC`.
+### O que será feito
 
-### Solução
+**1. Criar componente `OSHistoricoTimeline.tsx`**
+- Novo componente em `src/components/os/` que recebe o `osId` e consulta `audit_logs` filtrando por `record_id = osId`, `table_name = 'ordens_servico'`, ações `STATUS_CHANGE` e `restituicao`.
+- Resolve nomes dos usuários via tabela `profiles`.
+- Exibe uma timeline vertical com:
+  - Ícone e cor por etapa (reutilizando o mapeamento do `OSStatusStepper`)
+  - Status anterior → novo status (extraído de `old_data` e `new_data` do audit_log)
+  - Data/hora formatada (`dd/mm/aaaa HH:mm`)
+  - Nome do responsável pela transição
+  - Tempo decorrido entre cada etapa (delta em dias/horas)
+- Inclui um botão "Exportar para CSV" que gera um CSV com as colunas: Etapa De, Etapa Para, Data/Hora, Responsável, Tempo na Etapa — dados essenciais para alimentar o IMR.
 
-Unificar em **um único registro**, mantendo o que já existe (UASG 200109) e adaptando o código para reconhecê-lo.
+**2. Integrar no `DetalhesOSDialog.tsx`**
+- Adicionar a seção `OSHistoricoTimeline` após os Agendamentos e antes da seção de Restituir, com título "Histórico do Fluxo" e ícone `Clock`.
+- Componente é colapsável (usando `Collapsible`) para não poluir o diálogo.
 
-### Passos
+**3. Enriquecer o relatório PDF da OS**
+- A seção "Histórico do Fluxo" no PDF já existe (`sectionHistorico.ts`), mas atualmente mostra dados genéricos. Enriquecer com:
+  - Coluna "Tempo na Etapa" (diferença entre transições consecutivas)
+  - Status de origem e destino extraídos de `old_data`/`new_data` do audit_log
 
-**1. Definir a sigla oficial**
-- Alterar a constante `SEDE_NACIONAL_SIGLA` de `"SEDE-NAC"` para `"SEDE NACIONAL"` (a sigla que já está no banco com UASG 200109)
-- Atualizar em `NovoAtivoDialog.tsx` (definição) e todos os arquivos que importam essa constante
+### Dados já disponíveis
+- `audit_logs.old_data` e `audit_logs.new_data` contêm o JSON completo da OS antes/depois da transição, incluindo `status`.
+- Não é necessária nenhuma migração de banco de dados.
 
-**2. Migração de dados**
-- SQL para migrar delegacias/UOPs vinculadas ao registro duplicado `SEDE-NAC` para o registro original `SEDE NACIONAL`
-- Excluir o registro duplicado `SEDE-NAC` após migração
-
-**3. Remover auto-criação da regional**
-- No `NovoAtivoDialog.tsx`, remover a lógica que cria automaticamente uma regional `SEDE-NAC` quando não encontrada
-- A aba Nacional deve simplesmente buscar a regional com a sigla `SEDE NACIONAL` já existente
-
-**4. Proteger a Sede Nacional na Gestão**
-- Na listagem de regionais (`GestaoRegionais.tsx`), marcar visualmente a Sede Nacional (badge ou ícone) para evitar exclusão acidental
-- Opcionalmente ocultar botão de excluir para essa regional específica
-
-**5. Verificar consistência nos labels dinâmicos**
-- `NovoChamadoDialog.tsx`: ajustar comparação para usar a nova constante
-- `Ativos.tsx`: filtro `SEDE_NACIONAL_SIGLA` já funciona via constante importada
-
-### Arquivos a editar
-
-| Arquivo | Alteração |
-|---|---|
-| `src/components/ativos/NovoAtivoDialog.tsx` | Alterar constante, remover auto-criação |
-| `src/pages/Ativos.tsx` | Nenhuma (usa constante importada) |
-| `src/components/chamados/NovoChamadoDialog.tsx` | Nenhuma (usa constante importada) |
-| `src/components/gestao/GestaoRegionais.tsx` | Proteger exclusão da Sede Nacional |
-| **Migração SQL** | Mover dados e excluir duplicata |
-
-### Resultado
-- Um único registro "SEDE NACIONAL" com UASG 200109
-- Labels dinâmicos funcionando em chamados e ativos
-- Sem risco de duplicação futura
+### Arquivos alterados
+| Arquivo | Ação |
+|---------|------|
+| `src/components/os/OSHistoricoTimeline.tsx` | Criar (novo componente) |
+| `src/components/os/DetalhesOSDialog.tsx` | Integrar o componente |
+| `src/utils/pdf/sections/sectionHistorico.ts` | Adicionar coluna "Tempo na Etapa" |
 
