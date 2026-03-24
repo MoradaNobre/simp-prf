@@ -3,6 +3,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { RelatoriosExecucao } from "@/components/relatorios/RelatoriosExecucao";
 import { RelatoriosPagamento } from "@/components/relatorios/RelatoriosPagamento";
 import { RelatoriosFaturamento } from "@/components/relatorios/RelatoriosFaturamento";
+import { RelatoriosIMR } from "@/components/relatorios/RelatoriosIMR";
 
 export default function Relatorios() {
   const { data: role } = useUserRole();
@@ -26,6 +27,9 @@ export default function Relatorios() {
           {!isExternalOnly && (
             <TabsTrigger value="faturamento" className="flex-1 sm:flex-initial">Faturamento</TabsTrigger>
           )}
+          {!isExternalOnly && (
+            <TabsTrigger value="imr" className="flex-1 sm:flex-initial">IMR</TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="execucao">
@@ -41,6 +45,12 @@ export default function Relatorios() {
         {!isExternalOnly && (
           <TabsContent value="faturamento">
             <RelatoriosFaturamento />
+          </TabsContent>
+        )}
+
+        {!isExternalOnly && (
+          <TabsContent value="imr">
+            <RelatoriosIMR />
           </TabsContent>
         )}
       </Tabs>
