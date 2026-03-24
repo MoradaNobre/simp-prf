@@ -32,6 +32,7 @@ import { generateOSExecucaoReport } from "@/utils/generateOSExecucaoReport";
 import { useQuery } from "@tanstack/react-query";
 import JSZip from "jszip";
 import { OSAgendamentosTab } from "@/components/os/OSAgendamentosTab";
+import { OSHistoricoTimeline } from "@/components/os/OSHistoricoTimeline";
 import { useSolicitacoesPrazo, useCreateSolicitacaoPrazo, useRespondSolicitacaoPrazo } from "@/hooks/useSolicitacoesPrazo";
 
 const statusLabels: Record<string, string> = {
@@ -2095,6 +2096,10 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
           {/* AGENDAMENTOS */}
           <Separator />
           <OSAgendamentosTab osId={os.id} osCodigo={os.codigo} osStatus={os.status} />
+
+          {/* HISTÓRICO DO FLUXO (TIMELINE IMR) */}
+          <Separator />
+          <OSHistoricoTimeline osId={os.id} osCodigo={os.codigo} dataAbertura={os.data_abertura} />
 
           {/* RESTITUIR: gestor/fiscal can revert to previous stage */}
           {isGestorOrFiscal && currentIdx > 0 && os.status !== "encerrada" && (
