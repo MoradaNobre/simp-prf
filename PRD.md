@@ -77,7 +77,7 @@ O sistema atende a hierarquia organizacional da PRF, desde a administração cen
 | Notificações por E-mail | Envio automático por transição com destinatários contextuais |
 | Auditoria | Registro completo de ações com dados antigos/novos em `audit_logs` |
 | Dashboard Gerencial | KPIs de OS e orçamento com atualização automática |
-| Gestão de Ativos | Cadastro hierárquico de unidades (Regional > Delegacia > UOP) e planos de manutenção preventiva |
+| Gestão de Ativos | Cadastro hierárquico (Regional > Delegacia > UOP) com QR Codes por UOP para abertura rápida de chamados. Sede Nacional protegida com labels dinâmicos |
 | Gestão do Sistema | Regionais, delegacias, UOPs, importação em lote (CSV/XLSX) |
 
 ### 3.2 Fora do Escopo
