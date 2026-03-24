@@ -111,7 +111,7 @@ Regional (Superintendência) → Delegacia → UOP (Unidade Operacional)
 | Chamados | Master, Nacional, Regional, Fiscal, Operador |
 | Ordens de Serviço | **Todos** os perfis |
 | Agenda (Visitas e Prazos) | **Todos** os perfis |
-| Relatórios OS | Master, Nacional, Regional, Fiscal, Preposto, Terceirizado |
+| Relatórios | Master, Nacional, Regional, Fiscal, Preposto, Terceirizado |
 | Contratos | Master, Nacional, Regional, Fiscal, Operador, Preposto |
 | Gestão do Orçamento | Master, Nacional, Regional (+ Fiscal apenas leitura) |
 | Gestão do Sistema | Master, Nacional, Regional |
