@@ -64,7 +64,10 @@ export function OSCardMobile({ os, canManage, canDelete, onSelect, onEdit, onDel
           )}
           {os.motivo_bloqueio && os.status === "autorizacao" && (
             <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200" title={`Bloqueio: ${os.motivo_bloqueio}`}>
-              ⚠ Aguard. Cota
+              ⚠ {os.motivo_bloqueio === "empenho_insuficiente" ? "Aguard. Empenho"
+                : os.motivo_bloqueio === "saldo_contrato_insuficiente" ? "Saldo Contrato Insuf."
+                : os.motivo_bloqueio === "limite_modalidade_excedido" ? "Limite Excedido"
+                : "Aguard. Cota"}
             </span>
           )}
           {os.status === "pagamento" && (os.documentos_pagamento as any[])?.length > 0 && (
