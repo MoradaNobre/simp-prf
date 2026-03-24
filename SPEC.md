@@ -33,7 +33,7 @@
 7. [Ordens de Serviço](#7-ordens-de-serviço)
 8. [Agenda (Visitas e Prazos)](#8-agenda-visitas-e-prazos)
 9. [Contratos](#9-contratos)
-10. [Relatórios OS](#10-relatórios-os)
+10. [Relatórios](#10-relatórios)
 11. [Gestão do Orçamento](#11-gestão-do-orçamento)
 12. [Gestão do Sistema](#12-gestão-do-sistema)
 13. [Sobre](#13-sobre)
