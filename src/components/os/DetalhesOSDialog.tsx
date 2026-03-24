@@ -226,6 +226,54 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
     setPrazoExecucao((os as any)?.prazo_execucao ?? "");
   }, [os?.id, os?.contrato_id, os?.prioridade, os?.tipo]);
 
+  // Compute motivo_bloqueio and sync to DB via useEffect (NOT during render)
+  const computedMotivoBloqueio = useMemo(() => {
+    if (!os || os.status !== "autorizacao") return undefined; // undefined = skip sync
+    const valorOS = Number(os.valor_orcamento) || 0;
+    const saldoContrato = (() => {
+      const s = saldos.find((x: any) => x.id === os.contrato_id);
+      return s ? Number((s as any).saldo) : null;
+    })();
+    const saldoOrc = saldoOrcamento?.saldo_disponivel ?? null;
+    const contratoInfo = contratosAll.find(c => c.id === os.contrato_id);
+    const tipo = contratoInfo?.tipo_servico;
+    const skipContractBalance = bypassesContractBalance(tipo);
+    const skipBudgetBlock = bypassesBudgetBlocking(tipo);
+    const contratoInsuficiente = !skipContractBalance && saldoContrato !== null && saldoContrato < valorOS;
+    const orcamentoInsuficiente = !skipBudgetBlock && saldoOrc !== null && saldoOrc < valorOS;
+    const semOrcamentoCadastrado = !skipBudgetBlock && saldoOrc === null;
+    const totalEmpenhado = saldoOrcamento?.total_empenhos ?? 0;
+    const skipEmpenhoCheck = !skipBudgetBlock && (semOrcamentoCadastrado || orcamentoInsuficiente);
+    const empenhoInsuficiente = !skipEmpenhoCheck && totalEmpenhado < valorOS;
+
+    const isModalidade = tipo === "cartao_corporativo" || tipo === "contrata_brasil";
+    const limiteM = isModalidade ? limitesModalidade.find(l => l.modalidade === tipo) : null;
+    const valorLim = limiteM ? Number(limiteM.valor_limite) : null;
+    const consumo = consumoModalidade ?? 0;
+    const consumoSemAtual = os.status !== "aberta" && os.status !== "orcamento" ? consumo - valorOS : consumo;
+    const limiteExcedido = isModalidade && valorLim !== null && (consumoSemAtual + valorOS) > valorLim;
+    const semLimite = isModalidade && valorLim === null;
+
+    const bloqueio1 = orcamentoInsuficiente || semOrcamentoCadastrado;
+    const bloqueio2c = !bloqueio1 && contratoInsuficiente;
+    const bloqueio2l = !bloqueio1 && !bloqueio2c && (limiteExcedido || semLimite);
+    const bloqueio3 = !bloqueio1 && !bloqueio2c && !bloqueio2l && empenhoInsuficiente;
+
+    if (bloqueio1) return semOrcamentoCadastrado ? "sem_cota_cadastrada" : "cota_regional_insuficiente";
+    if (bloqueio2c) return "saldo_contrato_insuficiente";
+    if (bloqueio2l) return "limite_modalidade_excedido";
+    if (bloqueio3) return "empenho_insuficiente";
+    return null;
+  }, [os?.id, os?.status, os?.valor_orcamento, os?.contrato_id, saldos, saldoOrcamento, contratosAll, limitesModalidade, consumoModalidade]);
+
+  useEffect(() => {
+    if (computedMotivoBloqueio === undefined || !os) return; // not in autorizacao or no OS
+    const currentMotivo = os.motivo_bloqueio ?? null;
+    if (computedMotivoBloqueio !== currentMotivo) {
+      updateOS.mutate({ id: os.id, motivo_bloqueio: computedMotivoBloqueio } as any);
+    }
+  }, [computedMotivoBloqueio]); // eslint-disable-line react-hooks/exhaustive-deps
+
   if (!os) return null;
 
   const contratoLinked = contratosAll.find(c => c.id === os.contrato_id);
