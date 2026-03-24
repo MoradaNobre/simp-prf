@@ -378,3 +378,4 @@ _Documento técnico elaborado conforme padrões de documentação da Polícia Ro
 | 1.6    | 28/02/2026 | Aceite obrigatório de Termos de Uso e Política de Privacidade (`accepted_terms_at` em `profiles`), novo tipo de demanda "Usina Solar" (10 tipos) |
 | 1.7    | 06/03/2026 | Prazos obrigatórios (`prazo_orcamento`, `prazo_execucao`) nas transições de OS. Agenda unificada (visitas + prazos) com calendário, cards de resumo e filtros |
 | 1.8    | 24/03/2026 | Módulo de Ativos com QR Codes, consolidação da Sede Nacional (registro protegido), badges dinâmicos de bloqueio na Autorização |
+| 1.9    | 24/03/2026 | Relatório IMR (`relatorios_imr`) com motor de regras automáticas e cálculo de score. Prazo de execução no Relatório de Execução (PDF e e-mail). 233 regras de negócio |
