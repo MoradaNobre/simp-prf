@@ -1084,11 +1084,7 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
                     ? "empenho_insuficiente"
                     : null;
 
-            // Save motivo_bloqueio if it changed
-            const currentMotivo = (os as any).motivo_bloqueio ?? null;
-            if (motivoBloqueioAtual !== currentMotivo) {
-              updateOS.mutate({ id: os.id, motivo_bloqueio: motivoBloqueioAtual } as any);
-            }
+            // NOTE: motivo_bloqueio sync is handled in a useEffect above to avoid mutating during render
 
             return (
               <>
