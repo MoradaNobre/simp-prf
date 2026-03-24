@@ -2096,6 +2096,10 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
           <Separator />
           <OSAgendamentosTab osId={os.id} osCodigo={os.codigo} osStatus={os.status} />
 
+          {/* HISTÓRICO DO FLUXO (TIMELINE IMR) */}
+          <Separator />
+          <OSHistoricoTimeline osId={os.id} osCodigo={os.codigo} dataAbertura={os.data_abertura} />
+
           {/* RESTITUIR: gestor/fiscal can revert to previous stage */}
           {isGestorOrFiscal && currentIdx > 0 && os.status !== "encerrada" && (
             <>
