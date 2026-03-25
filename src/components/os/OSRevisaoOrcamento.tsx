@@ -59,20 +59,29 @@ export function OSRevisaoOrcamento({ os, isGestorOrFiscal, isPreposto, isTerceir
     }
 
     try {
+      setUploadingFile(true);
+      let arquivoPath: string | undefined;
+      if (arquivo) {
+        arquivoPath = await uploadToStorage(arquivo, `revisoes/${os.id}`);
+      }
       const { data: { user } } = await supabase.auth.getUser();
       await createRevisao.mutateAsync({
         os_id: os.id,
         valor_anterior: valorAtual,
         valor_novo: valor,
         justificativa: justificativa.trim(),
+        arquivo_justificativa: arquivoPath,
         solicitado_por: user?.id || "",
       });
       toast.success("Revisão orçamentária solicitada!");
       setShowForm(false);
       setNovoValor("");
       setJustificativa("");
+      setArquivo(null);
     } catch (err: any) {
       toast.error("Erro: " + err.message);
+    } finally {
+      setUploadingFile(false);
     }
   };
 
