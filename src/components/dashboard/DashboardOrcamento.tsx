@@ -83,14 +83,16 @@ export default function DashboardOrcamento({ regionalId, userRole }: DashboardOr
     enabled: (orcamentos?.length ?? 0) > 0,
   });
 
-  const { data: custosOS } = useQuery({
-    queryKey: ["dash-os-custos", exercicio],
+  const { data: consumoOS } = useQuery({
+    queryKey: ["dash-os-consumo", exercicio],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("os_custos")
-        .select("valor, os_id, ordens_servico!inner(regional_id, data_abertura)")
-        .gte("ordens_servico.data_abertura", `${exercicio}-01-01`)
-        .lte("ordens_servico.data_abertura", `${exercicio}-12-31`);
+        .from("ordens_servico")
+        .select("id, regional_id, valor_orcamento, status, data_abertura, deleted_at")
+        .is("deleted_at", null)
+        .gte("data_abertura", `${exercicio}-01-01T00:00:00`)
+        .lte("data_abertura", `${exercicio}-12-31T23:59:59`)
+        .not("status", "in", '("aberta","orcamento","autorizacao")');
       if (error) throw error;
       return data as any[];
     },
