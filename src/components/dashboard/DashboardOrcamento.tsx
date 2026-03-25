@@ -143,7 +143,7 @@ export default function DashboardOrcamento({ regionalId, userRole }: DashboardOr
   });
 
   const consumoPorDelegacia = useMemo(() => {
-    if (!custosDelegacia || !delegacias || !uops) return [];
+    if (!consumoDelegacia || !delegacias || !uops) return [];
     const uopToDelegacia = new Map<string, string>();
     for (const u of uops) {
       uopToDelegacia.set(u.id, u.delegacia_id);
@@ -152,35 +152,35 @@ export default function DashboardOrcamento({ regionalId, userRole }: DashboardOr
     for (const d of delegacias) {
       delegaciaMap.set(d.id, { nome: d.nome, total: 0 });
     }
-    for (const c of custosDelegacia) {
-      const uopId = c.ordens_servico?.uop_id;
+    for (const os of consumoDelegacia) {
+      const uopId = os.uop_id;
       if (!uopId) continue;
       const delId = uopToDelegacia.get(uopId);
       if (!delId) continue;
       const entry = delegaciaMap.get(delId);
-      if (entry) entry.total += Number(c.valor);
+      if (entry) entry.total += Number(os.valor_orcamento || 0);
     }
     return Array.from(delegaciaMap.values())
       .filter(d => d.total > 0)
       .sort((a, b) => b.total - a.total);
-  }, [custosDelegacia, delegacias, uops]);
+  }, [consumoDelegacia, delegacias, uops]);
 
   const consumoPorUOP = useMemo(() => {
-    if (!custosDelegacia || !uops) return [];
+    if (!consumoDelegacia || !uops) return [];
     const uopMap = new Map<string, { nome: string; total: number }>();
     for (const u of uops) {
       uopMap.set(u.id, { nome: u.nome, total: 0 });
     }
-    for (const c of custosDelegacia) {
-      const uopId = c.ordens_servico?.uop_id;
+    for (const os of consumoDelegacia) {
+      const uopId = os.uop_id;
       if (!uopId) continue;
       const entry = uopMap.get(uopId);
-      if (entry) entry.total += Number(c.valor);
+      if (entry) entry.total += Number(os.valor_orcamento || 0);
     }
     return Array.from(uopMap.values())
       .filter(u => u.total > 0)
       .sort((a, b) => b.total - a.total);
-  }, [custosDelegacia, uops]);
+  }, [consumoDelegacia, uops]);
 
   const consolidado = useMemo(() => {
     if (!orcamentos) return [];
