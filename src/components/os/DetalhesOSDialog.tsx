@@ -1484,6 +1484,19 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
           )}
 
           {/* SOLICITAÇÃO DE PRAZO ADICIONAL — preposto/terceirizado pode solicitar, gestor/fiscal aprova */}
+          {/* REVISÃO ORÇAMENTÁRIA — during execution */}
+          {os.status === "execucao" && (
+            <>
+              <Separator />
+              <OSRevisaoOrcamento
+                os={os}
+                isGestorOrFiscal={isGestorOrFiscal}
+                isPreposto={isPreposto}
+                isTerceirizado={isTerceirizado}
+              />
+            </>
+          )}
+
           {os.status === "execucao" && (
             <>
               <Separator />
