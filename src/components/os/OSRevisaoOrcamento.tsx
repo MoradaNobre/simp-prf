@@ -85,6 +85,10 @@ export function OSRevisaoOrcamento({ os, isGestorOrFiscal, isPreposto, isTerceir
       toast.error("Informe a justificativa");
       return;
     }
+    if (!arquivo) {
+      toast.error("É obrigatório anexar a planilha (XLS/XLSX) de justificativa");
+      return;
+    }
 
     try {
       setUploadingFile(true);
