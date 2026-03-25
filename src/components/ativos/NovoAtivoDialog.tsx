@@ -26,6 +26,9 @@ export function NovoAtivoDialog({ open, onOpenChange }: NovoAtivoDialogProps) {
   const [uopNome, setUopNome] = useState("");
   const [uopEndereco, setUopEndereco] = useState("");
   const [uopDelegaciaId, setUopDelegaciaId] = useState("");
+  const [uopTipoEquip, setUopTipoEquip] = useState("");
+  const [uopTombamento, setUopTombamento] = useState("");
+  const [uopNumeroSerie, setUopNumeroSerie] = useState("");
 
   // Delegacia form
   const [delNome, setDelNome] = useState("");

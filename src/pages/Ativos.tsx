@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type Regional = { id: string; nome: string; sigla: string; uf: string };
 type Delegacia = { id: string; nome: string; regional_id: string; municipio: string | null };
-type Uop = { id: string; nome: string; delegacia_id: string; endereco: string | null; latitude: number | null; longitude: number | null };
+type Uop = { id: string; nome: string; delegacia_id: string; endereco: string | null; latitude: number | null; longitude: number | null; tipo_equipamento: string | null; tombamento: string | null; numero_serie: string | null };
 
 function useAtivosData() {
   const regionais = useQuery({
