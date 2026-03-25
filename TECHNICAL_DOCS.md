@@ -294,8 +294,10 @@ Cada transição de status é registrada com timestamp e identificação do resp
 
 - Cadastro de dotação orçamentária anual por regional
 - Registro de empenhos e créditos
-- Visualização de saldo disponível
+- KPIs: Cota Total, Consumo OS (valor_orcamento das OS em execução+), Empenhos, Saldo Empenhado (empenhos − consumo), Saldo Cota (cota − consumo)
+- Consumo calculado a partir do `valor_orcamento` das OS (não mais de custos avulsos `os_custos`)
 - Controle por exercício financeiro
+- Solicitações de crédito suplementar com aprovação/recusa
 
 ### 6.6. Módulo de Relatórios
 
