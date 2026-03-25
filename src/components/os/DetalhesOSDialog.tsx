@@ -36,6 +36,7 @@ import { OSHistoricoTimeline } from "@/components/os/OSHistoricoTimeline";
 import { useSolicitacoesPrazo, useCreateSolicitacaoPrazo, useRespondSolicitacaoPrazo } from "@/hooks/useSolicitacoesPrazo";
 import { OSRevisaoOrcamento } from "@/components/os/OSRevisaoOrcamento";
 import { OSRevisaoAnexos } from "@/components/os/OSRevisaoAnexos";
+import { useRevisoesOrcamento } from "@/hooks/useRevisoesOrcamento";
 
 const statusLabels: Record<string, string> = {
   aberta: "Aberta", orcamento: "Orçamento", autorizacao: "Aguardando Autorização",
