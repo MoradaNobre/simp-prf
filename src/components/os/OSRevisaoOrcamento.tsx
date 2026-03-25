@@ -402,11 +402,11 @@ export function OSRevisaoOrcamento({ os, isGestorOrFiscal, isPreposto, isTerceir
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="w-full"
+                    className={`w-full ${!arquivo ? "border-destructive/50 text-destructive hover:text-destructive" : ""}`}
                     onClick={() => fileInputRef.current?.click()}
                   >
                     <Paperclip className="mr-2 h-4 w-4" />
-                    Anexar planilha
+                    Anexar planilha (obrigatório) *
                   </Button>
                 )}
               </div>
