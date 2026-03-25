@@ -1,14 +1,14 @@
 # SPEC – Especificação Funcional do SIMP (Sistema de Manutenção Predial)
 
-**Versão:** 2.0  
-**Data:** 24/03/2026  
+**Versão:** 2.1  
+**Data:** 25/03/2026  
 **Responsável:** Daniel Nunes de Ávila  
 
 ---
 
 ## Histórico de Versões
 
-- v2.0 (24/03/2026): Relatório IMR (Instrumento de Medição de Resultado) com motor de regras automáticas, cálculo de score, impacto financeiro, contraditório e geração de PDF. Inclusão do prazo de execução no Relatório de Execução (PDF e e-mail). Renomeação do menu "Relatórios OS" para "Relatórios".
+- v2.1 (25/03/2026): Revisão orçamentária com XLS obrigatório e bloqueio do fluxo. QR Code redesenhado com header "MANUTENÇÃO", dados do ativo e texto instrucional. KPIs orçamentários revisados (Consumo OS, Saldo Empenhado, Saldo Cota). Máscara/validação de CPF. Visibilidade do histórico de OS para gestores regionais e fiscais.
 - v1.9 (24/03/2026): Módulo de Ativos com cadastro hierárquico e QR Codes por UOP. Consolidação da Sede Nacional (registro protegido). Badges dinâmicos de bloqueio na Autorização de OS (Aguard. Cota, Aguard. Empenho, Saldo Contrato Insuf., Limite Excedido).
 - v1.8 (06/03/2026): Prazos obrigatórios de orçamento e execução nas transições de OS. Agenda unificada (visitas + prazos) com calendário, cards de resumo, abas e filtros.
 - v1.7 (28/02/2026): Aceite obrigatório de Termos de Uso e Política de Privacidade (dialog modal bloqueante, `accepted_terms_at`). Novo tipo de demanda "Usina Solar" (total: 10 tipos).
@@ -740,10 +740,10 @@ Saldo = (Valor Total + Σ Aditivos) - Σ Orçamentos de OS em Execução+
 
 - Card por regional com:
   - Cota Total (valor base + créditos - reduções)
-  - Custos OS
-  - Empenhos Manuais
-  - Total Consumido
-  - Saldo
+  - Consumo OS (soma do valor_orcamento das OS em execução+)
+  - Empenhos (total empenhado)
+  - Saldo Empenhado (empenhos − consumo OS, em amarelo/vermelho)
+  - Saldo Cota (cota total − consumo OS, em verde/vermelho)
   - Barra de progresso (% consumido)
 - **Créditos:** Tipos: Cota Inicial, Suplementação, Redução
 - **Empenhos:** Registro manual de empenhos com número e descrição
@@ -855,6 +855,11 @@ O formulário "Novo Ativo" possui três abas:
 
 - QR Code gerado automaticamente para cada UOP cadastrada
 - O código contém a URL: `/chamado-qr?uop={uop_id}`
+- **Layout do QR Code (PNG e impressão):**
+  - Header: "MANUTENÇÃO" em tamanho proporcional à largura do QR Code
+  - Centro: QR Code com dados do ativo (UOP, Delegacia, Regional, tombamento, nº série)
+  - Footer: Texto justificado — "Ao escanear este QR Code, o usuário poderá abrir um chamado de manutenção, que será automaticamente encaminhado ao setor responsável."
+- Para ativos tipo "Ar Condicionado": auto-seleção do tipo de demanda e preenchimento do patrimônio
 - Ao escanear com dispositivo móvel, o usuário é redirecionado (após autenticação) para o formulário de Novo Chamado com a hierarquia de localização pré-preenchida (Regional, Delegacia, UOP)
 - Download individual do QR Code em formato PNG
 - Visualização para impressão
@@ -973,8 +978,9 @@ Saldo = (valor_total + Σ aditivos.valor) - Σ os_custos.valor (de OS vinculadas
 
 ```
 Cota Total = valor_dotacao + Σ creditos (suplementações - reduções)
-Total Consumido = Σ empenhos + Σ custos_os
-Saldo = Cota Total - Total Consumido
+Consumo OS = Σ valor_orcamento (OS em execução+, excluindo aberta/orçamento/autorização)
+Saldo Empenhado = Σ empenhos - Consumo OS
+Saldo Cota = Cota Total - Consumo OS
 ```
 
 - View: `vw_orcamento_regional_saldo`
@@ -1017,3 +1023,4 @@ Saldo = Cota Total - Total Consumido
 | 1.8 | 06/03/2026 | Prazos obrigatórios de orçamento e execução nas transições de OS. Agenda unificada (visitas + prazos) com calendário, cards de resumo, abas e filtros |
 | 1.9 | 24/03/2026 | Módulo de Ativos com cadastro hierárquico e QR Codes. Consolidação da Sede Nacional (registro protegido). Badges dinâmicos de bloqueio na Autorização de OS |
 | 2.0 | 24/03/2026 | Relatório IMR com motor de regras automáticas, cálculo de score, impacto financeiro, contraditório e PDF. Prazo de execução no Relatório de Execução (PDF e e-mail). Menu renomeado para "Relatórios" |
+| 2.1 | 25/03/2026 | Revisão orçamentária com XLS obrigatório e bloqueio do fluxo. QR Code redesenhado. KPIs orçamentários revisados. Máscara/validação de CPF. Visibilidade do histórico para gestores regionais e fiscais |

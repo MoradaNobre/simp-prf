@@ -2,8 +2,8 @@
 
 ## SIMP-PRF – Sistema Integrado de Manutenção Predial
 
-**Versão:** 1.8  
-**Data:** 24/03/2026  
+**Versão:** 1.9  
+**Data:** 25/03/2026  
 **Classificação:** Documento Institucional
 
 ---
@@ -461,9 +461,9 @@ Cada transição:
 
 | Documento | Localização | Descrição |
 |---|---|---|
-| SPEC.md | Raiz do projeto | Especificação técnica completa de funcionalidades |
-| REGRAS_NEGOCIO.md | Raiz do projeto | Catálogo formal com 233 regras numeradas (RN-001 a RN-233) |
-| TECHNICAL_DOCS.md | Raiz e `/public` | Documentação técnica do sistema (v1.9) |
+| SPEC.md | Raiz do projeto | Especificação técnica completa de funcionalidades (v2.1) |
+| REGRAS_NEGOCIO.md | Raiz do projeto | Catálogo formal com 248 regras numeradas (RN-001 a RN-248) |
+| TECHNICAL_DOCS.md | Raiz e `/public` | Documentação técnica do sistema (v2.0) |
 | PRIVACY_POLICY.md | Raiz e `/public` | Política de privacidade |
 | DEVELOPER.md | Raiz do projeto | Créditos e informações do desenvolvedor |
 
@@ -483,7 +483,7 @@ Não se trata apenas de ferramenta operacional, mas de **mecanismo institucional
 ---
 
 *PRD – Product Requirements Document — SIMP-PRF*  
-*Versão 1.8 — 24/03/2026*
+*Versão 1.9 — 25/03/2026*
 
 ## Histórico de Versões
 
@@ -498,3 +498,4 @@ Não se trata apenas de ferramenta operacional, mas de **mecanismo institucional
 | 1.6 | 06/03/2026 | Prazos obrigatórios de orçamento e execução nas transições de OS. Agenda unificada (visitas + prazos). 210 regras de negócio |
 | 1.7 | 24/03/2026 | Módulo de Ativos com QR Codes, consolidação da Sede Nacional, badges dinâmicos de bloqueio. 220 regras de negócio |
 | 1.8 | 24/03/2026 | Relatório IMR (motor de regras automáticas, score, impacto financeiro, contraditório, PDF 11 seções). Prazo de execução no Relatório de Execução. 233 regras de negócio |
+| 1.9 | 25/03/2026 | Revisão orçamentária com XLS obrigatório e bloqueio do fluxo. QR Code redesenhado. KPIs orçamentários revisados. Máscara/validação de CPF. 248 regras de negócio |

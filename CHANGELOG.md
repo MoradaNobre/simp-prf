@@ -4,6 +4,19 @@ Registro centralizado de todas as alterações nos documentos de referência do 
 
 ---
 
+## [25/03/2026] — Revisão Orçamentária, QR Code Aprimorado, KPIs Orçamentários e Validações
+
+### Documento(s) Alterado(s)
+- **SPEC.md** (v2.0 → v2.1): Revisão orçamentária com anexo XLS obrigatório e bloqueio do fluxo da OS. QR Code com layout de manutenção (header, dados do ativo, texto instrucional). KPIs orçamentários revisados (Consumo OS, Saldo Empenhado, Saldo Cota). Visibilidade do histórico de OS para gestores regionais e fiscais. Máscara e validação de CPF.
+- **REGRAS_NEGOCIO.md** (v2.0 → v2.1): Novas regras RN-234 a RN-248 (revisão orçamentária, QR Code, KPIs, CPF, visibilidade). Total: 248 regras
+- **TECHNICAL_DOCS.md** (v1.9 → v2.0): Consumo OS via valor_orcamento, campos de ativo (tipo_equipamento, tombamento, numero_serie), QR Code com layout de manutenção
+- **PRD.md** (v1.8 → v1.9): Novos requisitos de revisão orçamentária, KPIs revisados, QR Code aprimorado. 248 regras de negócio
+
+### Motivação
+Aprimoramento da revisão orçamentária com anexo obrigatório e bloqueio do fluxo. Redesign do QR Code para incluir informações de manutenção. Correção dos KPIs orçamentários para usar valor_orcamento das OS em vez de custos avulsos. Validação de CPF com máscara. Ampliação da visibilidade do histórico de OS.
+
+---
+
 ## [24/03/2026] — Relatório IMR e Prazo de Execução no Relatório de OS
 
 ### Documento(s) Alterado(s)
