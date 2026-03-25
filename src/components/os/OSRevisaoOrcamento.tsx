@@ -192,6 +192,10 @@ export function OSRevisaoOrcamento({ os, isGestorOrFiscal, isPreposto, isTerceir
             <span>Em: {new Date(rev.created_at).toLocaleDateString("pt-BR")}</span>
           </div>
 
+          {rev.arquivo_justificativa && (
+            <ArquivoLink path={rev.arquivo_justificativa} />
+          )}
+
           {rev.resposta && (
             <div className="text-sm border-t pt-2 mt-1">
               <span className="text-muted-foreground">Resposta ({rev.aprovador_nome || "—"}): </span>
