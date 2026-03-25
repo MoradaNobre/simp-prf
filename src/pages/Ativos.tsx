@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type Regional = { id: string; nome: string; sigla: string; uf: string };
 type Delegacia = { id: string; nome: string; regional_id: string; municipio: string | null };
-type Uop = { id: string; nome: string; delegacia_id: string; endereco: string | null; latitude: number | null; longitude: number | null };
+type Uop = { id: string; nome: string; delegacia_id: string; endereco: string | null; latitude: number | null; longitude: number | null; tipo_equipamento: string | null; tombamento: string | null; numero_serie: string | null };
 
 function useAtivosData() {
   const regionais = useQuery({
@@ -103,6 +103,12 @@ export default function Ativos() {
     <div key={uop.id} className="flex items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground hover:bg-accent/30 rounded-md group">
       <MapPin className="h-3.5 w-3.5 shrink-0" />
       <span className="truncate">{uop.nome}</span>
+      {uop.tipo_equipamento === "ar_condicionado" && (
+        <span className="text-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded font-medium shrink-0">AC</span>
+      )}
+      {uop.tombamento && (
+        <span className="text-[10px] text-muted-foreground/70 shrink-0">Tomb: {uop.tombamento}</span>
+      )}
       {uop.endereco && <span className="ml-auto text-xs text-muted-foreground/60 truncate max-w-[200px]">{uop.endereco}</span>}
       <Button
         variant="ghost"

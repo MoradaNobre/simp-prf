@@ -66,15 +66,29 @@ export function NovoChamadoDialog({ open, onOpenChange, prefilledUopId }: Props)
     if (!prefilledUopId || !open) return;
 
     const resolveHierarchy = async () => {
-      const { data: uop } = await supabase.from("uops").select("id, delegacia_id").eq("id", prefilledUopId).single();
+      const { data: uop } = await supabase.from("uops").select("id, delegacia_id, tipo_equipamento, tombamento, numero_serie").eq("id", prefilledUopId).single();
       if (!uop) return;
 
-      const { data: del } = await supabase.from("delegacias").select("id, regional_id").eq("id", uop.delegacia_id).single();
+      const { data: del } = await supabase.from("delegacias").select("id, regional_id").eq("id", (uop as any).delegacia_id).single();
       if (!del) return;
 
       setSelectedRegionalId(del.regional_id);
       setDelegaciaId(del.id);
-      setUopId(uop.id);
+      setUopId((uop as any).id);
+
+      // Auto-fill tipo_demanda and patrimonio based on equipment type
+      const tipoEquip = (uop as any).tipo_equipamento;
+      if (tipoEquip === "ar_condicionado") {
+        setTipoDemanda("ar_condicionado");
+        const tomb = (uop as any).tombamento || "";
+        const serie = (uop as any).numero_serie || "";
+        const parts = [tomb && `Tombamento: ${tomb}`, serie && `S/N: ${serie}`].filter(Boolean).join(" — ");
+        if (parts) setPatrimonio(parts);
+      } else if (tipoEquip === "elevador") {
+        setTipoDemanda("elevadores");
+      } else if (tipoEquip === "usina_solar") {
+        setTipoDemanda("usina_solar");
+      }
     };
 
     resolveHierarchy();

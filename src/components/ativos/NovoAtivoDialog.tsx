@@ -26,6 +26,9 @@ export function NovoAtivoDialog({ open, onOpenChange }: NovoAtivoDialogProps) {
   const [uopNome, setUopNome] = useState("");
   const [uopEndereco, setUopEndereco] = useState("");
   const [uopDelegaciaId, setUopDelegaciaId] = useState("");
+  const [uopTipoEquip, setUopTipoEquip] = useState("");
+  const [uopTombamento, setUopTombamento] = useState("");
+  const [uopNumeroSerie, setUopNumeroSerie] = useState("");
 
   // Delegacia form
   const [delNome, setDelNome] = useState("");
@@ -70,6 +73,7 @@ export function NovoAtivoDialog({ open, onOpenChange }: NovoAtivoDialogProps) {
 
   const resetForms = () => {
     setUopNome(""); setUopEndereco(""); setUopDelegaciaId("");
+    setUopTipoEquip(""); setUopTombamento(""); setUopNumeroSerie("");
     setDelNome(""); setDelMunicipio(""); setDelRegionalId("");
     setRegNome(""); setRegSigla(""); setRegUf("");
     setNacNome(""); setNacEndereco(""); setNacDiretoriaId(""); setNacTipo("diretoria");
@@ -97,7 +101,10 @@ export function NovoAtivoDialog({ open, onOpenChange }: NovoAtivoDialogProps) {
       nome: uopNome.trim(),
       endereco: uopEndereco.trim() || null,
       delegacia_id: uopDelegaciaId,
-    });
+      tipo_equipamento: uopTipoEquip || null,
+      tombamento: uopTipoEquip === "ar_condicionado" ? (uopTombamento.trim() || null) : null,
+      numero_serie: uopTipoEquip === "ar_condicionado" ? (uopNumeroSerie.trim() || null) : null,
+    } as any);
     setSaving(false);
     if (error) { toast.error("Erro ao cadastrar UOP: " + error.message); return; }
     toast.success("UOP cadastrada com sucesso!");
@@ -259,6 +266,30 @@ export function NovoAtivoDialog({ open, onOpenChange }: NovoAtivoDialogProps) {
               <Label>Endereço</Label>
               <Input value={uopEndereco} onChange={(e) => setUopEndereco(e.target.value)} placeholder="Endereço (opcional)" />
             </div>
+            <div className="space-y-2">
+              <Label>Tipo de Equipamento</Label>
+              <Select value={uopTipoEquip} onValueChange={setUopTipoEquip}>
+                <SelectTrigger><SelectValue placeholder="Selecione (opcional)" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ar_condicionado">Ar Condicionado</SelectItem>
+                  <SelectItem value="elevador">Elevador</SelectItem>
+                  <SelectItem value="usina_solar">Usina Solar</SelectItem>
+                  <SelectItem value="outro">Outro</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {uopTipoEquip === "ar_condicionado" && (
+              <>
+                <div className="space-y-2">
+                  <Label>Tombamento</Label>
+                  <Input value={uopTombamento} onChange={(e) => setUopTombamento(e.target.value)} placeholder="Nº de tombamento do patrimônio" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Número de Série</Label>
+                  <Input value={uopNumeroSerie} onChange={(e) => setUopNumeroSerie(e.target.value)} placeholder="Nº de série do equipamento" />
+                </div>
+              </>
+            )}
             <Button className="w-full" onClick={handleSaveUop} disabled={saving}>
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Cadastrar UOP
             </Button>
