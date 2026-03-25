@@ -101,7 +101,10 @@ export function NovoAtivoDialog({ open, onOpenChange }: NovoAtivoDialogProps) {
       nome: uopNome.trim(),
       endereco: uopEndereco.trim() || null,
       delegacia_id: uopDelegaciaId,
-    });
+      tipo_equipamento: uopTipoEquip || null,
+      tombamento: uopTipoEquip === "ar_condicionado" ? (uopTombamento.trim() || null) : null,
+      numero_serie: uopTipoEquip === "ar_condicionado" ? (uopNumeroSerie.trim() || null) : null,
+    } as any);
     setSaving(false);
     if (error) { toast.error("Erro ao cadastrar UOP: " + error.message); return; }
     toast.success("UOP cadastrada com sucesso!");
