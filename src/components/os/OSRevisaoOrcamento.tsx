@@ -370,20 +370,57 @@ export function OSRevisaoOrcamento({ os, isGestorOrFiscal, isPreposto, isTerceir
                 />
               </div>
 
+              <div className="space-y-1.5">
+                <Label>Arquivo de orçamento (XLS, XLSX, PDF)</Label>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".xls,.xlsx,.pdf,.csv"
+                  className="hidden"
+                  onChange={(e) => setArquivo(e.target.files?.[0] || null)}
+                />
+                {arquivo ? (
+                  <div className="flex items-center gap-2 text-sm p-2 border rounded-md bg-muted">
+                    <Paperclip className="h-4 w-4 text-muted-foreground" />
+                    <span className="flex-1 truncate">{arquivo.name}</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0"
+                      onClick={() => { setArquivo(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Paperclip className="mr-2 h-4 w-4" />
+                    Anexar planilha
+                  </Button>
+                )}
+              </div>
+
               <div className="flex gap-2">
                 <Button
                   variant="outline"
-                  onClick={() => { setShowForm(false); setNovoValor(""); setJustificativa(""); }}
+                  onClick={() => { setShowForm(false); setNovoValor(""); setJustificativa(""); setArquivo(null); }}
                   className="flex-1"
                 >
                   Cancelar
                 </Button>
                 <Button
-                  disabled={!novoValor || !justificativa.trim() || createRevisao.isPending || novoValorNum === valorAtual}
+                  disabled={!novoValor || !justificativa.trim() || createRevisao.isPending || uploadingFile || novoValorNum === valorAtual}
                   className="flex-1"
                   onClick={handleSubmitRevisao}
                 >
-                  {createRevisao.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {(createRevisao.isPending || uploadingFile) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Solicitar Revisão
                 </Button>
               </div>
