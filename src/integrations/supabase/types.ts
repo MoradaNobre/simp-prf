@@ -1596,6 +1596,9 @@ export type Database = {
           latitude: number | null
           longitude: number | null
           nome: string
+          numero_serie: string | null
+          tipo_equipamento: string | null
+          tombamento: string | null
         }
         Insert: {
           area_m2?: number | null
@@ -1606,6 +1609,9 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           nome: string
+          numero_serie?: string | null
+          tipo_equipamento?: string | null
+          tombamento?: string | null
         }
         Update: {
           area_m2?: number | null
@@ -1616,6 +1622,9 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           nome?: string
+          numero_serie?: string | null
+          tipo_equipamento?: string | null
+          tombamento?: string | null
         }
         Relationships: [
           {
