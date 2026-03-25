@@ -855,6 +855,11 @@ O formulário "Novo Ativo" possui três abas:
 
 - QR Code gerado automaticamente para cada UOP cadastrada
 - O código contém a URL: `/chamado-qr?uop={uop_id}`
+- **Layout do QR Code (PNG e impressão):**
+  - Header: "MANUTENÇÃO" em tamanho proporcional à largura do QR Code
+  - Centro: QR Code com dados do ativo (UOP, Delegacia, Regional, tombamento, nº série)
+  - Footer: Texto justificado — "Ao escanear este QR Code, o usuário poderá abrir um chamado de manutenção, que será automaticamente encaminhado ao setor responsável."
+- Para ativos tipo "Ar Condicionado": auto-seleção do tipo de demanda e preenchimento do patrimônio
 - Ao escanear com dispositivo móvel, o usuário é redirecionado (após autenticação) para o formulário de Novo Chamado com a hierarquia de localização pré-preenchida (Regional, Delegacia, UOP)
 - Download individual do QR Code em formato PNG
 - Visualização para impressão
