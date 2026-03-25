@@ -978,8 +978,9 @@ Saldo = (valor_total + Σ aditivos.valor) - Σ os_custos.valor (de OS vinculadas
 
 ```
 Cota Total = valor_dotacao + Σ creditos (suplementações - reduções)
-Total Consumido = Σ empenhos + Σ custos_os
-Saldo = Cota Total - Total Consumido
+Consumo OS = Σ valor_orcamento (OS em execução+, excluindo aberta/orçamento/autorização)
+Saldo Empenhado = Σ empenhos - Consumo OS
+Saldo Cota = Cota Total - Consumo OS
 ```
 
 - View: `vw_orcamento_regional_saldo`
