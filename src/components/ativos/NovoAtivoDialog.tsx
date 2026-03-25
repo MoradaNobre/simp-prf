@@ -73,6 +73,7 @@ export function NovoAtivoDialog({ open, onOpenChange }: NovoAtivoDialogProps) {
 
   const resetForms = () => {
     setUopNome(""); setUopEndereco(""); setUopDelegaciaId("");
+    setUopTipoEquip(""); setUopTombamento(""); setUopNumeroSerie("");
     setDelNome(""); setDelMunicipio(""); setDelRegionalId("");
     setRegNome(""); setRegSigla(""); setRegUf("");
     setNacNome(""); setNacEndereco(""); setNacDiretoriaId(""); setNacTipo("diretoria");
