@@ -851,6 +851,8 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
             );
           })()}
 
+          {/* Revisão Orçamentária — Anexos visíveis em todas as fases */}
+          <OSRevisaoAnexos osId={os.id} />
 
           {/* Execution report link */}
           {signedRelatorioExecucao && (
