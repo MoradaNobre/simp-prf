@@ -1,14 +1,14 @@
 # SPEC – Especificação Funcional do SIMP (Sistema de Manutenção Predial)
 
-**Versão:** 2.0  
-**Data:** 24/03/2026  
+**Versão:** 2.1  
+**Data:** 25/03/2026  
 **Responsável:** Daniel Nunes de Ávila  
 
 ---
 
 ## Histórico de Versões
 
-- v2.0 (24/03/2026): Relatório IMR (Instrumento de Medição de Resultado) com motor de regras automáticas, cálculo de score, impacto financeiro, contraditório e geração de PDF. Inclusão do prazo de execução no Relatório de Execução (PDF e e-mail). Renomeação do menu "Relatórios OS" para "Relatórios".
+- v2.1 (25/03/2026): Revisão orçamentária com XLS obrigatório e bloqueio do fluxo. QR Code redesenhado com header "MANUTENÇÃO", dados do ativo e texto instrucional. KPIs orçamentários revisados (Consumo OS, Saldo Empenhado, Saldo Cota). Máscara/validação de CPF. Visibilidade do histórico de OS para gestores regionais e fiscais.
 - v1.9 (24/03/2026): Módulo de Ativos com cadastro hierárquico e QR Codes por UOP. Consolidação da Sede Nacional (registro protegido). Badges dinâmicos de bloqueio na Autorização de OS (Aguard. Cota, Aguard. Empenho, Saldo Contrato Insuf., Limite Excedido).
 - v1.8 (06/03/2026): Prazos obrigatórios de orçamento e execução nas transições de OS. Agenda unificada (visitas + prazos) com calendário, cards de resumo, abas e filtros.
 - v1.7 (28/02/2026): Aceite obrigatório de Termos de Uso e Política de Privacidade (dialog modal bloqueante, `accepted_terms_at`). Novo tipo de demanda "Usina Solar" (total: 10 tipos).
