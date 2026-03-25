@@ -1640,6 +1640,7 @@ export type Database = {
           orcamento_id: string | null
           regional_id: string | null
           saldo_disponivel: number | null
+          saldo_empenhado: number | null
           total_consumo_os: number | null
           total_creditos: number | null
           total_empenhos: number | null

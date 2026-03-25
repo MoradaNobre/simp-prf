@@ -11,6 +11,7 @@ export interface SaldoOrcamentario {
   total_consumo_os: number;
   saldo_disponivel: number;
   credito_nao_empenhado: number;
+  saldo_empenhado: number;
 }
 
 export function useSaldoOrcamentarioRegional(regionalId?: string | null, exercicio?: number) {
