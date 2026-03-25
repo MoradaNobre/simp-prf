@@ -1263,9 +1263,9 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
                       </div>
                       <p className="mt-1">
                         <span className={bloqueio3_empenho ? "text-destructive font-medium" : ""}>
-                          {totalEmpenhado.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                          {saldoEmpenhado.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                         </span>
-                        <span className="text-muted-foreground ml-2">empenhado de {valorOS.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} necessários</span>
+                        <span className="text-muted-foreground ml-2">disponível de {totalEmpenhado.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} empenhado ({valorOS.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} necessários)</span>
                       </p>
                       {bloqueio3_empenho && (
                         <p className="text-xs text-destructive mt-1 font-medium">
