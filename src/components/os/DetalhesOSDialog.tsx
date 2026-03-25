@@ -34,6 +34,7 @@ import JSZip from "jszip";
 import { OSAgendamentosTab } from "@/components/os/OSAgendamentosTab";
 import { OSHistoricoTimeline } from "@/components/os/OSHistoricoTimeline";
 import { useSolicitacoesPrazo, useCreateSolicitacaoPrazo, useRespondSolicitacaoPrazo } from "@/hooks/useSolicitacoesPrazo";
+import { OSRevisaoOrcamento } from "@/components/os/OSRevisaoOrcamento";
 
 const statusLabels: Record<string, string> = {
   aberta: "Aberta", orcamento: "Orçamento", autorizacao: "Aguardando Autorização",
@@ -1483,6 +1484,19 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
           )}
 
           {/* SOLICITAÇÃO DE PRAZO ADICIONAL — preposto/terceirizado pode solicitar, gestor/fiscal aprova */}
+          {/* REVISÃO ORÇAMENTÁRIA — during execution */}
+          {os.status === "execucao" && (
+            <>
+              <Separator />
+              <OSRevisaoOrcamento
+                os={os}
+                isGestorOrFiscal={isGestorOrFiscal}
+                isPreposto={isPreposto}
+                isTerceirizado={isTerceirizado}
+              />
+            </>
+          )}
+
           {os.status === "execucao" && (
             <>
               <Separator />

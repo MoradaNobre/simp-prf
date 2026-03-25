@@ -992,6 +992,62 @@ export type Database = {
           },
         ]
       }
+      os_revisoes_orcamento: {
+        Row: {
+          aprovado_por: string | null
+          arquivo_justificativa: string | null
+          created_at: string
+          diferenca: number | null
+          id: string
+          justificativa: string
+          os_id: string
+          resposta: string | null
+          solicitado_por: string
+          status: string
+          updated_at: string
+          valor_anterior: number
+          valor_novo: number
+        }
+        Insert: {
+          aprovado_por?: string | null
+          arquivo_justificativa?: string | null
+          created_at?: string
+          diferenca?: number | null
+          id?: string
+          justificativa: string
+          os_id: string
+          resposta?: string | null
+          solicitado_por: string
+          status?: string
+          updated_at?: string
+          valor_anterior: number
+          valor_novo: number
+        }
+        Update: {
+          aprovado_por?: string | null
+          arquivo_justificativa?: string | null
+          created_at?: string
+          diferenca?: number | null
+          id?: string
+          justificativa?: string
+          os_id?: string
+          resposta?: string | null
+          solicitado_por?: string
+          status?: string
+          updated_at?: string
+          valor_anterior?: number
+          valor_novo?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "os_revisoes_orcamento_os_id_fkey"
+            columns: ["os_id"]
+            isOneToOne: false
+            referencedRelation: "ordens_servico"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       planos_manutencao: {
         Row: {
           ativo: boolean
@@ -1658,6 +1714,10 @@ export type Database = {
       }
     }
     Functions: {
+      approve_os_revisao: {
+        Args: { _aprovado_por: string; _resposta?: string; _revisao_id: string }
+        Returns: undefined
+      }
       get_preposto_contrato_ids: {
         Args: { _user_id: string }
         Returns: string[]
@@ -1689,6 +1749,10 @@ export type Database = {
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_manager: { Args: { _user_id: string }; Returns: boolean }
       is_nacional: { Args: { _user_id: string }; Returns: boolean }
+      reject_os_revisao: {
+        Args: { _aprovado_por: string; _resposta: string; _revisao_id: string }
+        Returns: undefined
+      }
       soft_delete_chamado: { Args: { _chamado_id: string }; Returns: undefined }
       soft_delete_contrato: {
         Args: { _contrato_id: string }
