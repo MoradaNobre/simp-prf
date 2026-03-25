@@ -99,14 +99,18 @@ export default function DashboardOrcamento({ regionalId, userRole }: DashboardOr
   });
 
   // Query for delegacia-level consumption
-  const { data: custosDelegacia } = useQuery({
-    queryKey: ["dash-custos-delegacia", exercicio, regionalId],
+  const { data: consumoDelegacia } = useQuery({
+    queryKey: ["dash-consumo-delegacia", exercicio, regionalId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("os_custos")
-        .select("valor, ordens_servico!inner(uop_id, data_abertura, regional_id)")
-        .gte("ordens_servico.data_abertura", `${exercicio}-01-01`)
-        .lte("ordens_servico.data_abertura", `${exercicio}-12-31`);
+      let q = supabase
+        .from("ordens_servico")
+        .select("id, uop_id, valor_orcamento, status, data_abertura, regional_id, deleted_at")
+        .is("deleted_at", null)
+        .gte("data_abertura", `${exercicio}-01-01T00:00:00`)
+        .lte("data_abertura", `${exercicio}-12-31T23:59:59`)
+        .not("status", "in", '("aberta","orcamento","autorizacao")');
+      if (regionalId) q = q.eq("regional_id", regionalId);
+      const { data, error } = await q;
       if (error) throw error;
       return data as any[];
     },
