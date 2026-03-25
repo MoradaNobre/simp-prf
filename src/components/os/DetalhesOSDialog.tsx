@@ -243,9 +243,9 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
     const contratoInsuficiente = !skipContractBalance && saldoContrato !== null && saldoContrato < valorOS;
     const orcamentoInsuficiente = !skipBudgetBlock && saldoOrc !== null && saldoOrc < valorOS;
     const semOrcamentoCadastrado = !skipBudgetBlock && saldoOrc === null;
-    const totalEmpenhado = saldoOrcamento?.total_empenhos ?? 0;
+    const saldoEmpenhado = saldoOrcamento?.saldo_empenhado ?? 0;
     const skipEmpenhoCheck = !skipBudgetBlock && (semOrcamentoCadastrado || orcamentoInsuficiente);
-    const empenhoInsuficiente = !skipEmpenhoCheck && totalEmpenhado < valorOS;
+    const empenhoInsuficiente = !skipEmpenhoCheck && saldoEmpenhado < valorOS;
 
     const isModalidade = tipo === "cartao_corporativo" || tipo === "contrata_brasil";
     const limiteM = isModalidade ? limitesModalidade.find(l => l.modalidade === tipo) : null;
@@ -1088,10 +1088,11 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
             const orcamentoInsuficiente = !skipBudgetBlock && saldoOrc !== null && saldoOrc < valorOS;
             const semOrcamentoCadastrado = !skipBudgetBlock && saldoOrc === null;
             const totalEmpenhado = saldoOrcamento?.total_empenhos ?? 0;
+            const saldoEmpenhado = saldoOrcamento?.saldo_empenhado ?? 0;
             const creditoNaoEmpenhado = saldoOrcamento?.credito_nao_empenhado ?? 0;
             // Empenho is required for ALL modalities including cartão_corporativo
             const skipEmpenhoCheck = !skipBudgetBlock && (semOrcamentoCadastrado || orcamentoInsuficiente);
-            const empenhoInsuficiente = !skipEmpenhoCheck && totalEmpenhado < valorOS;
+            const empenhoInsuficiente = !skipEmpenhoCheck && saldoEmpenhado < valorOS;
 
             // Limite de Modalidade check (for cartao_corporativo / contrata_brasil)
             const limiteModalidade = isModalidadeEspecial
@@ -1166,8 +1167,8 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
                             </p>
                           </div>
                           <div>
-                            <span className="text-muted-foreground text-xs">Empenhado</span>
-                            <p>{(saldoOrcamento?.total_empenhos ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
+                            <span className="text-muted-foreground text-xs">Saldo Empenhado</span>
+                            <p className={empenhoInsuficiente ? "text-destructive font-medium" : ""}>{saldoEmpenhado.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
                           </div>
                           <div>
                             <span className="text-muted-foreground text-xs">Não empenhado</span>
@@ -1262,9 +1263,9 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
                       </div>
                       <p className="mt-1">
                         <span className={bloqueio3_empenho ? "text-destructive font-medium" : ""}>
-                          {totalEmpenhado.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                          {saldoEmpenhado.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                         </span>
-                        <span className="text-muted-foreground ml-2">empenhado de {valorOS.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} necessários</span>
+                        <span className="text-muted-foreground ml-2">disponível de {totalEmpenhado.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} empenhado ({valorOS.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} necessários)</span>
                       </p>
                       {bloqueio3_empenho && (
                         <p className="text-xs text-destructive mt-1 font-medium">
@@ -1398,7 +1399,8 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
                           <AlertTriangle className="h-4 w-4" /> Autorização Bloqueada — Empenho Insuficiente
                         </p>
                         <p className="text-xs text-foreground mt-1">
-                          O valor empenhado ({totalEmpenhado.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}) é inferior ao orçamento desta OS ({valorOS.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}).
+                          O saldo empenhado disponível ({saldoEmpenhado.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}) é inferior ao orçamento desta OS ({valorOS.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}).
+                          Total empenhado: {totalEmpenhado.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} | Consumido por outras OS: {(saldoOrcamento?.total_consumo_os ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}.
                           {creditoNaoEmpenhado > 0 
                             ? ` Há crédito não empenhado de ${creditoNaoEmpenhado.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} disponível. Solicite o reforço do empenho junto à área financeira antes de autorizar.`
                             : " Solicite crédito suplementar e o respectivo empenho para prosseguir."
