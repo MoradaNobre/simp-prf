@@ -119,6 +119,10 @@ export function DetalhesOSDialog({ os, open, onOpenChange }: Props) {
   const createSolicitacaoPrazo = useCreateSolicitacaoPrazo();
   const respondSolicitacaoPrazo = useRespondSolicitacaoPrazo();
 
+  // Budget revision check — block ateste if pending
+  const revisoesOrcamento = useRevisoesOrcamento(os?.id);
+  const hasRevisaoPendente = (revisoesOrcamento.data || []).some(r => r.status === "pendente");
+
 /** Small component to render payment doc links with signed URLs */
 function PaymentDocLinks({ paths }: { paths: string[] }) {
   const [urls, setUrls] = useState<(string | null)[]>([]);
