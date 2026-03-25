@@ -357,6 +357,7 @@ export default function OrdensServico() {
                 onDownloadZip={(os) => downloadZip(os)}
                 downloadingZipId={downloadingId}
                 isGestorOrFiscal={!!isGestorOrFiscal}
+                hasRevisaoPendente={osComRevisaoPendente?.has(os.id)}
               />
             ))}
           </div>
