@@ -1023,3 +1023,4 @@ Saldo Cota = Cota Total - Consumo OS
 | 1.8 | 06/03/2026 | Prazos obrigatórios de orçamento e execução nas transições de OS. Agenda unificada (visitas + prazos) com calendário, cards de resumo, abas e filtros |
 | 1.9 | 24/03/2026 | Módulo de Ativos com cadastro hierárquico e QR Codes. Consolidação da Sede Nacional (registro protegido). Badges dinâmicos de bloqueio na Autorização de OS |
 | 2.0 | 24/03/2026 | Relatório IMR com motor de regras automáticas, cálculo de score, impacto financeiro, contraditório e PDF. Prazo de execução no Relatório de Execução (PDF e e-mail). Menu renomeado para "Relatórios" |
+| 2.1 | 25/03/2026 | Revisão orçamentária com XLS obrigatório e bloqueio do fluxo. QR Code redesenhado. KPIs orçamentários revisados. Máscara/validação de CPF. Visibilidade do histórico para gestores regionais e fiscais |

@@ -478,12 +478,54 @@
 
 ---
 
-**Total de Regras de Negócio:** 233
+## 39. Revisão Orçamentária de OS
+
+| # | Regra |
+|---|---|
+| **RN-234** | A revisão orçamentária de uma OS em execução exige obrigatoriamente o upload de planilha (XLS/XLSX) como justificativa. A submissão é bloqueada sem o arquivo. |
+| **RN-235** | Enquanto houver revisão orçamentária pendente, a OS exibe badge "Revisão Pendente" na listagem e o fluxo é bloqueado (não pode avançar de status). |
+| **RN-236** | A aprovação de revisão orçamentária valida o saldo empenhado disponível antes de atualizar o valor da OS. |
+| **RN-237** | As planilhas de orçamento (original e revisão) ficam acessíveis no fluxo da OS para consulta do gestor. |
+
+## 40. QR Code com Layout de Manutenção
+
+| # | Regra |
+|---|---|
+| **RN-238** | O QR Code gerado para uma UOP inclui o título "MANUTENÇÃO" ocupando toda a largura na parte superior (tanto no PNG quanto na impressão). |
+| **RN-239** | Abaixo do QR Code são exibidos os dados do ativo: UOP, Delegacia, Regional e, para equipamentos, o tombamento e número de série. |
+| **RN-240** | Na parte inferior do QR Code é exibido texto instrucional justificado: "Ao escanear este QR Code, o usuário poderá abrir um chamado de manutenção, que será automaticamente encaminhado ao setor responsável." |
+| **RN-241** | Para ativos do tipo "Ar Condicionado", o QR Code preenche automaticamente o tipo de demanda e o campo de patrimônio no formulário de chamado. |
+
+## 41. KPIs Orçamentários Revisados
+
+| # | Regra |
+|---|---|
+| **RN-242** | O KPI "Consumo OS" na Gestão do Orçamento calcula a soma do `valor_orcamento` das OS em status de execução em diante (excluindo aberta, orçamento e autorização), e não mais custos avulsos da tabela `os_custos`. |
+| **RN-243** | O KPI "Saldo Empenhado" é calculado como: total de empenhos − consumo OS. Exibido em amarelo quando positivo e vermelho quando zerado. |
+| **RN-244** | O KPI "Saldo Cota" é calculado como: cota total (dotação + créditos) − consumo OS. Substitui o antigo "Total Consumido" que era redundante com "Consumo OS". |
+
+## 42. Validação de CPF
+
+| # | Regra |
+|---|---|
+| **RN-245** | Campos de CPF no sistema possuem máscara de formatação (###.###.###-##) e validação algorítmica dos dígitos verificadores. |
+
+## 43. Visibilidade do Histórico de OS
+
+| # | Regra |
+|---|---|
+| **RN-246** | Gestores regionais e fiscais de contrato podem visualizar o histórico completo da OS (timeline de transições) dentro do fluxo de detalhes. |
+| **RN-247** | A visibilidade do histórico não se restringe ao perfil de Gestor Master. |
+| **RN-248** | O histórico registra todas as transições de status com data/hora e responsável. |
+
+---
+
+**Total de Regras de Negócio:** 248
 
 ---
 
 *Catálogo de Regras de Negócio extraído do SPEC.md — SIMP-PRF.*  
-*Versão 2.0 — 24/03/2026*
+*Versão 2.1 — 25/03/2026*
 
 ## Histórico de Versões
 
@@ -500,3 +542,4 @@
 | 1.8 | 06/03/2026 | Inclusão das seções 32 e 33 – Prazos Obrigatórios de OS (RN-203 a RN-206) e Agenda Unificada (RN-207 a RN-210). Total: 210 regras |
 | 1.9 | 24/03/2026 | Inclusão das seções 34, 35 e 36 – Ativos e QR Codes (RN-211 a RN-215), Sede Nacional (RN-216 a RN-218) e Badges Dinâmicos (RN-219 a RN-220). Total: 220 regras |
 | 2.0 | 24/03/2026 | Inclusão das seções 37 e 38 – Relatório IMR (RN-221 a RN-232) e Prazo de Execução no Relatório (RN-233). Total: 233 regras |
+| 2.1 | 25/03/2026 | Inclusão das seções 39 a 43 – Revisão Orçamentária (RN-234 a RN-237), QR Code (RN-238 a RN-241), KPIs (RN-242 a RN-244), CPF (RN-245) e Visibilidade (RN-246 a RN-248). Total: 248 regras |
