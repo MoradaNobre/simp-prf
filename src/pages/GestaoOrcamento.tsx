@@ -139,10 +139,10 @@ export default function GestaoOrcamento() {
       const totalEmpenhos = emps.reduce((s: number, e: any) => s + Number(e.valor), 0);
       const osRegional = (consumoOS || []).filter((os: any) => os.regional_id === orc.regional_id);
       const totalCustosOS = osRegional.reduce((s: number, os: any) => s + Number(os.valor_orcamento || 0), 0);
-      const totalConsumido = totalCustosOS;
-      const saldo = dotacaoTotal - totalConsumido;
-      const percentual = dotacaoTotal > 0 ? (totalConsumido / dotacaoTotal) * 100 : 0;
-      return { ...orc, creditosList: creds, dotacaoTotal, totalEmpenhos, totalCustosOS, totalConsumido, saldo, percentual, empenhosList: emps };
+      const saldoEmpenhado = Math.max(totalEmpenhos - totalCustosOS, 0);
+      const saldo = dotacaoTotal - totalCustosOS;
+      const percentual = dotacaoTotal > 0 ? (totalCustosOS / dotacaoTotal) * 100 : 0;
+      return { ...orc, creditosList: creds, dotacaoTotal, totalEmpenhos, totalCustosOS, saldoEmpenhado, saldo, percentual, empenhosList: emps };
     });
   }, [orcamentos, creditos, empenhos, consumoOS]);
 
@@ -162,10 +162,10 @@ export default function GestaoOrcamento() {
       { header: "Exercício", key: "exercicio" },
       { header: "Cota Base", key: "cotaBase" },
       { header: "Cota Total", key: "cotaTotal" },
-      { header: "Custos OS", key: "custosOS" },
-      { header: "Empenhos Manuais", key: "empenhos" },
-      { header: "Total Consumido", key: "totalConsumido" },
-      { header: "Saldo", key: "saldo" },
+      { header: "Consumo OS", key: "custosOS" },
+      { header: "Empenhos", key: "empenhos" },
+      { header: "Saldo Empenhado", key: "saldoEmpenhado" },
+      { header: "Saldo Cota", key: "saldo" },
       { header: "% Consumido", key: "percentual" },
       { header: "Observações", key: "observacoes" },
     ];
@@ -177,7 +177,7 @@ export default function GestaoOrcamento() {
         cotaTotal: item.dotacaoTotal,
         custosOS: item.totalCustosOS,
         empenhos: item.totalEmpenhos,
-        totalConsumido: item.totalConsumido,
+        saldoEmpenhado: item.saldoEmpenhado,
         saldo: item.saldo,
         percentual: Number(item.percentual.toFixed(1)),
         observacoes: item.observacoes || "",
@@ -424,9 +424,9 @@ export default function GestaoOrcamento() {
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                   <div><p className="text-xs text-muted-foreground">Cota Total</p><p className="text-lg font-semibold">{formatCurrency(item.dotacaoTotal)}</p></div>
                   <div><p className="text-xs text-muted-foreground">Consumo OS</p><p className="text-lg font-semibold">{formatCurrency(item.totalCustosOS)}</p></div>
-                  <div><p className="text-xs text-muted-foreground">Empenhos Manuais</p><p className="text-lg font-semibold">{formatCurrency(item.totalEmpenhos)}</p></div>
-                  <div><p className="text-xs text-muted-foreground">Total Consumido</p><p className="text-lg font-semibold">{formatCurrency(item.totalConsumido)}</p></div>
-                  <div><p className="text-xs text-muted-foreground">Saldo</p><p className={`text-lg font-semibold ${item.saldo < 0 ? "text-destructive" : "text-emerald-600"}`}>{formatCurrency(item.saldo)}</p></div>
+                  <div><p className="text-xs text-muted-foreground">Empenhos</p><p className="text-lg font-semibold">{formatCurrency(item.totalEmpenhos)}</p></div>
+                  <div><p className="text-xs text-muted-foreground">Saldo Empenhado</p><p className={`text-lg font-semibold ${item.saldoEmpenhado <= 0 ? "text-destructive" : "text-amber-500"}`}>{formatCurrency(item.saldoEmpenhado)}</p></div>
+                  <div><p className="text-xs text-muted-foreground">Saldo Cota</p><p className={`text-lg font-semibold ${item.saldo < 0 ? "text-destructive" : "text-emerald-600"}`}>{formatCurrency(item.saldo)}</p></div>
                 </div>
 
                 <div className="space-y-1">
