@@ -243,9 +243,9 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
     const contratoInsuficiente = !skipContractBalance && saldoContrato !== null && saldoContrato < valorOS;
     const orcamentoInsuficiente = !skipBudgetBlock && saldoOrc !== null && saldoOrc < valorOS;
     const semOrcamentoCadastrado = !skipBudgetBlock && saldoOrc === null;
-    const totalEmpenhado = saldoOrcamento?.total_empenhos ?? 0;
+    const saldoEmpenhado = saldoOrcamento?.saldo_empenhado ?? 0;
     const skipEmpenhoCheck = !skipBudgetBlock && (semOrcamentoCadastrado || orcamentoInsuficiente);
-    const empenhoInsuficiente = !skipEmpenhoCheck && totalEmpenhado < valorOS;
+    const empenhoInsuficiente = !skipEmpenhoCheck && saldoEmpenhado < valorOS;
 
     const isModalidade = tipo === "cartao_corporativo" || tipo === "contrata_brasil";
     const limiteM = isModalidade ? limitesModalidade.find(l => l.modalidade === tipo) : null;
