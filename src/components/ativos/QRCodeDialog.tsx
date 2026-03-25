@@ -156,12 +156,14 @@ export function QRCodeDialog({ open, onOpenChange, uop, delegaciaNome, regionalS
     printWindow.document.write(`
       <html><head><title>QR Code - ${uop?.nome}</title>
       <style>
-        body { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; font-family:sans-serif; margin:0; }
+        body { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; font-family:sans-serif; margin:0; padding:20px; }
+        .header { font-size:22px; font-weight:bold; letter-spacing:2px; margin-bottom:12px; text-transform:uppercase; }
         .label { margin-top:16px; text-align:center; }
         h3 { margin:0 0 4px; font-size:16px; }
         p { margin:2px 0; font-size:12px; color:#555; }
-        .instrucao { margin-top:12px; font-size:11px; color:#0066cc; border:1px solid #0066cc; padding:6px 12px; border-radius:4px; }
+        .instrucao { margin-top:16px; font-size:11px; color:#333; max-width:200px; text-align:justify; line-height:1.5; }
       </style></head><body>
+      <div class="header">MANUTENÇÃO</div>
       ${qrRef.current.innerHTML}
       <div class="label">
         <h3>${uop?.nome}</h3>
@@ -170,7 +172,7 @@ export function QRCodeDialog({ open, onOpenChange, uop, delegaciaNome, regionalS
         ${uop?.endereco ? `<p>${uop.endereco}</p>` : ""}
         ${acInfo}
       </div>
-      <p class="instrucao">📱 Escaneie este QR Code para abrir um chamado de manutenção</p>
+      <p class="instrucao">${footerText}</p>
       <script>window.onload=()=>{window.print();window.close();}</script>
       </body></html>
     `);
