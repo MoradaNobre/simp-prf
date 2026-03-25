@@ -28,6 +28,7 @@ import { EditarOSDialog } from "@/components/os/EditarOSDialog";
 import { DetalhesOSDialog } from "@/components/os/DetalhesOSDialog";
 import { OSCardMobile } from "@/components/os/OSCardMobile";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useOsComRevisaoPendente } from "@/hooks/useOsComRevisaoPendente";
 import { useDownloadOSZip } from "@/hooks/useDownloadOSZip";
 import { Constants } from "@/integrations/supabase/types";
 import { toast } from "sonner";
@@ -135,6 +136,10 @@ export default function OrdensServico() {
     search: search || undefined,
     regionalId: effectiveRegionalId,
   });
+
+  // Check which OS in execução have pending budget revisions
+  const execucaoOsIds = useMemo(() => (ordensRaw || []).filter(os => os.status === "execucao").map(os => os.id), [ordensRaw]);
+  const { data: osComRevisaoPendente } = useOsComRevisaoPendente(execucaoOsIds);
 
   // Client-side date filter + sort
   const ordens = useMemo(() => {
@@ -352,6 +357,7 @@ export default function OrdensServico() {
                 onDownloadZip={(os) => downloadZip(os)}
                 downloadingZipId={downloadingId}
                 isGestorOrFiscal={!!isGestorOrFiscal}
+                hasRevisaoPendente={osComRevisaoPendente?.has(os.id)}
               />
             ))}
           </div>
@@ -470,6 +476,11 @@ export default function OrdensServico() {
                               : (os as any).motivo_bloqueio === "saldo_contrato_insuficiente" ? "Saldo Contrato Insuf."
                               : (os as any).motivo_bloqueio === "limite_modalidade_excedido" ? "Limite Excedido"
                               : "Aguard. Cota"}
+                          </span>
+                        )}
+                        {os.status === "execucao" && osComRevisaoPendente?.has(os.id) && (
+                          <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200" title="Revisão orçamentária pendente de aprovação">
+                            ⚠ Revisão Orçam.
                           </span>
                         )}
                         {os.status === "pagamento" && ((os as any).documentos_pagamento as any[])?.length > 0 && (

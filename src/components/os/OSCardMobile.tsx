@@ -33,9 +33,10 @@ interface OSCardMobileProps {
   onDownloadZip?: (os: any) => void;
   downloadingZipId?: string | null;
   isGestorOrFiscal?: boolean;
+  hasRevisaoPendente?: boolean;
 }
 
-export function OSCardMobile({ os, canManage, canDelete, onSelect, onEdit, onDelete, onDownloadZip, downloadingZipId, isGestorOrFiscal }: OSCardMobileProps) {
+export function OSCardMobile({ os, canManage, canDelete, onSelect, onEdit, onDelete, onDownloadZip, downloadingZipId, isGestorOrFiscal, hasRevisaoPendente }: OSCardMobileProps) {
   const uop = os.uops as any;
   const delegacia = uop?.delegacias;
   const regional = os.regionais || delegacia?.regionais;
@@ -68,6 +69,11 @@ export function OSCardMobile({ os, canManage, canDelete, onSelect, onEdit, onDel
                 : os.motivo_bloqueio === "saldo_contrato_insuficiente" ? "Saldo Contrato Insuf."
                 : os.motivo_bloqueio === "limite_modalidade_excedido" ? "Limite Excedido"
                 : "Aguard. Cota"}
+            </span>
+          )}
+          {os.status === "execucao" && hasRevisaoPendente && (
+            <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200" title="Revisão orçamentária pendente de aprovação">
+              ⚠ Revisão Orçam.
             </span>
           )}
           {os.status === "pagamento" && (os.documentos_pagamento as any[])?.length > 0 && (
