@@ -177,7 +177,7 @@ export default function GestaoOrcamento() {
         cotaTotal: item.dotacaoTotal,
         custosOS: item.totalCustosOS,
         empenhos: item.totalEmpenhos,
-        totalConsumido: item.totalConsumido,
+        saldoEmpenhado: item.saldoEmpenhado,
         saldo: item.saldo,
         percentual: Number(item.percentual.toFixed(1)),
         observacoes: item.observacoes || "",
