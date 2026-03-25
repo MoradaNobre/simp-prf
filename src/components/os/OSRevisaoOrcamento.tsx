@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,11 +7,40 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, DollarSign, AlertTriangle, FileText, TrendingUp, TrendingDown } from "lucide-react";
+import { Loader2, DollarSign, AlertTriangle, FileText, TrendingUp, TrendingDown, Paperclip, Download, X } from "lucide-react";
 import { useRevisoesOrcamento, useCreateRevisao, useApproveRevisao, useRejectRevisao } from "@/hooks/useRevisoesOrcamento";
+import { uploadToStorage, getSignedUrl } from "@/utils/storage";
 import { useSaldoOrcamentarioRegional } from "@/hooks/useSaldoOrcamentario";
 import { useContratosSaldo } from "@/hooks/useContratos";
 import type { OrdemServico } from "@/hooks/useOrdensServico";
+
+function ArquivoLink({ path }: { path: string }) {
+  const [downloading, setDownloading] = useState(false);
+  const fileName = path.split("/").pop() || "arquivo";
+
+  const handleDownload = async () => {
+    setDownloading(true);
+    try {
+      const url = await getSignedUrl(path);
+      if (url) window.open(url, "_blank");
+    } catch {
+      toast.error("Erro ao abrir arquivo");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleDownload}
+      disabled={downloading}
+      className="flex items-center gap-1 text-xs text-primary hover:underline"
+    >
+      {downloading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Paperclip className="h-3 w-3" />}
+      {fileName}
+    </button>
+  );
+}
 
 interface Props {
   os: OrdemServico;
@@ -24,6 +53,9 @@ export function OSRevisaoOrcamento({ os, isGestorOrFiscal, isPreposto, isTerceir
   const [showForm, setShowForm] = useState(false);
   const [novoValor, setNovoValor] = useState("");
   const [justificativa, setJustificativa] = useState("");
+  const [arquivo, setArquivo] = useState<File | null>(null);
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [respondingId, setRespondingId] = useState<string | null>(null);
   const [respostaAprovacao, setRespostaAprovacao] = useState("");
 
@@ -55,20 +87,29 @@ export function OSRevisaoOrcamento({ os, isGestorOrFiscal, isPreposto, isTerceir
     }
 
     try {
+      setUploadingFile(true);
+      let arquivoPath: string | undefined;
+      if (arquivo) {
+        arquivoPath = await uploadToStorage(arquivo, `revisoes/${os.id}`);
+      }
       const { data: { user } } = await supabase.auth.getUser();
       await createRevisao.mutateAsync({
         os_id: os.id,
         valor_anterior: valorAtual,
         valor_novo: valor,
         justificativa: justificativa.trim(),
+        arquivo_justificativa: arquivoPath,
         solicitado_por: user?.id || "",
       });
       toast.success("Revisão orçamentária solicitada!");
       setShowForm(false);
       setNovoValor("");
       setJustificativa("");
+      setArquivo(null);
     } catch (err: any) {
       toast.error("Erro: " + err.message);
+    } finally {
+      setUploadingFile(false);
     }
   };
 
@@ -178,6 +219,10 @@ export function OSRevisaoOrcamento({ os, isGestorOrFiscal, isPreposto, isTerceir
             <span>Por: {rev.solicitante_nome || "—"}</span>
             <span>Em: {new Date(rev.created_at).toLocaleDateString("pt-BR")}</span>
           </div>
+
+          {rev.arquivo_justificativa && (
+            <ArquivoLink path={rev.arquivo_justificativa} />
+          )}
 
           {rev.resposta && (
             <div className="text-sm border-t pt-2 mt-1">
@@ -325,20 +370,57 @@ export function OSRevisaoOrcamento({ os, isGestorOrFiscal, isPreposto, isTerceir
                 />
               </div>
 
+              <div className="space-y-1.5">
+                <Label>Arquivo de orçamento (XLS, XLSX, PDF)</Label>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".xls,.xlsx,.pdf,.csv"
+                  className="hidden"
+                  onChange={(e) => setArquivo(e.target.files?.[0] || null)}
+                />
+                {arquivo ? (
+                  <div className="flex items-center gap-2 text-sm p-2 border rounded-md bg-muted">
+                    <Paperclip className="h-4 w-4 text-muted-foreground" />
+                    <span className="flex-1 truncate">{arquivo.name}</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0"
+                      onClick={() => { setArquivo(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Paperclip className="mr-2 h-4 w-4" />
+                    Anexar planilha
+                  </Button>
+                )}
+              </div>
+
               <div className="flex gap-2">
                 <Button
                   variant="outline"
-                  onClick={() => { setShowForm(false); setNovoValor(""); setJustificativa(""); }}
+                  onClick={() => { setShowForm(false); setNovoValor(""); setJustificativa(""); setArquivo(null); }}
                   className="flex-1"
                 >
                   Cancelar
                 </Button>
                 <Button
-                  disabled={!novoValor || !justificativa.trim() || createRevisao.isPending || novoValorNum === valorAtual}
+                  disabled={!novoValor || !justificativa.trim() || createRevisao.isPending || uploadingFile || novoValorNum === valorAtual}
                   className="flex-1"
                   onClick={handleSubmitRevisao}
                 >
-                  {createRevisao.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {(createRevisao.isPending || uploadingFile) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Solicitar Revisão
                 </Button>
               </div>
