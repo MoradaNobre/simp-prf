@@ -339,9 +339,9 @@ Cada transição de status é registrada com timestamp e identificação do resp
 
 _Documento técnico elaborado conforme padrões de documentação da Polícia Rodoviária Federal._
 
-**Versão:** 1.5
+**Versão:** 2.0
 **Data:** 16/02/2026
-**Última Atualização:** 26/02/2026
+**Última Atualização:** 25/03/2026
 **Responsável:** Daniel Nunes de Ávila
 
 ## Histórico de Versões
@@ -354,3 +354,5 @@ _Documento técnico elaborado conforme padrões de documentação da Polícia Ro
 | 1.3    | 24/02/2026 | Adição da flag "Suprido" (preposto do cartão corporativo) como campo booleano acumulável na tabela `profiles` |
 | 1.4    | 24/02/2026 | Limites de Modalidade (`limites_modalidade`), 4 níveis de bloqueio na autorização, duplicação de contratos Cartão Corporativo, edição inline de limites |
 | 1.5    | 26/02/2026 | Módulo de Chamados (`chamados`), reestruturação de relatórios PDF com seção de chamados vinculados e Matriz GUT |
+| 1.9    | 24/03/2026 | Relatório IMR, ativos com QR Codes, badges dinâmicos de bloqueio |
+| 2.0    | 25/03/2026 | Consumo OS via valor_orcamento, KPIs revisados, revisão orçamentária com XLS obrigatório, QR Code redesenhado, validação de CPF |
