@@ -1,14 +1,14 @@
 # Catálogo de Regras de Negócio – SIMP-PRF
 
-**Versão:** 2.0  
-**Data:** 24/03/2026  
+**Versão:** 2.1  
+**Data:** 25/03/2026  
 **Fonte:** SPEC.md  
 
 ---
 
 ## Histórico de Versões
 
-- v2.0 (24/03/2026): Inclusão das regras do Relatório IMR (RN-221 a RN-232) e prazo de execução no Relatório de Execução (RN-233). Total: 233 regras.
+- v2.1 (25/03/2026): Inclusão das regras de revisão orçamentária obrigatória (RN-234 a RN-237), QR Code com layout de manutenção (RN-238 a RN-241), KPIs orçamentários revisados (RN-242 a RN-244), validação de CPF (RN-245), visibilidade do histórico de OS (RN-246 a RN-248). Total: 248 regras.
 - v1.9 (24/03/2026): Inclusão das regras do módulo de Ativos e QR Codes (RN-211 a RN-215), consolidação da Sede Nacional (RN-216 a RN-218) e badges dinâmicos de bloqueio (RN-219 a RN-220). Total: 220 regras.
 - v1.8 (06/03/2026): Inclusão das regras de prazos obrigatórios (RN-203 a RN-206) e agenda unificada (RN-207 a RN-210). Total: 210 regras.
 - v1.7 (28/02/2026): Inclusão das regras de aceite obrigatório de Termos de Uso (RN-198 a RN-201) e novo tipo de demanda "Usina Solar" (RN-202). Total: 202 regras.
