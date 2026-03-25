@@ -270,6 +270,8 @@ Cada transição de status é registrada com timestamp e identificação do resp
 - Assinatura digital para ateste
 - Controle de prioridade (baixa, média, alta, urgente)
 - Notificações por e-mail nas transições de status
+- Revisão orçamentária em execução com XLS obrigatório e bloqueio do fluxo até aprovação
+- Histórico de transições visível para gestores regionais e fiscais
 
 ### 6.3. Módulo de Contratos
 
