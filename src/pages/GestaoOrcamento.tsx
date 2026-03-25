@@ -423,7 +423,7 @@ export default function GestaoOrcamento() {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                   <div><p className="text-xs text-muted-foreground">Cota Total</p><p className="text-lg font-semibold">{formatCurrency(item.dotacaoTotal)}</p></div>
-                  <div><p className="text-xs text-muted-foreground">Custos OS</p><p className="text-lg font-semibold">{formatCurrency(item.totalCustosOS)}</p></div>
+                  <div><p className="text-xs text-muted-foreground">Consumo OS</p><p className="text-lg font-semibold">{formatCurrency(item.totalCustosOS)}</p></div>
                   <div><p className="text-xs text-muted-foreground">Empenhos Manuais</p><p className="text-lg font-semibold">{formatCurrency(item.totalEmpenhos)}</p></div>
                   <div><p className="text-xs text-muted-foreground">Total Consumido</p><p className="text-lg font-semibold">{formatCurrency(item.totalConsumido)}</p></div>
                   <div><p className="text-xs text-muted-foreground">Saldo</p><p className={`text-lg font-semibold ${item.saldo < 0 ? "text-destructive" : "text-emerald-600"}`}>{formatCurrency(item.saldo)}</p></div>
