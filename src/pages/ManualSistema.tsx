@@ -592,11 +592,14 @@ const SECTIONS: ManualSection[] = [
       },
       {
         title: "Cotas por Regional",
-        description: "Distribuição da dotação orçamentária entre as regionais.",
+        description: "Distribuição da dotação orçamentária entre as regionais com 5 indicadores-chave.",
         details: [
-          "Valor da cota (dotação) por regional e exercício",
-          "Saldo calculado: Dotação + Créditos − Empenhos − Consumo de OS",
-          "Alerta quando saldo é insuficiente (bloqueio de autorização)",
+          "Cota Total: Dotação base + créditos (suplementações − reduções)",
+          "Consumo OS: Soma do valor orçado das OS em execução, ateste, faturamento, pagamento ou encerrada",
+          "Empenhos: Total de empenhos manuais registrados",
+          "Saldo Empenhado: Empenhos − Consumo OS (amarelo quando positivo, vermelho quando zerado)",
+          "Saldo Cota: Cota Total − Consumo OS (verde quando positivo, vermelho quando negativo)",
+          "Barra de progresso do percentual consumido",
         ],
         roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional"],
       },
