@@ -28,6 +28,7 @@ import { EditarOSDialog } from "@/components/os/EditarOSDialog";
 import { DetalhesOSDialog } from "@/components/os/DetalhesOSDialog";
 import { OSCardMobile } from "@/components/os/OSCardMobile";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useOsComRevisaoPendente } from "@/hooks/useOsComRevisaoPendente";
 import { useDownloadOSZip } from "@/hooks/useDownloadOSZip";
 import { Constants } from "@/integrations/supabase/types";
 import { toast } from "sonner";

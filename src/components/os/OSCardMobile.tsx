@@ -70,6 +70,11 @@ export function OSCardMobile({ os, canManage, canDelete, onSelect, onEdit, onDel
                 : "Aguard. Cota"}
             </span>
           )}
+          {os.status === "execucao" && hasRevisaoPendente && (
+            <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200" title="Revisão orçamentária pendente de aprovação">
+              ⚠ Revisão Orçam.
+            </span>
+          )}
           {os.status === "pagamento" && (os.documentos_pagamento as any[])?.length > 0 && (
             <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
               Aguardando Pagamento

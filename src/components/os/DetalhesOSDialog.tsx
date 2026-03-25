@@ -1467,6 +1467,20 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
                 <h4 className="text-sm font-medium flex items-center gap-1">
                   <Camera className="h-4 w-4" /> Execução — Submeter para Ateste
                 </h4>
+
+                {hasRevisaoPendente && (
+                  <div className="flex items-center gap-2 text-sm p-3 rounded-md border border-orange-300 bg-orange-50 dark:bg-orange-950/30 dark:border-orange-800">
+                    <AlertTriangle className="h-4 w-4 text-orange-600 shrink-0" />
+                    <div>
+                      <p className="font-medium text-orange-800 dark:text-orange-200">Revisão orçamentária pendente</p>
+                      <p className="text-xs text-orange-700 dark:text-orange-300 mt-0.5">
+                        Não é possível avançar para o Ateste enquanto houver uma revisão orçamentária aguardando aprovação. 
+                        Aguarde a análise do gestor ou fiscal.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 <div className="space-y-1.5">
                   <Label className="flex items-center gap-1">
                     <FileText className="h-3.5 w-3.5" /> Relatório de Execução do Serviço *
@@ -1475,6 +1489,7 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
                     type="file"
                     accept=".pdf,.xlsx,.xls,.doc,.docx"
                     onChange={(e) => setRelatorioExecucao(e.target.files?.[0] || null)}
+                    disabled={hasRevisaoPendente}
                   />
                   <p className="text-xs text-muted-foreground">
                     Anexe o relatório de execução do serviço (obrigatório para avançar).
@@ -1483,7 +1498,7 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
                 <p className="text-sm text-muted-foreground">
                   Certifique-se de que as fotos e evidências da execução foram carregadas antes de submeter.
                 </p>
-                <Button onClick={handleAdvanceStatus} disabled={uploading || (!relatorioExecucao && !(os as any).relatorio_execucao_preposto)} className="w-full">
+                <Button onClick={handleAdvanceStatus} disabled={uploading || hasRevisaoPendente || (!relatorioExecucao && !(os as any).relatorio_execucao_preposto)} className="w-full">
                   {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Submeter para Ateste
                 </Button>
