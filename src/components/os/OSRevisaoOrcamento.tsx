@@ -85,6 +85,10 @@ export function OSRevisaoOrcamento({ os, isGestorOrFiscal, isPreposto, isTerceir
       toast.error("Informe a justificativa");
       return;
     }
+    if (!arquivo) {
+      toast.error("É obrigatório anexar a planilha (XLS/XLSX) de justificativa");
+      return;
+    }
 
     try {
       setUploadingFile(true);
@@ -398,11 +402,11 @@ export function OSRevisaoOrcamento({ os, isGestorOrFiscal, isPreposto, isTerceir
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="w-full"
+                    className={`w-full ${!arquivo ? "border-destructive/50 text-destructive hover:text-destructive" : ""}`}
                     onClick={() => fileInputRef.current?.click()}
                   >
                     <Paperclip className="mr-2 h-4 w-4" />
-                    Anexar planilha
+                    Anexar planilha (obrigatório) *
                   </Button>
                 )}
               </div>
@@ -416,7 +420,7 @@ export function OSRevisaoOrcamento({ os, isGestorOrFiscal, isPreposto, isTerceir
                   Cancelar
                 </Button>
                 <Button
-                  disabled={!novoValor || !justificativa.trim() || createRevisao.isPending || uploadingFile || novoValorNum === valorAtual}
+                  disabled={!novoValor || !justificativa.trim() || !arquivo || createRevisao.isPending || uploadingFile || novoValorNum === valorAtual}
                   className="flex-1"
                   onClick={handleSubmitRevisao}
                 >
