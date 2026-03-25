@@ -95,6 +95,7 @@ export function AgendamentoDialog({ open, onOpenChange, agendamento, osId, osCod
     const cpfDigits = novoCpf.replace(/\D/g, "");
     if (!nome) { toast.error("Informe o nome do participante."); return; }
     if (cpfDigits.length !== 11) { toast.error("CPF deve ter 11 dígitos."); return; }
+    if (!isValidCpf(cpfDigits)) { toast.error("CPF inválido. Verifique os dígitos."); return; }
     setParticipantes(prev => [...prev, { nome, cpf: formatCpf(cpfDigits) }]);
     setNovoNome("");
     setNovoCpf("");
