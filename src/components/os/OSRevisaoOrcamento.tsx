@@ -25,6 +25,9 @@ export function OSRevisaoOrcamento({ os, isGestorOrFiscal, isPreposto, isTerceir
   const [showForm, setShowForm] = useState(false);
   const [novoValor, setNovoValor] = useState("");
   const [justificativa, setJustificativa] = useState("");
+  const [arquivo, setArquivo] = useState<File | null>(null);
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [respondingId, setRespondingId] = useState<string | null>(null);
   const [respostaAprovacao, setRespostaAprovacao] = useState("");
 
