@@ -109,14 +109,16 @@ export default function GestaoOrcamento() {
     enabled: (orcamentos?.length ?? 0) > 0,
   });
 
-  const { data: custosOS } = useQuery({
-    queryKey: ["os-custos-exercicio", exercicio],
+  const { data: consumoOS } = useQuery({
+    queryKey: ["os-consumo-exercicio", exercicio],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("os_custos")
-        .select("valor, os_id, ordens_servico!inner(regional_id, data_abertura)")
-        .gte("ordens_servico.data_abertura", `${exercicio}-01-01`)
-        .lte("ordens_servico.data_abertura", `${exercicio}-12-31`);
+        .from("ordens_servico")
+        .select("id, regional_id, valor_orcamento, status, data_abertura, deleted_at")
+        .is("deleted_at", null)
+        .gte("data_abertura", `${exercicio}-01-01T00:00:00`)
+        .lte("data_abertura", `${exercicio}-12-31T23:59:59`)
+        .not("status", "in", '("aberta","orcamento","autorizacao")');
       if (error) throw error;
       return data as any[];
     },
@@ -135,14 +137,14 @@ export default function GestaoOrcamento() {
 
       const emps = (empenhos || []).filter((e: any) => e.orcamento_id === orc.id);
       const totalEmpenhos = emps.reduce((s: number, e: any) => s + Number(e.valor), 0);
-      const custos = (custosOS || []).filter((c: any) => c.ordens_servico?.regional_id === orc.regional_id);
-      const totalCustosOS = custos.reduce((s: number, c: any) => s + Number(c.valor), 0);
-      const totalConsumido = totalEmpenhos + totalCustosOS;
+      const osRegional = (consumoOS || []).filter((os: any) => os.regional_id === orc.regional_id);
+      const totalCustosOS = osRegional.reduce((s: number, os: any) => s + Number(os.valor_orcamento || 0), 0);
+      const totalConsumido = totalCustosOS;
       const saldo = dotacaoTotal - totalConsumido;
       const percentual = dotacaoTotal > 0 ? (totalConsumido / dotacaoTotal) * 100 : 0;
       return { ...orc, creditosList: creds, dotacaoTotal, totalEmpenhos, totalCustosOS, totalConsumido, saldo, percentual, empenhosList: emps };
     });
-  }, [orcamentos, creditos, empenhos, custosOS]);
+  }, [orcamentos, creditos, empenhos, consumoOS]);
 
   const consolidadoFiltrado = useMemo(() => {
     if (filtroRegional === "todas") return consolidado;
@@ -421,7 +423,7 @@ export default function GestaoOrcamento() {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                   <div><p className="text-xs text-muted-foreground">Cota Total</p><p className="text-lg font-semibold">{formatCurrency(item.dotacaoTotal)}</p></div>
-                  <div><p className="text-xs text-muted-foreground">Custos OS</p><p className="text-lg font-semibold">{formatCurrency(item.totalCustosOS)}</p></div>
+                  <div><p className="text-xs text-muted-foreground">Consumo OS</p><p className="text-lg font-semibold">{formatCurrency(item.totalCustosOS)}</p></div>
                   <div><p className="text-xs text-muted-foreground">Empenhos Manuais</p><p className="text-lg font-semibold">{formatCurrency(item.totalEmpenhos)}</p></div>
                   <div><p className="text-xs text-muted-foreground">Total Consumido</p><p className="text-lg font-semibold">{formatCurrency(item.totalConsumido)}</p></div>
                   <div><p className="text-xs text-muted-foreground">Saldo</p><p className={`text-lg font-semibold ${item.saldo < 0 ? "text-destructive" : "text-emerald-600"}`}>{formatCurrency(item.saldo)}</p></div>
