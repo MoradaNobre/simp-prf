@@ -251,12 +251,13 @@ Cada transição de status é registrada com timestamp e identificação do resp
 
 ### 6.1. Módulo de Chamados
 
-- Registro de chamados de manutenção por servidores (9 tipos de demanda)
+- Registro de chamados de manutenção por servidores (10 tipos de demanda)
 - Análise com Matriz GUT (Gravidade × Urgência × Tendência, score 1-125)
 - Fluxo: Aberto → Analisado → Vinculado (a uma OS) ou Cancelado
 - Agrupamento de múltiplos chamados analisados em uma OS corretiva
 - Prioridade da OS derivada automaticamente do maior score GUT
 - Cancelamento com motivo obrigatório
+- Validação de CPF com máscara (###.###.###-##) e verificação algorítmica
 
 ### 6.2. Módulo de Ordens de Serviço
 
