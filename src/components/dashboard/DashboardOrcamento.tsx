@@ -189,9 +189,9 @@ export default function DashboardOrcamento({ regionalId, userRole }: DashboardOr
       const dotacaoTotal = Number(orc.valor_dotacao) + totalCreditos;
       const emps = (empenhos || []).filter((e: any) => e.orcamento_id === orc.id);
       const totalEmpenhos = emps.reduce((s: number, e: any) => s + Number(e.valor), 0);
-      const custos = (custosOS || []).filter((c: any) => c.ordens_servico?.regional_id === orc.regional_id);
-      const totalCustosOS = custos.reduce((s: number, c: any) => s + Number(c.valor), 0);
-      const totalConsumido = totalEmpenhos + totalCustosOS;
+      const osRegional = (consumoOS || []).filter((os: any) => os.regional_id === orc.regional_id);
+      const totalCustosOS = osRegional.reduce((s: number, os: any) => s + Number(os.valor_orcamento || 0), 0);
+      const totalConsumido = totalCustosOS;
       const saldo = dotacaoTotal - totalConsumido;
       const percentual = dotacaoTotal > 0 ? (totalConsumido / dotacaoTotal) * 100 : 0;
       return {
@@ -204,7 +204,7 @@ export default function DashboardOrcamento({ regionalId, userRole }: DashboardOr
         percentual,
       };
     }).sort((a: any, b: any) => a.sigla.localeCompare(b.sigla));
-  }, [orcamentos, creditos, empenhos, custosOS]);
+  }, [orcamentos, creditos, empenhos, consumoOS]);
 
   const totalGeral = useMemo(() => {
     const dotacao = consolidado.reduce((s, i) => s + i.dotacaoTotal, 0);
