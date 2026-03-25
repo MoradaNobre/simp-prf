@@ -420,7 +420,7 @@ export function OSRevisaoOrcamento({ os, isGestorOrFiscal, isPreposto, isTerceir
                   Cancelar
                 </Button>
                 <Button
-                  disabled={!novoValor || !justificativa.trim() || createRevisao.isPending || uploadingFile || novoValorNum === valorAtual}
+                  disabled={!novoValor || !justificativa.trim() || !arquivo || createRevisao.isPending || uploadingFile || novoValorNum === valorAtual}
                   className="flex-1"
                   onClick={handleSubmitRevisao}
                 >
