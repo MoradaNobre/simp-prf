@@ -202,7 +202,8 @@ const SECTIONS: ManualSection[] = [
         title: "QR Codes por UOP",
         description: "QR Codes gerados automaticamente para cada UOP, facilitando a abertura de chamados via dispositivo móvel.",
         details: [
-          "QR Code contém URL de abertura rápida de chamado",
+          "Layout profissional: título 'MANUTENÇÃO' no topo, dados do ativo no centro e texto instrucional justificado na parte inferior",
+          "Para ativos do tipo 'Ar Condicionado': auto-seleção do tipo de demanda e preenchimento do campo Patrimônio (tombamento e nº série)",
           "Ao escanear, o formulário de chamado é aberto com a localização pré-preenchida (Regional, Delegacia, UOP)",
           "Autenticação obrigatória antes de acessar o formulário",
           "Download individual do QR Code em formato PNG",
