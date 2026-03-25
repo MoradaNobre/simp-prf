@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,8 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, DollarSign, AlertTriangle, FileText, TrendingUp, TrendingDown } from "lucide-react";
+import { Loader2, DollarSign, AlertTriangle, FileText, TrendingUp, TrendingDown, Paperclip, Download, X } from "lucide-react";
 import { useRevisoesOrcamento, useCreateRevisao, useApproveRevisao, useRejectRevisao } from "@/hooks/useRevisoesOrcamento";
+import { uploadToStorage, getSignedUrl } from "@/utils/storage";
 import { useSaldoOrcamentarioRegional } from "@/hooks/useSaldoOrcamentario";
 import { useContratosSaldo } from "@/hooks/useContratos";
 import type { OrdemServico } from "@/hooks/useOrdensServico";
