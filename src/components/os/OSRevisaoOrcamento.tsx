@@ -14,6 +14,34 @@ import { useSaldoOrcamentarioRegional } from "@/hooks/useSaldoOrcamentario";
 import { useContratosSaldo } from "@/hooks/useContratos";
 import type { OrdemServico } from "@/hooks/useOrdensServico";
 
+function ArquivoLink({ path }: { path: string }) {
+  const [downloading, setDownloading] = useState(false);
+  const fileName = path.split("/").pop() || "arquivo";
+
+  const handleDownload = async () => {
+    setDownloading(true);
+    try {
+      const url = await getSignedUrl(path);
+      if (url) window.open(url, "_blank");
+    } catch {
+      toast.error("Erro ao abrir arquivo");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleDownload}
+      disabled={downloading}
+      className="flex items-center gap-1 text-xs text-primary hover:underline"
+    >
+      {downloading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Paperclip className="h-3 w-3" />}
+      {fileName}
+    </button>
+  );
+}
+
 interface Props {
   os: OrdemServico;
   isGestorOrFiscal: boolean;
