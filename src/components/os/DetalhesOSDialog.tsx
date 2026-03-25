@@ -1088,10 +1088,11 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
             const orcamentoInsuficiente = !skipBudgetBlock && saldoOrc !== null && saldoOrc < valorOS;
             const semOrcamentoCadastrado = !skipBudgetBlock && saldoOrc === null;
             const totalEmpenhado = saldoOrcamento?.total_empenhos ?? 0;
+            const saldoEmpenhado = saldoOrcamento?.saldo_empenhado ?? 0;
             const creditoNaoEmpenhado = saldoOrcamento?.credito_nao_empenhado ?? 0;
             // Empenho is required for ALL modalities including cartão_corporativo
             const skipEmpenhoCheck = !skipBudgetBlock && (semOrcamentoCadastrado || orcamentoInsuficiente);
-            const empenhoInsuficiente = !skipEmpenhoCheck && totalEmpenhado < valorOS;
+            const empenhoInsuficiente = !skipEmpenhoCheck && saldoEmpenhado < valorOS;
 
             // Limite de Modalidade check (for cartao_corporativo / contrata_brasil)
             const limiteModalidade = isModalidadeEspecial
