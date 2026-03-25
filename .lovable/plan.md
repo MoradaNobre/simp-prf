@@ -1,142 +1,56 @@
 
 
-## Plano: Relatório IMR (Instrumento de Medição de Resultado)
+# Correção: Saldo Empenhado Não Deduz OS Já Autorizadas
 
-### Objetivo
-Criar uma nova aba "IMR" na página de Relatórios, com motor de regras automáticas que detecta falhas nas OS e calcula o score IMR, gerando PDF completo para instrução processual.
+## Problema Identificado
 
-### Arquitetura
+A view `vw_orcamento_regional_saldo` calcula `total_empenhos` como a **soma bruta** de todos os empenhos registrados. O campo nunca é reduzido pelo consumo de OS autorizadas/em execução.
 
-```text
-┌─ Relatórios (página) ──────────────────────────────┐
-│  [Execução] [Pagamento] [Faturamento] [IMR]        │
-│                                                     │
-│  ┌─ RelatoriosIMR.tsx ───────────────────────────┐  │
-│  │ Filtros: Regional, Contrato, Período (mês)    │  │
-│  │                                               │  │
-│  │ ┌─ Resumo Executivo ───────────────────────┐  │  │
-│  │ │ IMR: 8.5 | Meta: ≥9.0 | Situação: ...   │  │  │
-│  │ └─────────────────────────────────────────────│  │
-│  │ ┌─ Consolidação OS ────────────────────────┐  │  │
-│  │ │ Tabela com OS do período                 │  │  │
-│  │ └─────────────────────────────────────────────│  │
-│  │ ┌─ Matriz de Ocorrências ──────────────────┐  │  │
-│  │ │ Falhas detectadas automaticamente        │  │  │
-│  │ │ + Ocorrências manuais do fiscal          │  │  │
-│  │ └─────────────────────────────────────────────│  │
-│  │ ┌─ Cálculo IMR + Impacto Financeiro ───────┐  │  │
-│  │ │ Fórmula: 10 - Σ pontos                  │  │  │
-│  │ └─────────────────────────────────────────────│  │
-│  │ ┌─ Análise Qualitativa ────────────────────┐  │  │
-│  │ │ Textarea do fiscal                       │  │  │
-│  │ └─────────────────────────────────────────────│  │
-│  │ ┌─ Contraditório ─────────────────────────┐   │  │
-│  │ │ Status, prazo, decisão final            │   │  │
-│  │ └─────────────────────────────────────────────│  │
-│  │                                               │  │
-│  │ [Gerar PDF IMR]                               │  │
-│  └───────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────┘
+Na tela de autorização, a validação compara:
+```
+empenhoInsuficiente = totalEmpenhado < valorOS
 ```
 
-### O que será feito
+Isso compara o **total empenhado bruto** (R$ 150.000) com o valor da OS atual (R$ 5.000), sem considerar que outras OS já consomem parte desse empenho. Resultado: o sistema sempre mostra R$ 150.000 empenhado, independentemente de quantas OS já foram autorizadas.
 
-**1. Novo componente `RelatoriosIMR.tsx`** (~500 linhas)
+## Solução
 
-Interface com filtros (contrato + período mensal) que busca todas as OS do contrato no período e aplica o **motor de regras automáticas**:
+### 1. Alterar a view `vw_orcamento_regional_saldo`
 
-| Regra | Condição | Item IMR | Pontos |
-|-------|----------|----------|--------|
-| Atraso no prazo de execução | `data_encerramento > prazo_execucao` | Item 8/9 | 1.0-2.0 |
-| Valor realizado zero em OS encerrada | `totalCustos = 0 AND status = encerrada` | Item 1/20 | 1.0-3.0 |
-| Desvio orçamentário > 10% | `abs(custos - orcamento) / orcamento > 0.10` | Item 1 | 0.5-1.0 |
-| GUT alto + demora excessiva | `gut_score ≥ 27 AND dias_aberta > 30` | Item 19 | 2.0 |
-| Prazo de orçamento excedido | `data_orcamento > prazo_orcamento` | Item 8 | 1.0 |
+Adicionar uma coluna calculada `saldo_empenhado` que representa o empenho disponível:
 
-O fiscal pode adicionar ocorrências manuais e editar a análise qualitativa. Seções de contraditório e decisão final com campos editáveis.
-
-**Cálculo:** `IMR = 10 - Σ(pontos_perdidos)`
-- `≥ 9.0` → Conforme
-- `7.0–8.9` → Conduta Adversa
-- `5.0–6.9` → Com Penalização
-- `< 5.0` → Crítico
-
-**Impacto financeiro:** Percentual de retenção baseado na faixa do IMR aplicado sobre o valor total atestado no período.
-
-**2. Gerador PDF `generateIMRReport.ts`**
-
-PDF com as 11 seções do template:
-1. Identificação da Avaliação
-2. Resumo Executivo
-3. Consolidação das OS
-4. Matriz de Ocorrências
-5. Regras de Detecção Aplicadas
-6. Cálculo do IMR
-7. Impacto Financeiro
-8. Análise Qualitativa
-9. Contraditório
-10. Decisão Final
-11. Anexos (referências)
-
-Reutiliza os helpers de `pdfHelpers.ts` (addSection, addLine, tabelas, numeração de páginas).
-
-**3. Integração na página Relatórios**
-
-Adicionar aba "IMR" em `src/pages/Relatorios.tsx` (visível apenas para perfis internos, mesmo controle do Faturamento).
-
-**4. Tabela `relatorios_imr`** (migração)
-
-Persiste os relatórios IMR gerados para histórico e rastreabilidade:
-
-```sql
-CREATE TABLE public.relatorios_imr (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  contrato_id uuid NOT NULL,
-  regional_id uuid,
-  periodo_inicio date NOT NULL,
-  periodo_fim date NOT NULL,
-  imr_score numeric NOT NULL DEFAULT 10,
-  situacao text NOT NULL DEFAULT 'conforme',
-  total_ocorrencias integer DEFAULT 0,
-  total_pontos_perdidos numeric DEFAULT 0,
-  valor_fatura numeric DEFAULT 0,
-  valor_glosa numeric DEFAULT 0,
-  percentual_retencao numeric DEFAULT 0,
-  analise_qualitativa text,
-  contraditorio_status text DEFAULT 'sem_manifestacao',
-  contraditorio_data_envio date,
-  decisao_final text,
-  imr_pos_reconsideracao numeric,
-  penalidade_aplicada text,
-  encaminhamento text DEFAULT 'arquivamento',
-  ocorrencias jsonb DEFAULT '[]',
-  os_consolidadas jsonb DEFAULT '[]',
-  dados_json jsonb DEFAULT '{}',
-  gerado_por_id uuid NOT NULL,
-  gerado_em timestamptz DEFAULT now(),
-  created_at timestamptz DEFAULT now(),
-  updated_at timestamptz DEFAULT now()
-);
-
-ALTER TABLE public.relatorios_imr ENABLE ROW LEVEL SECURITY;
+```
+saldo_empenhado = total_empenhos - total_consumo_os
 ```
 
-RLS: mesmas políticas dos demais relatórios (gestores, fiscais, nacionais podem ver/criar por regional).
+A view será recriada com essa nova coluna.
 
-### Dados consumidos (já existentes)
-- `ordens_servico`: status, datas, valores, prioridade, prazos
-- `os_custos`: valor realizado por OS
-- `chamados`: gut_score para regra de risco estrutural
-- `audit_logs`: timestamps de transição para cálculo de atrasos
-- `contratos` + `contratos_saldo`: dados contratuais
-- `relatorios_os`: valor_atestado
+### 2. Atualizar o hook `useSaldoOrcamentario.ts`
 
-### Arquivos
+Adicionar `saldo_empenhado` à interface `SaldoOrcamentario`.
 
-| Arquivo | Ação |
-|---------|------|
-| `src/components/relatorios/RelatoriosIMR.tsx` | Criar |
-| `src/utils/pdf/generateIMRReport.ts` | Criar |
-| `src/pages/Relatorios.tsx` | Adicionar aba IMR |
-| Migração SQL | Criar tabela `relatorios_imr` |
+### 3. Corrigir a validação em `DetalhesOSDialog.tsx`
+
+Trocar a comparação de:
+```typescript
+const empenhoInsuficiente = totalEmpenhado < valorOS;
+```
+Para:
+```typescript
+const saldoEmpenhado = saldoOrcamento?.saldo_empenhado ?? 0;
+const empenhoInsuficiente = saldoEmpenhado < valorOS;
+```
+
+Atualizar também os textos exibidos para mostrar "Saldo empenhado disponível" em vez do total bruto.
+
+### 4. Criar trigger de validação no banco (segurança adicional)
+
+Criar uma função `check_os_empenho_limit()` que valida no banco se o saldo empenhado disponível é suficiente antes de permitir a transição para `execucao`. Isso garante proteção contra race conditions, mesmo que o frontend seja burlado.
+
+### Arquivos Afetados
+
+- **Migration SQL**: Recriar a view com `saldo_empenhado`; criar trigger de validação
+- `src/hooks/useSaldoOrcamentario.ts`: Adicionar campo `saldo_empenhado`
+- `src/components/os/DetalhesOSDialog.tsx`: Usar `saldo_empenhado` na validação e exibição
+- `src/components/dashboard/DashboardOrcamento.tsx`: Exibir saldo empenhado disponível (opcional)
 
