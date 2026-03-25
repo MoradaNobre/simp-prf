@@ -1399,7 +1399,8 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
                           <AlertTriangle className="h-4 w-4" /> Autorização Bloqueada — Empenho Insuficiente
                         </p>
                         <p className="text-xs text-foreground mt-1">
-                          O valor empenhado ({totalEmpenhado.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}) é inferior ao orçamento desta OS ({valorOS.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}).
+                          O saldo empenhado disponível ({saldoEmpenhado.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}) é inferior ao orçamento desta OS ({valorOS.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}).
+                          Total empenhado: {totalEmpenhado.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} | Consumido por outras OS: {(saldoOrcamento?.total_consumo_os ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}.
                           {creditoNaoEmpenhado > 0 
                             ? ` Há crédito não empenhado de ${creditoNaoEmpenhado.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} disponível. Solicite o reforço do empenho junto à área financeira antes de autorizar.`
                             : " Solicite crédito suplementar e o respectivo empenho para prosseguir."
