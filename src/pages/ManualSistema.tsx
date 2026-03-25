@@ -339,14 +339,28 @@ const SECTIONS: ManualSection[] = [
       },
       {
         title: "Evidências e Documentação",
-        description: "Sistema de upload de evidências fotográficas e assinatura digital.",
+        description: "Sistema de upload de evidências fotográficas, planilhas e assinatura digital.",
         details: [
            "Foto Antes: Registrada na abertura ou orçamento",
           "Foto Depois: Registrada no recebimento do serviço, comparação visual",
-          "Arquivo de Orçamento: PDF ou imagem do orçamento da empresa",
+          "Arquivo de Orçamento: PDF, imagem ou planilha XLS/XLSX do orçamento da empresa",
           "Assinatura Digital: Capturada no recebimento do serviço pelo fiscal",
           "Documentos de Pagamento: Notas fiscais e comprovantes",
+          "Planilhas de orçamento (original e revisão) acessíveis no fluxo da OS",
         ],
+      },
+      {
+        title: "Revisão Orçamentária",
+        description: "Possibilidade de solicitar revisão do valor durante a execução da OS.",
+        details: [
+          "Disponível apenas para OS em status 'Execução'",
+          "Upload de planilha XLS/XLSX é OBRIGATÓRIO para justificar a revisão",
+          "Enquanto houver revisão pendente, a OS exibe badge 'Revisão Pendente' e o fluxo é bloqueado",
+          "A aprovação valida o saldo empenhado antes de atualizar o valor",
+          "Gestores e fiscais podem aprovar ou recusar com justificativa",
+        ],
+        roles: ["Gestor Master", "Gestor Nacional", "Gestor Regional", "Fiscal de Contrato", "Auxiliar de Fiscal"],
+        tip: "O fluxo da OS fica bloqueado até que a revisão seja aprovada ou recusada. Não é possível avançar o status enquanto houver pendência.",
       },
       {
         title: "Descrição Detalhada",
