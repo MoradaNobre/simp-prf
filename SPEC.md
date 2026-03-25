@@ -740,10 +740,10 @@ Saldo = (Valor Total + Σ Aditivos) - Σ Orçamentos de OS em Execução+
 
 - Card por regional com:
   - Cota Total (valor base + créditos - reduções)
-  - Custos OS
-  - Empenhos Manuais
-  - Total Consumido
-  - Saldo
+  - Consumo OS (soma do valor_orcamento das OS em execução+)
+  - Empenhos (total empenhado)
+  - Saldo Empenhado (empenhos − consumo OS, em amarelo/vermelho)
+  - Saldo Cota (cota total − consumo OS, em verde/vermelho)
   - Barra de progresso (% consumido)
 - **Créditos:** Tipos: Cota Inicial, Suplementação, Redução
 - **Empenhos:** Registro manual de empenhos com número e descrição
