@@ -139,10 +139,10 @@ export default function GestaoOrcamento() {
       const totalEmpenhos = emps.reduce((s: number, e: any) => s + Number(e.valor), 0);
       const osRegional = (consumoOS || []).filter((os: any) => os.regional_id === orc.regional_id);
       const totalCustosOS = osRegional.reduce((s: number, os: any) => s + Number(os.valor_orcamento || 0), 0);
-      const totalConsumido = totalCustosOS;
-      const saldo = dotacaoTotal - totalConsumido;
-      const percentual = dotacaoTotal > 0 ? (totalConsumido / dotacaoTotal) * 100 : 0;
-      return { ...orc, creditosList: creds, dotacaoTotal, totalEmpenhos, totalCustosOS, totalConsumido, saldo, percentual, empenhosList: emps };
+      const saldoEmpenhado = Math.max(totalEmpenhos - totalCustosOS, 0);
+      const saldo = dotacaoTotal - totalCustosOS;
+      const percentual = dotacaoTotal > 0 ? (totalCustosOS / dotacaoTotal) * 100 : 0;
+      return { ...orc, creditosList: creds, dotacaoTotal, totalEmpenhos, totalCustosOS, saldoEmpenhado, saldo, percentual, empenhosList: emps };
     });
   }, [orcamentos, creditos, empenhos, consumoOS]);
 
