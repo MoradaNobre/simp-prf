@@ -21,6 +21,8 @@ export function QRCodeDialog({ open, onOpenChange, uop, delegaciaNome, regionalS
   const url = uop ? `${BASE_URL}/chamado/novo?uop=${uop.id}` : "";
   const isAC = uop?.tipo_equipamento === "ar_condicionado";
 
+  const footerText = "Ao escanear este QR Code, o usuário poderá abrir um chamado de manutenção, que será automaticamente encaminhado ao setor responsável.";
+
   const handleDownload = useCallback(() => {
     if (!qrRef.current || !uop) return;
     const svg = qrRef.current.querySelector("svg");
@@ -34,39 +36,105 @@ export function QRCodeDialog({ open, onOpenChange, uop, delegaciaNome, regionalS
     const img = new Image();
     img.onload = () => {
       const padding = 40;
-      const textHeight = 100;
-      canvas.width = img.width + padding * 2;
-      canvas.height = img.height + padding * 2 + textHeight;
+      const qrWidth = img.width;
+      const headerHeight = 36;
+      const dataHeight = 90;
+      const footerHeight = 60;
+      canvas.width = qrWidth + padding * 2;
+      canvas.height = headerHeight + qrWidth + dataHeight + footerHeight + padding * 2;
 
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, padding, padding);
 
+      // Header: MANUTENÇÃO spanning QR width
+      const headerY = padding;
       ctx.fillStyle = "#000000";
-      ctx.font = "bold 14px sans-serif";
+      ctx.font = "bold 22px sans-serif";
       ctx.textAlign = "center";
       const cx = canvas.width / 2;
-      ctx.fillText(uop.nome, cx, img.height + padding + 20);
+      // Scale font to fit QR width
+      let fontSize = 22;
+      while (ctx.measureText("MANUTENÇÃO").width > qrWidth && fontSize > 10) {
+        fontSize--;
+        ctx.font = `bold ${fontSize}px sans-serif`;
+      }
+      ctx.fillText("MANUTENÇÃO", cx, headerY + fontSize);
+
+      // QR Code
+      const qrY = headerY + headerHeight;
+      ctx.drawImage(img, padding, qrY);
+
+      // Asset data below QR
+      let dy = qrY + qrWidth + 18;
+      ctx.fillStyle = "#000000";
+      ctx.font = "bold 13px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(uop.nome, cx, dy);
+      dy += 16;
 
       if (delegaciaNome) {
         ctx.font = "12px sans-serif";
-        ctx.fillText(delegaciaNome, cx, img.height + padding + 38);
+        ctx.fillText(delegaciaNome, cx, dy);
+        dy += 14;
       }
       if (uop.endereco) {
         ctx.font = "11px sans-serif";
         ctx.fillStyle = "#666666";
-        ctx.fillText(uop.endereco.slice(0, 60), cx, img.height + padding + 54);
+        ctx.fillText(uop.endereco.slice(0, 60), cx, dy);
+        dy += 14;
       }
       if (isAC && (uop.tombamento || uop.numero_serie)) {
         ctx.font = "10px sans-serif";
         ctx.fillStyle = "#333333";
         const info = [uop.tombamento && `Tomb: ${uop.tombamento}`, uop.numero_serie && `S/N: ${uop.numero_serie}`].filter(Boolean).join(" | ");
-        ctx.fillText(info, cx, img.height + padding + 70);
+        ctx.fillText(info, cx, dy);
+        dy += 14;
       }
 
-      ctx.font = "10px sans-serif";
-      ctx.fillStyle = "#0066cc";
-      ctx.fillText("Escaneie para abrir chamado de manutenção", cx, img.height + padding + 88);
+      // Footer: justified text
+      dy += 8;
+      ctx.fillStyle = "#333333";
+      ctx.font = "9px sans-serif";
+      ctx.textAlign = "left";
+      const maxW = qrWidth;
+      const words = footerText.split(" ");
+      const lines: string[] = [];
+      let currentLine = "";
+      for (const word of words) {
+        const test = currentLine ? `${currentLine} ${word}` : word;
+        if (ctx.measureText(test).width > maxW) {
+          lines.push(currentLine);
+          currentLine = word;
+        } else {
+          currentLine = test;
+        }
+      }
+      if (currentLine) lines.push(currentLine);
+
+      const lineHeight = 12;
+      const startX = padding;
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const ly = dy + i * lineHeight;
+        // Justify all lines except the last
+        if (i < lines.length - 1) {
+          const wordsInLine = line.split(" ");
+          if (wordsInLine.length <= 1) {
+            ctx.fillText(line, startX, ly);
+          } else {
+            const totalTextWidth = wordsInLine.reduce((acc, w) => acc + ctx.measureText(w).width, 0);
+            const totalSpacing = maxW - totalTextWidth;
+            const spaceWidth = totalSpacing / (wordsInLine.length - 1);
+            let x = startX;
+            for (const w of wordsInLine) {
+              ctx.fillText(w, x, ly);
+              x += ctx.measureText(w).width + spaceWidth;
+            }
+          }
+        } else {
+          ctx.fillText(line, startX, ly);
+        }
+      }
 
       const link = document.createElement("a");
       link.download = `qrcode-${uop.nome.replace(/\s+/g, "_")}.png`;
