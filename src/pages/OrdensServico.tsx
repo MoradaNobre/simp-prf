@@ -137,6 +137,10 @@ export default function OrdensServico() {
     regionalId: effectiveRegionalId,
   });
 
+  // Check which OS in execução have pending budget revisions
+  const execucaoOsIds = useMemo(() => (ordensRaw || []).filter(os => os.status === "execucao").map(os => os.id), [ordensRaw]);
+  const { data: osComRevisaoPendente } = useOsComRevisaoPendente(execucaoOsIds);
+
   // Client-side date filter + sort
   const ordens = useMemo(() => {
     let filtered = ordensRaw?.filter((os) => {
