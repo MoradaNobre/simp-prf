@@ -1167,8 +1167,8 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
                             </p>
                           </div>
                           <div>
-                            <span className="text-muted-foreground text-xs">Empenhado</span>
-                            <p>{(saldoOrcamento?.total_empenhos ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
+                            <span className="text-muted-foreground text-xs">Saldo Empenhado</span>
+                            <p className={empenhoInsuficiente ? "text-destructive font-medium" : ""}>{saldoEmpenhado.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
                           </div>
                           <div>
                             <span className="text-muted-foreground text-xs">Não empenhado</span>
