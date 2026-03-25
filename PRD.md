@@ -2,8 +2,8 @@
 
 ## SIMP-PRF – Sistema Integrado de Manutenção Predial
 
-**Versão:** 1.8  
-**Data:** 24/03/2026  
+**Versão:** 1.9  
+**Data:** 25/03/2026  
 **Classificação:** Documento Institucional
 
 ---
