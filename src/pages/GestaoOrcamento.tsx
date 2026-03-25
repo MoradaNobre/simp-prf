@@ -144,7 +144,7 @@ export default function GestaoOrcamento() {
       const percentual = dotacaoTotal > 0 ? (totalConsumido / dotacaoTotal) * 100 : 0;
       return { ...orc, creditosList: creds, dotacaoTotal, totalEmpenhos, totalCustosOS, totalConsumido, saldo, percentual, empenhosList: emps };
     });
-  }, [orcamentos, creditos, empenhos, custosOS]);
+  }, [orcamentos, creditos, empenhos, consumoOS]);
 
   const consolidadoFiltrado = useMemo(() => {
     if (filtroRegional === "todas") return consolidado;
