@@ -266,6 +266,30 @@ export function NovoAtivoDialog({ open, onOpenChange }: NovoAtivoDialogProps) {
               <Label>Endereço</Label>
               <Input value={uopEndereco} onChange={(e) => setUopEndereco(e.target.value)} placeholder="Endereço (opcional)" />
             </div>
+            <div className="space-y-2">
+              <Label>Tipo de Equipamento</Label>
+              <Select value={uopTipoEquip} onValueChange={setUopTipoEquip}>
+                <SelectTrigger><SelectValue placeholder="Selecione (opcional)" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ar_condicionado">Ar Condicionado</SelectItem>
+                  <SelectItem value="elevador">Elevador</SelectItem>
+                  <SelectItem value="usina_solar">Usina Solar</SelectItem>
+                  <SelectItem value="outro">Outro</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {uopTipoEquip === "ar_condicionado" && (
+              <>
+                <div className="space-y-2">
+                  <Label>Tombamento</Label>
+                  <Input value={uopTombamento} onChange={(e) => setUopTombamento(e.target.value)} placeholder="Nº de tombamento do patrimônio" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Número de Série</Label>
+                  <Input value={uopNumeroSerie} onChange={(e) => setUopNumeroSerie(e.target.value)} placeholder="Nº de série do equipamento" />
+                </div>
+              </>
+            )}
             <Button className="w-full" onClick={handleSaveUop} disabled={saving}>
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Cadastrar UOP
             </Button>
