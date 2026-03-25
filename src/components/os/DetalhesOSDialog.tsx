@@ -35,6 +35,7 @@ import { OSAgendamentosTab } from "@/components/os/OSAgendamentosTab";
 import { OSHistoricoTimeline } from "@/components/os/OSHistoricoTimeline";
 import { useSolicitacoesPrazo, useCreateSolicitacaoPrazo, useRespondSolicitacaoPrazo } from "@/hooks/useSolicitacoesPrazo";
 import { OSRevisaoOrcamento } from "@/components/os/OSRevisaoOrcamento";
+import { OSRevisaoAnexos } from "@/components/os/OSRevisaoAnexos";
 
 const statusLabels: Record<string, string> = {
   aberta: "Aberta", orcamento: "Orçamento", autorizacao: "Aguardando Autorização",
@@ -850,6 +851,8 @@ function PaymentDocLinks({ paths }: { paths: string[] }) {
             );
           })()}
 
+          {/* Revisão Orçamentária — Anexos visíveis em todas as fases */}
+          <OSRevisaoAnexos osId={os.id} />
 
           {/* Execution report link */}
           {signedRelatorioExecucao && (
